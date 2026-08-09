@@ -5,7 +5,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Profile — Zinko</title>
-  <link rel="stylesheet" href="style.css">  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head><body>
 <div class="app">  <header class="top">
     <div class="wordmark"><span>Z</span>Profile</div>
     <a href="settings.html">⚙</a>
@@ -82,13 +84,36 @@
 </section>
 
 <div class="profile-tabs">
-  <button type="button">Posts</button>
-  <button type="button">Videos</button>
-  <button type="button">Likes</button>
+
+  <button
+    id="postsTab"
+    class="active"
+    type="button"
+  >
+    Posts
+  </button>
+
+  <button
+    id="videosTab"
+    type="button"
+  >
+    Videos
+  </button>
+
+  <button
+    id="likesTab"
+    type="button"
+  >
+    Likes
+  </button>
+
 </div>
 
-<div class="empty">
-  Your content will appear here.
+<div
+  id="profileContent"
+  class="empty"
+>
+  Your posts will appear here.
 </div>
 
   </main>  <nav class="nav">
@@ -99,211 +124,264 @@
     <a class="active" href="profile.html">●<small>Profile</small></a>
   </nav></div><script>
 
-  const SUPABASE_URL =
-    "https://ggqhwoyzuypryocrxiru.supabase.co";
+const SUPABASE_URL =
+  "https://ggqhwoyzuypryocrxiru.supabase.co";
 
-  const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
 
-  const supabaseClient =
-    window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY
-    );
-
-
-  const editButton =
-    document.getElementById("editProfileButton");
-
-  const editPanel =
-    document.getElementById("editPanel");
-
-  const saveButton =
-    document.getElementById("saveProfile");
-
-  const cancelButton =
-    document.getElementById("cancelEdit");
-
-  const profileMessage =
-    document.getElementById("profileMessage");
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
 
 
-  let currentUser = null;
+const editButton =
+  document.getElementById("editProfileButton");
+
+const editPanel =
+  document.getElementById("editPanel");
+
+const saveButton =
+  document.getElementById("saveProfile");
+
+const cancelButton =
+  document.getElementById("cancelEdit");
+
+const profileMessage =
+  document.getElementById("profileMessage");
+
+const postsTab =
+  document.getElementById("postsTab");
+
+const videosTab =
+  document.getElementById("videosTab");
+
+const likesTab =
+  document.getElementById("likesTab");
+
+const profileContent =
+  document.getElementById("profileContent");
 
 
-  async function loadProfile() {
-
-    const { data, error } =
-      await supabaseClient.auth.getUser();
-
-    if (error || !data.user) {
-
-      window.location.href = "login.html";
-
-      return;
-    }
-
-    currentUser = data.user;
-
-    const metadata =
-      currentUser.user_metadata || {};
-
-    const name =
-      metadata.full_name || "Zinko User";
-
-    const username =
-      metadata.username || "username";
-
-    const country =
-      metadata.country || "";
-
-    const bio =
-      metadata.bio ||
-      "Welcome to my Zinko world. 🌍";
+let currentUser = null;
 
 
-    document.getElementById("profileName")
-      .textContent = name;
+async function loadProfile() {
 
-    document.getElementById("profileHandle")
-      .textContent =
-      "@" + username + " · Creator";
+  const { data, error } =
+    await supabaseClient.auth.getUser();
 
-    document.getElementById("profileBio")
-      .textContent = bio;
+  if (error || !data.user) {
 
-    document.getElementById("profileAvatar")
-      .textContent =
-      name.charAt(0).toUpperCase();
+    window.location.href = "login.html";
+
+    return;
+  }
+
+  currentUser = data.user;
+
+  const metadata =
+    currentUser.user_metadata || {};
+
+  const name =
+    metadata.full_name || "Zinko User";
+
+  const username =
+    metadata.username || "username";
+
+  const country =
+    metadata.country || "";
+
+  const bio =
+    metadata.bio ||
+    "Welcome to my Zinko world. 🌍";
 
 
+  document.getElementById("profileName")
+    .textContent = name;
+
+  document.getElementById("profileHandle")
+    .textContent =
+    "@" + username + " · Creator";
+
+  document.getElementById("profileBio")
+    .textContent = bio;
+
+  document.getElementById("profileAvatar")
+    .textContent =
+    name.charAt(0).toUpperCase();
+
+
+  document.getElementById("editName")
+    .value = name;
+
+  document.getElementById("editUsername")
+    .value = username;
+
+  document.getElementById("editCountry")
+    .value = country;
+
+  document.getElementById("editBio")
+    .value = bio;
+}
+
+
+editButton.addEventListener("click", () => {
+
+  editPanel.style.display = "block";
+
+  editButton.style.display = "none";
+
+});
+
+
+cancelButton.addEventListener("click", () => {
+
+  editPanel.style.display = "none";
+
+  editButton.style.display = "inline-block";
+
+  profileMessage.textContent = "";
+
+});
+
+
+saveButton.addEventListener("click", async () => {
+
+  const name =
     document.getElementById("editName")
-      .value = name;
+      .value.trim();
 
+  const username =
     document.getElementById("editUsername")
-      .value = username;
+      .value.trim();
 
+  const country =
     document.getElementById("editCountry")
-      .value = country;
+      .value.trim();
 
+  const bio =
     document.getElementById("editBio")
-      .value = bio;
+      .value.trim();
+
+
+  if (!name || !username) {
+
+    profileMessage.textContent =
+      "Full name and username are required.";
+
+    return;
   }
 
 
-  editButton.addEventListener("click", () => {
+  saveButton.disabled = true;
 
-    editPanel.style.display = "block";
-
-    editButton.style.display = "none";
-
-  });
+  saveButton.textContent =
+    "Saving...";
 
 
-  cancelButton.addEventListener("click", () => {
+  const { error } =
+    await supabaseClient.auth.updateUser({
 
-    editPanel.style.display = "none";
+      data: {
 
-    editButton.style.display = "inline-block";
+        full_name: name,
 
-    profileMessage.textContent = "";
+        username: username,
 
-  });
+        country: country,
 
+        bio: bio
 
-  saveButton.addEventListener("click", async () => {
+      }
 
-    const name =
-      document.getElementById("editName")
-        .value.trim();
-
-    const username =
-      document.getElementById("editUsername")
-        .value.trim();
-
-    const country =
-      document.getElementById("editCountry")
-        .value.trim();
-
-    const bio =
-      document.getElementById("editBio")
-        .value.trim();
+    });
 
 
-    if (!name || !username) {
-
-      profileMessage.textContent =
-        "Full name and username are required.";
-
-      return;
-    }
-
-
-    saveButton.disabled = true;
-
-    saveButton.textContent =
-      "Saving...";
-
-
-    const { error } =
-      await supabaseClient.auth.updateUser({
-
-        data: {
-
-          full_name: name,
-
-          username: username,
-
-          country: country,
-
-          bio: bio
-
-        }
-
-      });
-
-
-    if (error) {
-
-      profileMessage.textContent =
-        error.message;
-
-      saveButton.disabled = false;
-
-      saveButton.textContent =
-        "Save Profile";
-
-      return;
-    }
-
+  if (error) {
 
     profileMessage.textContent =
-      "Profile updated successfully!";
-
-    document.getElementById("profileName")
-      .textContent = name;
-
-    document.getElementById("profileHandle")
-      .textContent =
-      "@" + username + " · Creator";
-
-    document.getElementById("profileBio")
-      .textContent = bio;
-
-    document.getElementById("profileAvatar")
-      .textContent =
-      name.charAt(0).toUpperCase();
-
+      error.message;
 
     saveButton.disabled = false;
 
     saveButton.textContent =
       "Save Profile";
 
-  });
+    return;
+  }
 
 
-  loadProfile();
+  profileMessage.textContent =
+    "Profile updated successfully!";
+
+
+  document.getElementById("profileName")
+    .textContent = name;
+
+  document.getElementById("profileHandle")
+    .textContent =
+    "@" + username + " · Creator";
+
+  document.getElementById("profileBio")
+    .textContent = bio;
+
+  document.getElementById("profileAvatar")
+    .textContent =
+    name.charAt(0).toUpperCase();
+
+
+  saveButton.disabled = false;
+
+  saveButton.textContent =
+    "Save Profile";
+
+});
+
+
+function activateTab(tab) {
+
+  postsTab.classList.remove("active");
+  videosTab.classList.remove("active");
+  likesTab.classList.remove("active");
+
+  tab.classList.add("active");
+}
+
+
+postsTab.addEventListener("click", () => {
+
+  activateTab(postsTab);
+
+  profileContent.textContent =
+    "Your posts will appear here.";
+
+});
+
+
+videosTab.addEventListener("click", () => {
+
+  activateTab(videosTab);
+
+  profileContent.textContent =
+    "Your videos will appear here.";
+
+});
+
+
+likesTab.addEventListener("click", () => {
+
+  activateTab(likesTab);
+
+  profileContent.textContent =
+    "Posts and videos you like will appear here.";
+
+});
+
+
+loadProfile();
 
 </script></body>
 </html>
