@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Log in — Zinko</title>
-  <link rel="stylesheet" href="style.css">  <!-- Supabase -->  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
+  <link rel="stylesheet" href="style.css">  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
 <main class="auth-page"><a class="back" href="index.html">← Zinko</a>
 
   <div class="auth-card"><div class="mini-brand">Z</div>
@@ -33,6 +33,14 @@
   type="button"
 >
   Log in
+</button>
+
+<button
+  id="resendButton"
+  class="btn glass full"
+  type="button"
+>
+  Resend verification email
 </button>
 
 <p id="message" class="center muted"></p>
@@ -68,6 +76,9 @@
   const loginButton =
     document.getElementById("loginButton");
 
+  const resendButton =
+    document.getElementById("resendButton");
+
   const message =
     document.getElementById("message");
 
@@ -96,8 +107,10 @@
 
     if (error) {
       message.textContent = error.message;
+
       loginButton.disabled = false;
       loginButton.textContent = "Log in";
+
       return;
     }
 
@@ -108,6 +121,45 @@
         window.location.href = "home.html";
       }, 800);
     }
+  });
+
+
+  resendButton.addEventListener("click", async () => {
+
+    const email =
+      document.getElementById("email").value.trim();
+
+    if (!email) {
+      message.textContent =
+        "Enter your email first.";
+      return;
+    }
+
+    resendButton.disabled = true;
+    resendButton.textContent = "Sending...";
+
+    const { error } =
+      await supabaseClient.auth.resend({
+        type: "signup",
+        email: email
+      });
+
+    if (error) {
+      message.textContent = error.message;
+
+      resendButton.disabled = false;
+      resendButton.textContent =
+        "Resend verification email";
+
+      return;
+    }
+
+    message.textContent =
+      "Verification email sent. Please check your inbox and spam folder.";
+
+    resendButton.disabled = false;
+    resendButton.textContent =
+      "Resend verification email";
   });
 </script></body>
 </html>
