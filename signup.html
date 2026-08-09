@@ -1,1 +1,188 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Create Account — Zinko</title><link rel="stylesheet" href="style.css"></head><body><main class="auth-page"><a class="back" href="index.html">← Zinko</a><div class="auth-card"><div class="mini-brand">Z</div><h2>Create your account</h2><p class="muted">Join the world of Zinko.</p><div class="avatar-upload">＋<span>Add profile photo</span></div><div class="form-grid"><input placeholder="Full name"><input placeholder="Username"><input placeholder="Email or phone"><input type="password" placeholder="Password"><input type="password" placeholder="Confirm password"><input type="date"><select><option>Choose country</option><option>Nigeria</option><option>Ghana</option><option>Kenya</option><option>United Kingdom</option><option>United States</option></select></div><label class="check"><input type="checkbox"> I agree to the Terms and Privacy Policy.</label><a class="btn primary full" href="verify.html">Create Account</a><div class="or">or</div><div class="two"><button class="btn glass">Continue with Google</button><button class="btn glass">Continue with Apple</button></div><p class="center muted">Already on Zinko? <a href="login.html">Log in</a></p></div></main></body></html>
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Create Account — Zinko</title>
+  <link rel="stylesheet" href="style.css">  <!-- Supabase -->  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
+<main class="auth-page"><a class="back" href="index.html">← Zinko</a>
+
+  <div class="auth-card"><div class="mini-brand">Z</div>
+
+<h2>Create your account</h2>
+<p class="muted">Join the world of Zinko.</p>
+
+<div class="avatar-upload">
+  ＋
+  <span>Add profile photo</span>
+</div>
+
+<div class="form-grid">
+
+  <input id="fullName" type="text" placeholder="Full name">
+
+  <input id="username" type="text" placeholder="Username">
+
+  <input id="email" type="email" placeholder="Email">
+
+  <input id="phone" type="tel" placeholder="Phone number">
+
+  <input id="password" type="password" placeholder="Password">
+
+  <input id="confirmPassword" type="password" placeholder="Confirm password">
+
+  <input id="dateOfBirth" type="date">
+
+  <select id="country">
+    <option value="">Choose country</option>
+    <option>Nigeria</option>
+    <option>Ghana</option>
+    <option>Kenya</option>
+    <option>United Kingdom</option>
+    <option>United States</option>
+  </select>
+
+</div>
+
+<label class="check">
+  <input id="terms" type="checkbox">
+  I agree to the Terms and Privacy Policy.
+</label>
+
+<button id="createAccount" class="btn primary full" type="button">
+  Create Account
+</button>
+
+<p id="message" class="center muted"></p>
+
+<div class="or">or</div>
+
+<div class="two">
+  <button class="btn glass" type="button" disabled>
+    Continue with Google
+  </button>
+
+  <button class="btn glass" type="button" disabled>
+    Continue with Apple
+  </button>
+</div>
+
+<p class="center muted">
+  Already on Zinko?
+  <a href="login.html">Log in</a>
+</p>
+
+  </div>
+</main><script>
+  const SUPABASE_URL = "https://ggqhwoyzuypryocrxiru.supabase.co";
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+  const createAccountButton =
+    document.getElementById("createAccount");
+
+  const message =
+    document.getElementById("message");
+
+  createAccountButton.addEventListener("click", async () => {
+
+    const fullName =
+      document.getElementById("fullName").value.trim();
+
+    const username =
+      document.getElementById("username").value.trim();
+
+    const email =
+      document.getElementById("email").value.trim();
+
+    const phone =
+      document.getElementById("phone").value.trim();
+
+    const password =
+      document.getElementById("password").value;
+
+    const confirmPassword =
+      document.getElementById("confirmPassword").value;
+
+    const dateOfBirth =
+      document.getElementById("dateOfBirth").value;
+
+    const country =
+      document.getElementById("country").value;
+
+    const terms =
+      document.getElementById("terms").checked;
+
+    if (!fullName || !username || !email || !password) {
+      message.textContent =
+        "Please fill in your full name, username, email and password.";
+      return;
+    }
+
+    if (password.length < 8) {
+      message.textContent =
+        "Your password must be at least 8 characters.";
+      return;
+    }
+
+    if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+      message.textContent =
+        "Your password must contain letters and numbers.";
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      message.textContent =
+        "The passwords do not match.";
+      return;
+    }
+
+    if (!terms) {
+      message.textContent =
+        "Please agree to the Terms and Privacy Policy.";
+      return;
+    }
+
+    createAccountButton.disabled = true;
+    createAccountButton.textContent = "Creating account...";
+
+    const { data, error } =
+      await supabaseClient.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            full_name: fullName,
+            username: username,
+            phone: phone,
+            date_of_birth: dateOfBirth,
+            country: country
+          }
+        }
+      });
+
+    if (error) {
+      message.textContent = error.message;
+      createAccountButton.disabled = false;
+      createAccountButton.textContent = "Create Account";
+      return;
+    }
+
+    if (data.user) {
+      message.textContent =
+        "Account created! Check your email to verify your Zinko account.";
+
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 2500);
+    }
+  });
+</script></body>
+</html>
