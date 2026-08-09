@@ -1,1 +1,113 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Log in — Zinko</title><link rel="stylesheet" href="style.css"></head><body><main class="auth-page"><a class="back" href="index.html">← Zinko</a><div class="auth-card"><div class="mini-brand">Z</div><h2>Welcome back</h2><p class="muted">Your world is waiting.</p><input placeholder="Email, phone or username"><input type="password" placeholder="Password"><a class="btn primary full" href="home.html">Log in</a><a class="forgot">Forgot password?</a><div class="or">or</div><button class="btn glass full">Continue with Google</button><button class="btn glass full">Continue with Apple</button></div></main></body></html>
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Log in — Zinko</title>
+  <link rel="stylesheet" href="style.css">  <!-- Supabase -->  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
+<main class="auth-page"><a class="back" href="index.html">← Zinko</a>
+
+  <div class="auth-card"><div class="mini-brand">Z</div>
+
+<h2>Welcome back</h2>
+<p class="muted">Your world is waiting.</p>
+
+<input
+  id="email"
+  type="email"
+  placeholder="Email"
+  autocomplete="email"
+>
+
+<input
+  id="password"
+  type="password"
+  placeholder="Password"
+  autocomplete="current-password"
+>
+
+<button
+  id="loginButton"
+  class="btn primary full"
+  type="button"
+>
+  Log in
+</button>
+
+<p id="message" class="center muted"></p>
+
+<a class="forgot" href="#">
+  Forgot password?
+</a>
+
+<div class="or">or</div>
+
+<button class="btn glass full" type="button" disabled>
+  Continue with Google
+</button>
+
+<button class="btn glass full" type="button" disabled>
+  Continue with Apple
+</button>
+
+  </div>
+</main><script>
+  const SUPABASE_URL =
+    "https://ggqhwoyzuypryocrxiru.supabase.co";
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
+
+  const supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+  const loginButton =
+    document.getElementById("loginButton");
+
+  const message =
+    document.getElementById("message");
+
+  loginButton.addEventListener("click", async () => {
+
+    const email =
+      document.getElementById("email").value.trim();
+
+    const password =
+      document.getElementById("password").value;
+
+    if (!email || !password) {
+      message.textContent =
+        "Please enter your email and password.";
+      return;
+    }
+
+    loginButton.disabled = true;
+    loginButton.textContent = "Logging in...";
+
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+    if (error) {
+      message.textContent = error.message;
+      loginButton.disabled = false;
+      loginButton.textContent = "Log in";
+      return;
+    }
+
+    if (data.user) {
+      message.textContent = "Login successful!";
+
+      setTimeout(() => {
+        window.location.href = "home.html";
+      }, 800);
+    }
+  });
+</script></body>
+</html>
