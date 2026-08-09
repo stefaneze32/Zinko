@@ -1,1 +1,512 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Zinko Home</title><link rel="stylesheet" href="style.css"></head><body><div class="app"><header class="top"><div class="wordmark"><span>Z</span>Zinko</div><div class="top-actions"><button>⌕</button><button>♡</button><button>✉</button></div></header><div class="stories"><div class="story add">＋<small>Your status</small></div><div class="story">M<small>Maya</small></div><div class="story">J<small>Jay</small></div><div class="story">A<small>Ada</small></div><div class="story">K<small>Kofi</small></div></div><main class="feed"><article class="post"><div class="post-head"><div class="avatar">M</div><div><b>Maya Rivers ✓</b><small>@mayarivers · 12m</small></div><button class="more">•••</button></div><p>Golden hour, good people, better memories. ✨</p><div class="media gradient-one"><span>YOUR VIDEO</span></div><div class="tags">#Travel #Zinko #GoodVibes</div><div class="engage"><button>♡ 4.8K</button><button>💬 326</button><button>↗ 92</button><button>🔖</button></div></article><article class="post"><div class="post-head"><div class="avatar blue">T</div><div><b>Tech With Tayo ✓</b><small>@tayo · 1h</small></div><button class="more">•••</button></div><p>Something exciting is coming to Zinko. 🚀</p><div class="media gradient-two"><span>SHORT VIDEO</span></div><div class="tags">#Tech #Creators</div><div class="engage"><button>♡ 2.1K</button><button>💬 118</button><button>↗ 44</button><button>🔖</button></div></article></main><nav class="nav"><a class="active" href="home.html">⌂<small>Home</small></a><a href="live.html">◉<small>Live</small></a><a href="discover.html">⌕<small>Discover</small></a><a href="messages.html">✉<small>Messages</small></a><a href="profile.html">●<small>Profile</small></a></nav></div></body></html>
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Zinko Home</title>  <link rel="stylesheet" href="style.css">  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><div class="app">  <header class="top"><div class="wordmark">
+  <span>Z</span>Zinko
+</div>
+
+<div class="top-actions">
+  <button type="button">⌕</button>
+  <button type="button">♡</button>
+  <button type="button">✉</button>
+</div>
+
+  </header>  <div class="stories"><div class="story add">
+  ＋
+  <small>Your status</small>
+</div>
+
+<div class="story">
+  M
+  <small>Maya</small>
+</div>
+
+<div class="story">
+  J
+  <small>Jay</small>
+</div>
+
+<div class="story">
+  A
+  <small>Ada</small>
+</div>
+
+<div class="story">
+  K
+  <small>Kofi</small>
+</div>
+
+  </div>  <main class="feed"><!-- CREATE POST -->
+
+<section class="post">
+
+  <div class="post-head">
+
+    <div
+      class="avatar"
+      id="currentAvatar"
+    >
+      Z
+    </div>
+
+    <div>
+      <b id="currentName">
+        Create a post
+      </b>
+
+      <small>
+        Share something with Zinko
+      </small>
+    </div>
+
+  </div>
+
+
+  <textarea
+    id="postContent"
+    rows="4"
+    placeholder="What's happening?"
+    style="width:100%; margin-top:15px; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:transparent; color:inherit; resize:vertical;"
+  ></textarea>
+
+
+  <div
+    style="display:flex; gap:10px; margin-top:12px; align-items:center;"
+  >
+
+    <button
+      id="createPostButton"
+      class="btn primary"
+      type="button"
+    >
+      Post
+    </button>
+
+    <span
+      id="postMessage"
+      class="muted"
+    ></span>
+
+  </div>
+
+</section>
+
+
+<!-- POSTS -->
+
+<section id="postsContainer">
+
+  <article class="post">
+
+    <div class="post-head">
+
+      <div class="avatar">
+        M
+      </div>
+
+      <div>
+        <b>Maya Rivers ✓</b>
+        <small>@mayarivers · 12m</small>
+      </div>
+
+      <button class="more" type="button">
+        •••
+      </button>
+
+    </div>
+
+    <p>
+      Golden hour, good people, better memories. ✨
+    </p>
+
+    <div class="media gradient-one">
+      <span>YOUR VIDEO</span>
+    </div>
+
+    <div class="tags">
+      #Travel #Zinko #GoodVibes
+    </div>
+
+    <div class="engage">
+
+      <button type="button">
+        ♡ 4.8K
+      </button>
+
+      <button type="button">
+        💬 326
+      </button>
+
+      <button type="button">
+        ↗ 92
+      </button>
+
+      <button type="button">
+        🔖
+      </button>
+
+    </div>
+
+  </article>
+
+
+  <article class="post">
+
+    <div class="post-head">
+
+      <div class="avatar blue">
+        T
+      </div>
+
+      <div>
+        <b>Tech With Tayo ✓</b>
+        <small>@tayo · 1h</small>
+      </div>
+
+      <button class="more" type="button">
+        •••
+      </button>
+
+    </div>
+
+    <p>
+      Something exciting is coming to Zinko. 🚀
+    </p>
+
+    <div class="media gradient-two">
+      <span>SHORT VIDEO</span>
+    </div>
+
+    <div class="tags">
+      #Tech #Creators
+    </div>
+
+    <div class="engage">
+
+      <button type="button">
+        ♡ 2.1K
+      </button>
+
+      <button type="button">
+        💬 118
+      </button>
+
+      <button type="button">
+        ↗ 44
+      </button>
+
+      <button type="button">
+        🔖
+      </button>
+
+    </div>
+
+  </article>
+
+</section>
+
+  </main>  <nav class="nav"><a
+  class="active"
+  href="home.html"
+>
+  ⌂
+  <small>Home</small>
+</a>
+
+<a href="live.html">
+  ◉
+  <small>Live</small>
+</a>
+
+<a href="discover.html">
+  ⌕
+  <small>Discover</small>
+</a>
+
+<a href="messages.html">
+  ✉
+  <small>Messages</small>
+</a>
+
+<a href="profile.html">
+  ●
+  <small>Profile</small>
+</a>
+
+  </nav></div><script>
+
+const SUPABASE_URL =
+  "https://ggqhwoyzuypryocrxiru.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
+
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+
+const postContent =
+  document.getElementById("postContent");
+
+const createPostButton =
+  document.getElementById("createPostButton");
+
+const postMessage =
+  document.getElementById("postMessage");
+
+const postsContainer =
+  document.getElementById("postsContainer");
+
+
+async function loadCurrentUser() {
+
+  const { data, error } =
+    await supabaseClient.auth.getUser();
+
+  if (error || !data.user) {
+
+    window.location.href =
+      "login.html";
+
+    return;
+  }
+
+
+  const metadata =
+    data.user.user_metadata || {};
+
+  const name =
+    metadata.full_name ||
+    "Zinko User";
+
+  document.getElementById(
+    "currentName"
+  ).textContent = name;
+
+  document.getElementById(
+    "currentAvatar"
+  ).textContent =
+    name.charAt(0).toUpperCase();
+
+}
+
+
+async function loadPosts() {
+
+  const { data, error } =
+    await supabaseClient
+      .from("posts")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
+
+
+  if (error) {
+
+    console.error(error);
+
+    return;
+  }
+
+
+  if (!data || data.length === 0) {
+    return;
+  }
+
+
+  data.forEach(post => {
+
+    addPostToPage(post);
+
+  });
+
+}
+
+
+function addPostToPage(post) {
+
+  const article =
+    document.createElement("article");
+
+  article.className = "post";
+
+
+  const time =
+    new Date(
+      post.created_at
+    ).toLocaleString();
+
+
+  article.innerHTML = `
+
+    <div class="post-head">
+
+      <div class="avatar">
+        Z
+      </div>
+
+      <div>
+        <b>Zinko User</b>
+        <small>@zinko · ${time}</small>
+      </div>
+
+    </div>
+
+    <p></p>
+
+    <div class="tags">
+      #Zinko
+    </div>
+
+    <div class="engage">
+
+      <button type="button">
+        ♡ 0
+      </button>
+
+      <button type="button">
+        💬 0
+      </button>
+
+      <button type="button">
+        ↗ 0
+      </button>
+
+      <button type="button">
+        🔖
+      </button>
+
+    </div>
+
+  `;
+
+
+  article
+    .querySelector("p")
+    .textContent =
+    post.content;
+
+
+  postsContainer.prepend(article);
+
+}
+
+
+createPostButton.addEventListener(
+  "click",
+  async () => {
+
+    const content =
+      postContent.value.trim();
+
+
+    if (!content) {
+
+      postMessage.textContent =
+        "Write something before posting.";
+
+      return;
+    }
+
+
+    createPostButton.disabled =
+      true;
+
+    createPostButton.textContent =
+      "Posting...";
+
+
+    const { data: userData } =
+      await supabaseClient
+        .auth
+        .getUser();
+
+
+    if (!userData.user) {
+
+      postMessage.textContent =
+        "Please log in again.";
+
+      createPostButton.disabled =
+        false;
+
+      createPostButton.textContent =
+        "Post";
+
+      return;
+    }
+
+
+    const { data, error } =
+      await supabaseClient
+        .from("posts")
+        .insert({
+
+          user_id:
+            userData.user.id,
+
+          content:
+            content
+
+        })
+        .select()
+        .single();
+
+
+    if (error) {
+
+      console.error(error);
+
+      postMessage.textContent =
+        error.message;
+
+      createPostButton.disabled =
+        false;
+
+      createPostButton.textContent =
+        "Post";
+
+      return;
+    }
+
+
+    postContent.value = "";
+
+    postMessage.textContent =
+      "Posted successfully!";
+
+
+    addPostToPage(data);
+
+
+    createPostButton.disabled =
+      false;
+
+    createPostButton.textContent =
+      "Post";
+
+
+    setTimeout(() => {
+
+      postMessage.textContent = "";
+
+    }, 2500);
+
+  }
+);
+
+
+loadCurrentUser();
+
+loadPosts();
+
+</script></body>
+</html>
