@@ -206,6 +206,61 @@
       text-align: center;
     }
 
+    .comments-section {
+      margin-top: 12px;
+    }
+
+    .comments-list {
+      margin-top: 8px;
+    }
+
+    .comment {
+      background: #0b1120;
+      border-radius: 12px;
+      padding: 9px 11px;
+      margin-top: 7px;
+    }
+
+    .comment-user {
+      font-size: 12px;
+      font-weight: bold;
+      color: #bfc7df;
+    }
+
+    .comment-text {
+      margin-top: 4px;
+      word-break: break-word;
+    }
+
+    .comment-input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #29314b;
+      background: #0b1120;
+      color: white;
+      outline: none;
+    }
+
+    .comment-input::placeholder {
+      color: #858da6;
+    }
+
+    .comment-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .comment-submit {
+      white-space: nowrap;
+    }
+
+    .comment-message {
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
     .nav {
       position: fixed;
       bottom: 0;
@@ -409,6 +464,7 @@ const supabaseClient =
     SUPABASE_PUBLISHABLE_KEY
   );
 
+
 const postText =
   document.getElementById("postText");
 
@@ -427,39 +483,49 @@ const postMessage =
 const postsContainer =
   document.getElementById("postsContainer");
 
+
 let selectedPhoto = null;
 
 
 /* PHOTO PREVIEW */
 
-photoInput.addEventListener("change", () => {
+photoInput.addEventListener(
+  "change",
+  () => {
 
-  const file = photoInput.files[0];
+    const file =
+      photoInput.files[0];
 
-  if (!file) {
-    selectedPhoto = null;
-    photoPreview.innerHTML = "";
-    return;
+    if (!file) {
+
+      selectedPhoto = null;
+      photoPreview.innerHTML = "";
+
+      return;
+    }
+
+    selectedPhoto = file;
+
+    const imageURL =
+      URL.createObjectURL(file);
+
+    photoPreview.innerHTML = `
+
+      <img
+        src="${imageURL}"
+        alt="Selected photo"
+        style="
+          width:100%;
+          max-height:400px;
+          object-fit:cover;
+          border-radius:14px;
+        "
+      >
+
+    `;
+
   }
-
-  selectedPhoto = file;
-
-  const imageURL =
-    URL.createObjectURL(file);
-
-  photoPreview.innerHTML = `
-    <img
-      src="${imageURL}"
-      alt="Selected photo"
-      style="
-        width:100%;
-        max-height:400px;
-        object-fit:cover;
-        border-radius:14px;
-      "
-    >
-  `;
-});
+);
 
 
 /* LOAD POSTS */
@@ -469,12 +535,17 @@ async function loadPosts() {
   const {
     data,
     error
-  } = await supabaseClient
-    .from("posts")
-    .select("*")
-    .order("created_at", {
-      ascending: false
-    });
+  } =
+    await supabaseClient
+      .from("posts")
+      .select("*")
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
+
 
   if (error) {
 
@@ -486,7 +557,9 @@ async function loadPosts() {
     return;
   }
 
+
   postsContainer.innerHTML = "";
+
 
   for (const post of data) {
 
@@ -495,26 +568,32 @@ async function loadPosts() {
 
     article.className = "post";
 
-    const {
-      count: likeCount,
-      error: likeError
-    } = await supabaseClient
-      .from("post_likes")
-      .select("*", {
-        count: "exact",
-        head: true
-      })
-      .eq("post_id", post.id);
 
-    if (likeError) {
-      console.error("Like count error:", likeError);
-    }
+    const {
+      count: likeCount
+    } =
+      await supabaseClient
+        .from("post_likes")
+        .select(
+          "*",
+          {
+            count: "exact",
+            head: true
+          }
+        )
+        .eq(
+          "post_id",
+          post.id
+        );
+
 
     let photoHTML = "";
+
 
     if (post.image_url) {
 
       photoHTML = `
+
         <img
           src="${post.image_url}"
           alt="Zinko post"
@@ -526,8 +605,11 @@ async function loadPosts() {
             object-fit:cover;
           "
         >
+
       `;
+
     }
+
 
     article.innerHTML = `
 
@@ -549,13 +631,16 @@ async function loadPosts() {
 
       </div>
 
+
       ${
         post.content
           ? `<p>${escapeHTML(post.content)}</p>`
           : ""
       }
 
+
       ${photoHTML}
+
 
       <div class="engage">
 
@@ -570,75 +655,131 @@ async function loadPosts() {
           </span>
         </button>
 
-        <button type="button">
+
+        <button
+          type="button"
+          class="comment-button"
+          data-post-id="${post.id}"
+        >
           💬
         </button>
+
 
         <button type="button">
           ↗
         </button>
+
 
         <button type="button">
           🔖
         </button>
 
       </div>
+
+
+      <div
+        class="comments-section"
+        data-comments-post-id="${post.id}"
+      >
+
+        <div class="comments-list"></div>
+
+        <div class="comment-row">
+
+          <input
+            type="text"
+            class="comment-input"
+            placeholder="Write a comment..."
+          >
+
+          <button
+            type="button"
+            class="btn primary comment-submit"
+            data-post-id="${post.id}"
+          >
+            Send
+          </button>
+
+        </div>
+
+        <div class="comment-message"></div>
+
+      </div>
+
     `;
 
+
     postsContainer.appendChild(article);
+
+
+    await loadComments(post.id, article);
+
   }
 
+
   await updateLikeStates();
+
 }
 
 
 /* LIKE */
 
-async function toggleLike(postId, button) {
-
-  console.log("LIKE CLICKED:", postId);
+async function toggleLike(
+  postId,
+  button
+) {
 
   const {
     data: userData,
     error: userError
-  } = await supabaseClient.auth.getUser();
+  } =
+    await supabaseClient.auth.getUser();
+
 
   if (userError) {
-
-    console.error("USER ERROR:", userError);
 
     alert(userError.message);
 
     return;
   }
 
-  if (!userData || !userData.user) {
 
-    alert("Please log in before liking a post.");
+  if (
+    !userData ||
+    !userData.user
+  ) {
+
+    alert(
+      "Please log in before liking a post."
+    );
 
     return;
   }
 
+
   const userId =
     userData.user.id;
-
-  console.log("USER ID:", userId);
 
 
   const {
     data: existingLike,
     error: checkError
-  } = await supabaseClient
-    .from("post_likes")
-    .select("id")
-    .eq("post_id", postId)
-    .eq("user_id", userId)
-    .maybeSingle();
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select("id")
+      .eq(
+        "post_id",
+        postId
+      )
+      .eq(
+        "user_id",
+        userId
+      )
+      .maybeSingle();
 
 
   if (checkError) {
-
-    console.error("CHECK LIKE ERROR:", checkError);
 
     alert(checkError.message);
 
@@ -649,44 +790,65 @@ async function toggleLike(postId, button) {
   if (existingLike) {
 
     const {
-      error: deleteError
-    } = await supabaseClient
-      .from("post_likes")
-      .delete()
-      .eq("id", existingLike.id);
+      error
+    } =
+      await supabaseClient
+        .from("post_likes")
+        .delete()
+        .eq(
+          "id",
+          existingLike.id
+        );
 
-    if (deleteError) {
 
-      console.error("DELETE LIKE ERROR:", deleteError);
+    if (error) {
 
-      alert(deleteError.message);
+      alert(error.message);
 
       return;
     }
 
-    button.classList.remove("liked");
+
+    button.classList.remove(
+      "liked"
+    );
+
+    button.querySelector(
+      ".heart-symbol"
+    ).textContent = "♡";
 
   } else {
 
     const {
-      error: insertError
-    } = await supabaseClient
-      .from("post_likes")
-      .insert({
-        post_id: postId,
-        user_id: userId
-      });
+      error
+    } =
+      await supabaseClient
+        .from("post_likes")
+        .insert({
 
-    if (insertError) {
+          post_id: postId,
 
-      console.error("INSERT LIKE ERROR:", insertError);
+          user_id: userId
 
-      alert(insertError.message);
+        });
+
+
+    if (error) {
+
+      alert(error.message);
 
       return;
     }
 
-    button.classList.add("liked");
+
+    button.classList.add(
+      "liked"
+    );
+
+    button.querySelector(
+      ".heart-symbol"
+    ).textContent = "♥";
+
   }
 
 
@@ -694,10 +856,11 @@ async function toggleLike(postId, button) {
     postId,
     button
   );
+
 }
 
 
-/* LIKE COUNT */
+/* UPDATE LIKE COUNT */
 
 async function refreshLikeCount(
   postId,
@@ -707,129 +870,382 @@ async function refreshLikeCount(
   const {
     count,
     error
-  } = await supabaseClient
-    .from("post_likes")
-    .select("*", {
-      count: "exact",
-      head: true
-    })
-    .eq("post_id", postId);
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select(
+        "*",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .eq(
+        "post_id",
+        postId
+      );
+
 
   if (error) {
 
-    console.error(
-      "REFRESH COUNT ERROR:",
-      error
-    );
+    console.error(error);
 
     return;
   }
 
+
   const countElement =
-    button.querySelector(".like-count");
+    button.querySelector(
+      ".like-count"
+    );
+
 
   countElement.textContent =
     count || 0;
+
 }
 
 
-/* CHECK LIKES */
+/* CHECK USER LIKES */
 
 async function updateLikeStates() {
 
   const {
     data: userData
-  } = await supabaseClient.auth.getUser();
+  } =
+    await supabaseClient.auth.getUser();
+
 
   if (
     !userData ||
     !userData.user
   ) {
+
     return;
   }
+
 
   const userId =
     userData.user.id;
 
+
   const {
-    data: likes,
-    error
-  } = await supabaseClient
-    .from("post_likes")
-    .select("post_id")
-    .eq("user_id", userId);
+    data: likes
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select("post_id")
+      .eq(
+        "user_id",
+        userId
+      );
 
-  if (error) {
 
-    console.error(
-      "USER LIKES ERROR:",
-      error
-    );
+  if (!likes) {
 
     return;
   }
 
+
   const likedPosts =
     new Set(
-      (likes || []).map(
+      likes.map(
         like => like.post_id
       )
     );
 
+
   document
-    .querySelectorAll(".like-button")
+    .querySelectorAll(
+      ".like-button"
+    )
     .forEach(button => {
 
       const postId =
         button.dataset.postId;
 
       const heart =
-        button.querySelector(".heart-symbol");
+        button.querySelector(
+          ".heart-symbol"
+        );
 
-      if (likedPosts.has(postId)) {
 
-        button.classList.add("liked");
+      if (
+        likedPosts.has(postId)
+      ) {
+
+        button.classList.add(
+          "liked"
+        );
 
         heart.textContent = "♥";
 
-      } else {
-
-        button.classList.remove("liked");
-
-        heart.textContent = "♡";
-
       }
+
     });
+
 }
 
 
-/* LIKE BUTTON */
+/* COMMENTS */
+
+async function loadComments(
+  postId,
+  article
+) {
+
+  const commentsList =
+    article.querySelector(
+      ".comments-list"
+    );
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("comments")
+      .select("*")
+      .eq(
+        "post_id",
+        postId
+      )
+      .order(
+        "created_at",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (error) {
+
+    console.error(error);
+
+    return;
+  }
+
+
+  commentsList.innerHTML = "";
+
+
+  for (const comment of data) {
+
+    const commentDiv =
+      document.createElement(
+        "div"
+      );
+
+    commentDiv.className =
+      "comment";
+
+
+    commentDiv.innerHTML = `
+
+      <div class="comment-user">
+        Zinko User
+      </div>
+
+      <div class="comment-text">
+        ${escapeHTML(comment.content)}
+      </div>
+
+    `;
+
+
+    commentsList.appendChild(
+      commentDiv
+    );
+
+  }
+
+}
+
+
+/* ADD COMMENT */
+
+async function addComment(
+  postId,
+  article
+) {
+
+  const input =
+    article.querySelector(
+      ".comment-input"
+    );
+
+  const message =
+    article.querySelector(
+      ".comment-message"
+    );
+
+
+  const text =
+    input.value.trim();
+
+
+  if (!text) {
+
+    message.textContent =
+      "Write a comment first.";
+
+    return;
+  }
+
+
+  const {
+    data: userData,
+    error: userError
+  } =
+    await supabaseClient.auth.getUser();
+
+
+  if (
+    userError ||
+    !userData.user
+  ) {
+
+    message.textContent =
+      "Please log in to comment.";
+
+    return;
+  }
+
+
+  const user =
+    userData.user;
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("comments")
+      .insert({
+
+        post_id: postId,
+
+        user_id: user.id,
+
+        content: text
+
+      });
+
+
+  if (error) {
+
+    console.error(error);
+
+    message.textContent =
+      error.message;
+
+    return;
+  }
+
+
+  input.value = "";
+
+  message.textContent =
+    "Comment added!";
+
+
+  await loadComments(
+    postId,
+    article
+  );
+
+
+  setTimeout(
+    () => {
+      message.textContent = "";
+    },
+    2000
+  );
+
+}
+
+
+/* LIKE AND COMMENT EVENTS */
 
 postsContainer.addEventListener(
   "click",
   async event => {
 
-    const button =
-      event.target.closest(".like-button");
+    const likeButton =
+      event.target.closest(
+        ".like-button"
+      );
 
-    if (!button) {
+
+    if (likeButton) {
+
+      const postId =
+        likeButton.dataset.postId;
+
+
+      await toggleLike(
+        postId,
+        likeButton
+      );
+
+
       return;
     }
 
-    event.preventDefault();
-    event.stopPropagation();
 
-    const postId =
-      button.dataset.postId;
+    const commentButton =
+      event.target.closest(
+        ".comment-button"
+      );
 
-    if (!postId) {
+
+    if (commentButton) {
+
+      const section =
+        commentButton
+          .closest(".post")
+          .querySelector(
+            ".comment-input"
+          );
+
+
+      if (section) {
+
+        section.focus();
+
+      }
+
+
       return;
     }
 
-    await toggleLike(
-      postId,
-      button
-    );
+
+    const commentSubmit =
+      event.target.closest(
+        ".comment-submit"
+      );
+
+
+    if (commentSubmit) {
+
+      const article =
+        commentSubmit.closest(
+          ".post"
+        );
+
+
+      const postId =
+        commentSubmit.dataset.postId;
+
+
+      await addComment(
+        postId,
+        article
+      );
+
+    }
+
   }
 );
 
@@ -843,6 +1259,7 @@ postButton.addEventListener(
     const text =
       postText.value.trim();
 
+
     if (
       !text &&
       !selectedPhoto
@@ -854,15 +1271,21 @@ postButton.addEventListener(
       return;
     }
 
+
     postButton.disabled = true;
-    postButton.textContent = "Posting...";
+
+    postButton.textContent =
+      "Posting...";
+
 
     try {
 
       const {
         data: userData,
         error: userError
-      } = await supabaseClient.auth.getUser();
+      } =
+        await supabaseClient.auth.getUser();
+
 
       if (
         userError ||
@@ -872,13 +1295,18 @@ postButton.addEventListener(
         throw new Error(
           "Please log in before creating a post."
         );
+
       }
+
 
       const user =
         userData.user;
 
+
       let imageURL = null;
 
+
+      /* UPLOAD PHOTO */
 
       if (selectedPhoto) {
 
@@ -887,61 +1315,89 @@ postButton.addEventListener(
             .split(".")
             .pop();
 
+
         const fileName =
           `${user.id}/${Date.now()}.${fileExtension}`;
 
+
         const {
           error: uploadError
-        } = await supabaseClient.storage
-          .from("post-media")
-          .upload(
-            fileName,
-            selectedPhoto,
-            {
-              cacheControl: "3600",
-              upsert: false
-            }
-          );
+        } =
+          await supabaseClient.storage
+            .from("post-media")
+            .upload(
+              fileName,
+              selectedPhoto,
+              {
+                cacheControl: "3600",
+                upsert: false
+              }
+            );
+
 
         if (uploadError) {
+
           throw uploadError;
+
         }
+
 
         const {
           data: publicURLData
-        } = supabaseClient.storage
-          .from("post-media")
-          .getPublicUrl(fileName);
+        } =
+          supabaseClient.storage
+            .from("post-media")
+            .getPublicUrl(
+              fileName
+            );
+
 
         imageURL =
           publicURLData.publicUrl;
+
       }
 
 
+      /* SAVE POST */
+
       const {
         error: insertError
-      } = await supabaseClient
-        .from("posts")
-        .insert({
-          user_id: user.id,
-          content: text,
-          image_url: imageURL
-        });
+      } =
+        await supabaseClient
+          .from("posts")
+          .insert({
+
+            user_id: user.id,
+
+            content: text,
+
+            image_url: imageURL
+
+          });
+
 
       if (insertError) {
+
         throw insertError;
+
       }
 
 
       postText.value = "";
+
       photoInput.value = "";
+
       selectedPhoto = null;
+
       photoPreview.innerHTML = "";
+
 
       postMessage.textContent =
         "Posted successfully! 🎉";
 
+
       await loadPosts();
+
 
     } catch (error) {
 
@@ -952,8 +1408,12 @@ postButton.addEventListener(
 
     }
 
+
     postButton.disabled = false;
-    postButton.textContent = "Post";
+
+    postButton.textContent =
+      "Post";
+
   }
 );
 
@@ -963,11 +1423,15 @@ postButton.addEventListener(
 function escapeHTML(text) {
 
   const div =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
-  div.textContent = text;
+  div.textContent =
+    text;
 
   return div.innerHTML;
+
 }
 
 
@@ -978,7 +1442,9 @@ function formatDate(dateString) {
   const date =
     new Date(dateString);
 
+
   return date.toLocaleString();
+
 }
 
 
