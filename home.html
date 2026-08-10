@@ -1,249 +1,147 @@
 <!doctype html>
-
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Zinko Home</title>  <link rel="stylesheet" href="style.css">  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><div class="app">  <header class="top"><div class="wordmark">
-  <span>Z</span>Zinko
+  <title>Zinko Home</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="top">
+  <div class="wordmark"><span>Z</span>Zinko</div>
+
+  <div class="top-actions">
+    <button type="button">⌕</button>
+    <button type="button">♡</button>
+    <button type="button">✉</button>
+  </div>
+</header>
+
+
+<div class="stories">
+  <div class="story add">＋<small>Your status</small></div>
+  <div class="story">M<small>Maya</small></div>
+  <div class="story">J<small>Jay</small></div>
+  <div class="story">A<small>Ada</small></div>
+  <div class="story">K<small>Kofi</small></div>
 </div>
 
-<div class="top-actions">
-  <button type="button">⌕</button>
-  <button type="button">♡</button>
-  <button type="button">✉</button>
-</div>
 
-  </header>  <div class="stories"><div class="story add">
-  ＋
-  <small>Your status</small>
-</div>
+<main class="feed">
 
-<div class="story">
-  M
-  <small>Maya</small>
-</div>
-
-<div class="story">
-  J
-  <small>Jay</small>
-</div>
-
-<div class="story">
-  A
-  <small>Ada</small>
-</div>
-
-<div class="story">
-  K
-  <small>Kofi</small>
-</div>
-
-  </div>  <main class="feed"><!-- CREATE POST -->
+<!-- CREATE POST -->
 
 <section class="post">
 
   <div class="post-head">
-
-    <div
-      class="avatar"
-      id="currentAvatar"
-    >
-      Z
-    </div>
+    <div class="avatar" id="myAvatar">S</div>
 
     <div>
-      <b id="currentName">
-        Create a post
-      </b>
-
-      <small>
-        Share something with Zinko
-      </small>
+      <b id="myName">Create a post</b>
+      <small>Share something with Zinko</small>
     </div>
-
   </div>
-
 
   <textarea
-    id="postContent"
-    rows="4"
+    id="postText"
     placeholder="What's happening?"
-    style="width:100%; margin-top:15px; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:transparent; color:inherit; resize:vertical;"
+    rows="4"
+    style="width:100%;margin-top:12px;padding:12px;border-radius:12px;border:1px solid #ddd;resize:none;"
   ></textarea>
 
+  <div style="margin-top:12px;">
 
-  <div
-    style="display:flex; gap:10px; margin-top:12px; align-items:center;"
-  >
-
-    <button
-      id="createPostButton"
-      class="btn primary"
-      type="button"
+    <label
+      for="photoInput"
+      class="btn glass"
+      style="display:inline-block;cursor:pointer;"
     >
-      Post
-    </button>
+      📷 Add Photo
+    </label>
 
-    <span
-      id="postMessage"
-      class="muted"
-    ></span>
+    <input
+      id="photoInput"
+      type="file"
+      accept="image/*"
+      style="display:none;"
+    >
 
   </div>
+
+  <div id="photoPreview" style="margin-top:12px;"></div>
+
+  <button
+    id="postButton"
+    class="btn primary full"
+    type="button"
+    style="margin-top:12px;"
+  >
+    Post
+  </button>
+
+  <p
+    id="postMessage"
+    class="center muted"
+    style="margin-top:8px;"
+  ></p>
 
 </section>
 
 
 <!-- POSTS -->
 
-<section id="postsContainer">
-
-  <article class="post">
-
-    <div class="post-head">
-
-      <div class="avatar">
-        M
-      </div>
-
-      <div>
-        <b>Maya Rivers ✓</b>
-        <small>@mayarivers · 12m</small>
-      </div>
-
-      <button class="more" type="button">
-        •••
-      </button>
-
-    </div>
-
-    <p>
-      Golden hour, good people, better memories. ✨
-    </p>
-
-    <div class="media gradient-one">
-      <span>YOUR VIDEO</span>
-    </div>
-
-    <div class="tags">
-      #Travel #Zinko #GoodVibes
-    </div>
-
-    <div class="engage">
-
-      <button type="button">
-        ♡ 4.8K
-      </button>
-
-      <button type="button">
-        💬 326
-      </button>
-
-      <button type="button">
-        ↗ 92
-      </button>
-
-      <button type="button">
-        🔖
-      </button>
-
-    </div>
-
-  </article>
+<div id="postsContainer"></div>
 
 
-  <article class="post">
+</main>
 
-    <div class="post-head">
 
-      <div class="avatar blue">
-        T
-      </div>
+<nav class="nav">
 
-      <div>
-        <b>Tech With Tayo ✓</b>
-        <small>@tayo · 1h</small>
-      </div>
+  <a class="active" href="home.html">
+    ⌂
+    <small>Home</small>
+  </a>
 
-      <button class="more" type="button">
-        •••
-      </button>
+  <a href="live.html">
+    ◉
+    <small>Live</small>
+  </a>
 
-    </div>
+  <a href="discover.html">
+    ⌕
+    <small>Discover</small>
+  </a>
 
-    <p>
-      Something exciting is coming to Zinko. 🚀
-    </p>
+  <a href="messages.html">
+    ✉
+    <small>Messages</small>
+  </a>
 
-    <div class="media gradient-two">
-      <span>SHORT VIDEO</span>
-    </div>
+  <a href="profile.html">
+    ●
+    <small>Profile</small>
+  </a>
 
-    <div class="tags">
-      #Tech #Creators
-    </div>
+</nav>
 
-    <div class="engage">
+</div>
 
-      <button type="button">
-        ♡ 2.1K
-      </button>
 
-      <button type="button">
-        💬 118
-      </button>
-
-      <button type="button">
-        ↗ 44
-      </button>
-
-      <button type="button">
-        🔖
-      </button>
-
-    </div>
-
-  </article>
-
-</section>
-
-  </main>  <nav class="nav"><a
-  class="active"
-  href="home.html"
->
-  ⌂
-  <small>Home</small>
-</a>
-
-<a href="live.html">
-  ◉
-  <small>Live</small>
-</a>
-
-<a href="discover.html">
-  ⌕
-  <small>Discover</small>
-</a>
-
-<a href="messages.html">
-  ✉
-  <small>Messages</small>
-</a>
-
-<a href="profile.html">
-  ●
-  <small>Profile</small>
-</a>
-
-  </nav></div><script>
+<script>
 
 const SUPABASE_URL =
   "https://ggqhwoyzuypryocrxiru.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
-
 
 const supabaseClient =
   window.supabase.createClient(
@@ -252,11 +150,17 @@ const supabaseClient =
   );
 
 
-const postContent =
-  document.getElementById("postContent");
+const postText =
+  document.getElementById("postText");
 
-const createPostButton =
-  document.getElementById("createPostButton");
+const photoInput =
+  document.getElementById("photoInput");
+
+const photoPreview =
+  document.getElementById("photoPreview");
+
+const postButton =
+  document.getElementById("postButton");
 
 const postMessage =
   document.getElementById("postMessage");
@@ -265,38 +169,43 @@ const postsContainer =
   document.getElementById("postsContainer");
 
 
-async function loadCurrentUser() {
+let selectedPhoto = null;
 
-  const { data, error } =
-    await supabaseClient.auth.getUser();
 
-  if (error || !data.user) {
+/* PHOTO PREVIEW */
 
-    window.location.href =
-      "login.html";
+photoInput.addEventListener("change", () => {
 
+  const file = photoInput.files[0];
+
+  if (!file) {
+    selectedPhoto = null;
+    photoPreview.innerHTML = "";
     return;
   }
 
+  selectedPhoto = file;
 
-  const metadata =
-    data.user.user_metadata || {};
+  const imageURL =
+    URL.createObjectURL(file);
 
-  const name =
-    metadata.full_name ||
-    "Zinko User";
+  photoPreview.innerHTML = `
+    <img
+      src="${imageURL}"
+      alt="Selected photo"
+      style="
+        width:100%;
+        max-height:400px;
+        object-fit:cover;
+        border-radius:14px;
+      "
+    >
+  `;
 
-  document.getElementById(
-    "currentName"
-  ).textContent = name;
+});
 
-  document.getElementById(
-    "currentAvatar"
-  ).textContent =
-    name.charAt(0).toUpperCase();
 
-}
-
+/* LOAD POSTS */
 
 async function loadPosts() {
 
@@ -308,205 +217,281 @@ async function loadPosts() {
         ascending: false
       });
 
-
   if (error) {
 
     console.error(error);
 
+    postsContainer.innerHTML =
+      "<p>Unable to load posts.</p>";
+
     return;
   }
 
 
-  if (!data || data.length === 0) {
-    return;
-  }
+  postsContainer.innerHTML = "";
 
 
   data.forEach(post => {
 
-    addPostToPage(post);
+    const article =
+      document.createElement("article");
+
+    article.className = "post";
+
+
+    let photoHTML = "";
+
+    if (post.image_url) {
+
+      photoHTML = `
+        <img
+          src="${post.image_url}"
+          alt="Zinko post"
+          style="
+            width:100%;
+            border-radius:14px;
+            margin-top:12px;
+            max-height:500px;
+            object-fit:cover;
+          "
+        >
+      `;
+
+    }
+
+
+    article.innerHTML = `
+
+      <div class="post-head">
+
+        <div class="avatar">
+          Z
+        </div>
+
+        <div>
+          <b>Zinko User</b>
+          <small>
+            Just now
+          </small>
+        </div>
+
+      </div>
+
+      ${
+        post.content
+          ? `<p>${escapeHTML(post.content)}</p>`
+          : ""
+      }
+
+      ${photoHTML}
+
+      <div class="engage">
+
+        <button type="button">
+          ♡
+        </button>
+
+        <button type="button">
+          💬
+        </button>
+
+        <button type="button">
+          ↗
+        </button>
+
+        <button type="button">
+          🔖
+        </button>
+
+      </div>
+
+    `;
+
+
+    postsContainer.appendChild(article);
 
   });
 
 }
 
 
-function addPostToPage(post) {
+/* CREATE POST */
 
-  const article =
-    document.createElement("article");
+postButton.addEventListener("click", async () => {
 
-  article.className = "post";
-
-
-  const time =
-    new Date(
-      post.created_at
-    ).toLocaleString();
+  const text =
+    postText.value.trim();
 
 
-  article.innerHTML = `
+  if (!text && !selectedPhoto) {
 
-    <div class="post-head">
+    postMessage.textContent =
+      "Write something or add a photo.";
 
-      <div class="avatar">
-        Z
-      </div>
+    return;
 
-      <div>
-        <b>Zinko User</b>
-        <small>@zinko · ${time}</small>
-      </div>
-
-    </div>
-
-    <p></p>
-
-    <div class="tags">
-      #Zinko
-    </div>
-
-    <div class="engage">
-
-      <button type="button">
-        ♡ 0
-      </button>
-
-      <button type="button">
-        💬 0
-      </button>
-
-      <button type="button">
-        ↗ 0
-      </button>
-
-      <button type="button">
-        🔖
-      </button>
-
-    </div>
-
-  `;
+  }
 
 
-  article
-    .querySelector("p")
-    .textContent =
-    post.content;
+  postButton.disabled = true;
+
+  postButton.textContent =
+    "Posting...";
 
 
-  postsContainer.prepend(article);
+  try {
 
-}
-
-
-createPostButton.addEventListener(
-  "click",
-  async () => {
-
-    const content =
-      postContent.value.trim();
+    const {
+      data: userData,
+      error: userError
+    } =
+      await supabaseClient.auth.getUser();
 
 
-    if (!content) {
+    if (userError || !userData.user) {
 
-      postMessage.textContent =
-        "Write something before posting.";
+      throw new Error(
+        "Please log in before creating a post."
+      );
 
-      return;
     }
 
 
-    createPostButton.disabled =
-      true;
-
-    createPostButton.textContent =
-      "Posting...";
+    const user =
+      userData.user;
 
 
-    const { data: userData } =
-      await supabaseClient
-        .auth
-        .getUser();
+    let imageURL = null;
 
 
-    if (!userData.user) {
+    /* UPLOAD PHOTO */
 
-      postMessage.textContent =
-        "Please log in again.";
+    if (selectedPhoto) {
 
-      createPostButton.disabled =
-        false;
+      const fileExtension =
+        selectedPhoto.name
+          .split(".")
+          .pop();
 
-      createPostButton.textContent =
-        "Post";
 
-      return;
+      const fileName =
+        `${user.id}/${Date.now()}.${fileExtension}`;
+
+
+      const {
+        error: uploadError
+      } =
+        await supabaseClient.storage
+          .from("post-media")
+          .upload(
+            fileName,
+            selectedPhoto,
+            {
+              cacheControl: "3600",
+              upsert: false
+            }
+          );
+
+
+      if (uploadError) {
+
+        throw uploadError;
+
+      }
+
+
+      const {
+        data: publicURLData
+      } =
+        supabaseClient.storage
+          .from("post-media")
+          .getPublicUrl(fileName);
+
+
+      imageURL =
+        publicURLData.publicUrl;
+
     }
 
 
-    const { data, error } =
+    /* SAVE POST */
+
+    const {
+      error: insertError
+    } =
       await supabaseClient
         .from("posts")
         .insert({
 
-          user_id:
-            userData.user.id,
+          user_id: user.id,
 
-          content:
-            content
+          content: text,
 
-        })
-        .select()
-        .single();
+          image_url: imageURL
+
+        });
 
 
-    if (error) {
+    if (insertError) {
 
-      console.error(error);
+      throw insertError;
 
-      postMessage.textContent =
-        error.message;
-
-      createPostButton.disabled =
-        false;
-
-      createPostButton.textContent =
-        "Post";
-
-      return;
     }
 
 
-    postContent.value = "";
+    postText.value = "";
+
+    photoInput.value = "";
+
+    selectedPhoto = null;
+
+    photoPreview.innerHTML = "";
 
     postMessage.textContent =
-      "Posted successfully!";
+      "Posted successfully! 🎉";
 
 
-    addPostToPage(data);
+    await loadPosts();
 
 
-    createPostButton.disabled =
-      false;
+  } catch (error) {
 
-    createPostButton.textContent =
-      "Post";
+    console.error(error);
 
-
-    setTimeout(() => {
-
-      postMessage.textContent = "";
-
-    }, 2500);
+    postMessage.textContent =
+      error.message;
 
   }
-);
 
 
-loadCurrentUser();
+  postButton.disabled = false;
+
+  postButton.textContent =
+    "Post";
+
+});
+
+
+/* ESCAPE HTML */
+
+function escapeHTML(text) {
+
+  const div =
+    document.createElement("div");
+
+  div.textContent =
+    text;
+
+  return div.innerHTML;
+
+}
+
+
+/* START */
 
 loadPosts();
 
-</script></body>
+</script>
+
+</body>
 </html>
