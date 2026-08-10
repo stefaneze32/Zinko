@@ -1,1 +1,2030 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Status — Zinko</title><link rel="stylesheet" href="style.css"></head><body><main class="auth-page"><div class="auth-card"><a class="back" href="home.html">← Home</a><h2>Create a status</h2><div class="status-preview">What are you thinking?</div><div class="status-tools"><button>📷 Photo</button><button>🎥 Video</button><button>🎙 Voice</button><button>🎵 Music</button><button>📊 Poll</button><button>❓ Question</button></div><input placeholder="Add #hashtag or @mention"><select><option>Privacy: Everyone</option><option>Followers</option><option>Close friends</option><option>Custom</option></select><button class="btn primary full">Post Status</button></div></main></body></html>
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">  <title>Status — Zinko</title>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #080d1c;
+      color: #f5f7ff;
+    }
+
+    .app {
+      max-width: 700px;
+      margin: auto;
+      padding-bottom: 90px;
+    }
+
+    /* =========================
+       TOP BAR
+    ========================= */
+
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 14px 16px;
+
+      background: #1b102c;
+      border-bottom: 1px solid #27213d;
+    }
+
+    .back {
+      border: 0;
+      background: transparent;
+      color: white;
+      font-size: 25px;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .top-spacer {
+      width: 30px;
+    }
+
+    /* =========================
+       CREATE STATUS
+    ========================= */
+
+    .create-box {
+      margin: 16px;
+      padding: 16px;
+
+      background: #101728;
+      border: 1px solid #202840;
+      border-radius: 20px;
+    }
+
+    .create-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .status-preview {
+      margin-bottom: 12px;
+      color: #aeb5cb;
+      font-size: 14px;
+    }
+
+    textarea,
+    input {
+      width: 100%;
+      font-family: inherit;
+
+      color: white;
+      background: #0b1120;
+
+      border: 1px solid #29314b;
+      border-radius: 12px;
+
+      padding: 12px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    textarea::placeholder,
+    input::placeholder {
+      color: #858da6;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 12px;
+
+      padding: 11px 14px;
+
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .primary {
+      background: linear-gradient(
+        135deg,
+        #7155ff,
+        #10bce4
+      );
+
+      color: white;
+    }
+
+    .secondary {
+      background: #211633;
+      color: white;
+      border: 1px solid #3b3155;
+    }
+
+    .danger {
+      background: #421b2b;
+      color: #ff9aaa;
+    }
+
+    .full {
+      width: 100%;
+    }
+
+    .mention-box,
+    .highlight-box {
+      margin-top: 12px;
+    }
+
+    /* =========================
+       PREVIEWS
+    ========================= */
+
+    .preview {
+      margin-top: 12px;
+    }
+
+    .preview img,
+    .preview video {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      border-radius: 15px;
+    }
+
+    .voice-player {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    /* =========================
+       AUDIENCE
+    ========================= */
+
+    .audience {
+      margin-top: 14px;
+    }
+
+    .audience label {
+      display: block;
+      margin-bottom: 6px;
+
+      color: #aeb5cb;
+      font-size: 13px;
+    }
+
+    .audience select {
+      width: 100%;
+
+      padding: 11px;
+
+      border-radius: 12px;
+
+      background: #0b1120;
+      color: white;
+
+      border: 1px solid #29314b;
+    }
+
+    .status-message {
+      text-align: center;
+      margin-top: 10px;
+
+      color: #aeb5cb;
+      font-size: 13px;
+    }
+
+    /* =========================
+       ACTIVE STATUS
+    ========================= */
+
+    .section-title {
+      padding: 0 16px;
+
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .status-list {
+      padding: 12px 16px;
+    }
+
+    .status-card {
+      background: #101728;
+
+      border: 1px solid #202840;
+      border-radius: 20px;
+
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .status-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+
+      flex-shrink: 0;
+
+      border-radius: 50%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background:
+        linear-gradient(
+          135deg,
+          #5865f2,
+          #20c7df
+        );
+
+      font-weight: bold;
+    }
+
+    .status-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .status-info small {
+      display: block;
+
+      color: #aeb5cb;
+      margin-top: 3px;
+    }
+
+    .status-content {
+      margin-top: 12px;
+
+      line-height: 1.5;
+
+      word-break: break-word;
+    }
+
+    .status-media {
+      margin-top: 12px;
+    }
+
+    .status-media img,
+    .status-media video {
+      width: 100%;
+      max-height: 500px;
+
+      object-fit: cover;
+
+      border-radius: 16px;
+    }
+
+    /* =========================
+       STATUS ACTIONS
+    ========================= */
+
+    .status-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+
+      margin-top: 12px;
+      padding-top: 10px;
+
+      border-top: 1px solid #252d43;
+    }
+
+    .status-actions button {
+      border: 0;
+      background: transparent;
+
+      color: #dce1f2;
+
+      cursor: pointer;
+
+      font-size: 15px;
+      padding: 4px 0;
+    }
+
+    .status-actions button:hover {
+      color: white;
+    }
+
+    .status-actions button.liked {
+      color: #ff4d91;
+      font-weight: bold;
+    }
+
+    .status-stats {
+      margin-top: 10px;
+
+      color: #aeb5cb;
+
+      font-size: 12px;
+    }
+
+    /* =========================
+       REPLIES
+    ========================= */
+
+    .reply-box {
+      margin-top: 12px;
+    }
+
+    .reply-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .reply-input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .reply-send {
+      border: 0;
+      border-radius: 12px;
+
+      padding: 10px 14px;
+
+      background: #7155ff;
+      color: white;
+
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .reply-list {
+      margin-top: 10px;
+    }
+
+    .reply {
+      padding: 9px;
+
+      margin-top: 7px;
+
+      background: #0b1120;
+
+      border: 1px solid #202840;
+      border-radius: 12px;
+    }
+
+    .reply small {
+      color: #aeb5cb;
+    }
+
+    /* =========================
+       STATES
+    ========================= */
+
+    .empty {
+      text-align: center;
+
+      padding: 30px 10px;
+
+      color: #858da6;
+    }
+
+    .loading {
+      text-align: center;
+
+      padding: 25px;
+
+      color: #aeb5cb;
+    }
+
+    /* =========================
+       BOTTOM NAV
+    ========================= */
+
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+
+      max-width: 700px;
+      margin: auto;
+
+      height: 64px;
+
+      background: #0a1020;
+
+      border-top: 1px solid #202840;
+
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+
+      z-index: 30;
+    }
+
+    .nav a {
+      text-decoration: none;
+
+      color: #69718a;
+
+      text-align: center;
+
+      font-size: 20px;
+    }
+
+    .nav a.active {
+      color: white;
+      font-weight: bold;
+    }
+
+    .nav small {
+      display: block;
+
+      font-size: 10px;
+
+      margin-top: 3px;
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 480px) {
+      .title {
+        font-size: 20px;
+      }
+
+      .create-box {
+        margin: 12px;
+      }
+
+      .status-list {
+        padding: 12px;
+      }
+
+      .section-title {
+        padding: 0 12px;
+      }
+
+      .status-actions {
+        gap: 9px;
+      }
+    }
+  </style></head><body><div class="app">  <!-- =========================
+       TOP BAR
+  ========================= -->  <header class="top"><button
+  class="back"
+  type="button"
+  onclick="history.back()"
+  aria-label="Go back"
+>
+  ←
+</button>
+
+<div class="title">
+  Zinko Status
+</div>
+
+<div class="top-spacer"></div>
+
+  </header>  <!-- =========================
+       CREATE STATUS
+  ========================= -->  <section class="create-box"><div class="create-title">
+  Create a Status
+</div>
+
+<div class="status-preview">
+  What are you thinking?
+</div>
+
+<textarea
+  id="statusText"
+  maxlength="2000"
+  placeholder="What's happening?"
+></textarea>
+
+
+<!-- MENTION -->
+
+<div class="mention-box">
+
+  <input
+    id="mentionInput"
+    type="text"
+    placeholder="@mention someone"
+    maxlength="100"
+  >
+
+</div>
+
+
+<!-- HIGHLIGHT -->
+
+<div class="highlight-box">
+
+  <input
+    id="highlightInput"
+    type="text"
+    placeholder="Highlight text (optional)"
+    maxlength="100"
+  >
+
+</div>
+
+
+<!-- TOOLS -->
+
+<div class="button-row">
+
+  <label
+    class="btn secondary"
+    for="mediaInput"
+  >
+    📷 Photo / Video
+  </label>
+
+  <input
+    id="mediaInput"
+    type="file"
+    accept="image/*,video/*"
+    style="display:none;"
+  >
+
+
+  <label
+    class="btn secondary"
+    for="voiceInput"
+  >
+    🎙 Voice
+  </label>
+
+  <input
+    id="voiceInput"
+    type="file"
+    accept="audio/*"
+    capture
+    style="display:none;"
+  >
+
+</div>
+
+
+<!-- PREVIEW -->
+
+<div
+  id="mediaPreview"
+  class="preview"
+></div>
+
+
+<div
+  id="voicePreview"
+  class="preview"
+></div>
+
+
+<!-- AUDIENCE -->
+
+<div class="audience">
+
+  <label for="audience">
+    Who can see this status?
+  </label>
+
+  <select id="audience">
+
+    <option value="everyone">
+      Everyone
+    </option>
+
+    <option value="followers">
+      Followers
+    </option>
+
+    <option value="friends">
+      Close Friends
+    </option>
+
+    <option value="private">
+      Only Me
+    </option>
+
+  </select>
+
+</div>
+
+
+<!-- POST / CLEAR -->
+
+<div class="button-row">
+
+  <button
+    id="publishButton"
+    class="btn primary"
+    type="button"
+  >
+    Post Status
+  </button>
+
+  <button
+    id="clearButton"
+    class="btn secondary"
+    type="button"
+  >
+    Clear
+  </button>
+
+</div>
+
+
+<div
+  id="statusMessage"
+  class="status-message"
+></div>
+
+  </section>  <!-- =========================
+       ACTIVE STATUS
+  ========================= -->  <div class="section-title">
+    Active Status
+  </div>  <main
+    id="statusList"
+    class="status-list"
+  ><div class="loading">
+  Loading statuses...
+</div>
+
+  </main>  <!-- =========================
+       BOTTOM NAV
+  ========================= -->  <nav class="nav"><a href="home.html">
+  ⌂
+  <small>Home</small>
+</a>
+
+<a
+  href="status.html"
+  class="active"
+>
+  ◉
+  <small>Status</small>
+</a>
+
+<a href="discover.html">
+  ⌕
+  <small>Discover</small>
+</a>
+
+<a href="messages.html">
+  ✉
+  <small>Messages</small>
+</a>
+
+<a href="profile.html">
+  ●
+  <small>Profile</small>
+</a>
+
+  </nav></div><script>
+
+/* =================================
+   SUPABASE
+================================= */
+
+const SUPABASE_URL =
+  "https://ggqhwoyzuypryocrxiru.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+
+/* =================================
+   ELEMENTS
+================================= */
+
+const statusText =
+  document.getElementById("statusText");
+
+const mentionInput =
+  document.getElementById("mentionInput");
+
+const highlightInput =
+  document.getElementById("highlightInput");
+
+const mediaInput =
+  document.getElementById("mediaInput");
+
+const voiceInput =
+  document.getElementById("voiceInput");
+
+const mediaPreview =
+  document.getElementById("mediaPreview");
+
+const voicePreview =
+  document.getElementById("voicePreview");
+
+const audience =
+  document.getElementById("audience");
+
+const publishButton =
+  document.getElementById("publishButton");
+
+const clearButton =
+  document.getElementById("clearButton");
+
+const statusMessage =
+  document.getElementById("statusMessage");
+
+const statusList =
+  document.getElementById("statusList");
+
+
+let selectedMedia = null;
+let selectedVoice = null;
+let currentUser = null;
+
+
+/* =================================
+   CURRENT USER
+================================= */
+
+async function loadCurrentUser() {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient.auth.getUser();
+
+  if (error) {
+
+    console.error(error);
+
+    currentUser = null;
+
+    return null;
+
+  }
+
+  currentUser =
+    data && data.user
+      ? data.user
+      : null;
+
+  return currentUser;
+
+}
+
+
+/* =================================
+   MEDIA PREVIEW
+================================= */
+
+mediaInput.addEventListener(
+  "change",
+  () => {
+
+    const file =
+      mediaInput.files[0];
+
+    mediaPreview.innerHTML = "";
+
+    selectedMedia = null;
+
+    if (!file) {
+      return;
+    }
+
+    selectedMedia = file;
+
+    const url =
+      URL.createObjectURL(file);
+
+    if (
+      file.type.startsWith("video/")
+    ) {
+
+      mediaPreview.innerHTML = `
+
+        <video
+          src="${escapeAttribute(url)}"
+          controls
+          playsinline
+        ></video>
+
+      `;
+
+    } else {
+
+      mediaPreview.innerHTML = `
+
+        <img
+          src="${escapeAttribute(url)}"
+          alt="Status preview"
+        >
+
+      `;
+
+    }
+
+  }
+);
+
+
+/* =================================
+   VOICE PREVIEW
+================================= */
+
+voiceInput.addEventListener(
+  "change",
+  () => {
+
+    const file =
+      voiceInput.files[0];
+
+    voicePreview.innerHTML = "";
+
+    selectedVoice = null;
+
+    if (!file) {
+      return;
+    }
+
+    selectedVoice = file;
+
+    const url =
+      URL.createObjectURL(file);
+
+    voicePreview.innerHTML = `
+
+      <audio
+        class="voice-player"
+        src="${escapeAttribute(url)}"
+        controls
+      ></audio>
+
+    `;
+
+  }
+);
+
+
+/* =================================
+   CLEAR
+================================= */
+
+clearButton.addEventListener(
+  "click",
+  () => {
+
+    statusText.value = "";
+
+    mentionInput.value = "";
+
+    highlightInput.value = "";
+
+    mediaInput.value = "";
+
+    voiceInput.value = "";
+
+    mediaPreview.innerHTML = "";
+
+    voicePreview.innerHTML = "";
+
+    selectedMedia = null;
+
+    selectedVoice = null;
+
+    statusMessage.textContent = "";
+
+  }
+);
+
+
+/* =================================
+   PUBLISH STATUS
+================================= */
+
+publishButton.addEventListener(
+  "click",
+  async () => {
+
+    statusMessage.textContent = "";
+
+    await loadCurrentUser();
+
+    if (!currentUser) {
+
+      statusMessage.textContent =
+        "Please log in before posting a status.";
+
+      return;
+
+    }
+
+
+    const text =
+      statusText.value.trim();
+
+    const mention =
+      mentionInput.value.trim();
+
+    const highlight =
+      highlightInput.value.trim();
+
+
+    if (
+      !text &&
+      !selectedMedia &&
+      !selectedVoice
+    ) {
+
+      statusMessage.textContent =
+        "Add text, photo, video, or voice.";
+
+      return;
+
+    }
+
+
+    publishButton.disabled = true;
+
+    publishButton.textContent =
+      "Posting...";
+
+
+    try {
+
+      let mediaURL = null;
+
+      let voiceURL = null;
+
+      let mediaType = null;
+
+
+      /* =========================
+         MEDIA UPLOAD
+      ========================= */
+
+      if (selectedMedia) {
+
+        const extension =
+          selectedMedia.name
+            .split(".")
+            .pop()
+            .toLowerCase();
+
+
+        const fileName =
+          `status/${currentUser.id}/${Date.now()}-media.${extension}`;
+
+
+        const {
+          error: uploadError
+        } =
+        await supabaseClient.storage
+          .from("post-media")
+          .upload(
+            fileName,
+            selectedMedia,
+            {
+              cacheControl: "3600",
+              upsert: false
+            }
+          );
+
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+
+        const {
+          data
+        } =
+        supabaseClient.storage
+          .from("post-media")
+          .getPublicUrl(fileName);
+
+
+        mediaURL =
+          data.publicUrl;
+
+
+        mediaType =
+          selectedMedia.type.startsWith("video/")
+            ? "video"
+            : "image";
+
+      }
+
+
+      /* =========================
+         VOICE UPLOAD
+      ========================= */
+
+      if (selectedVoice) {
+
+        const extension =
+          selectedVoice.name
+            .split(".")
+            .pop()
+            .toLowerCase();
+
+
+        const fileName =
+          `status/${currentUser.id}/${Date.now()}-voice.${extension}`;
+
+
+        const {
+          error: uploadError
+        } =
+        await supabaseClient.storage
+          .from("post-media")
+          .upload(
+            fileName,
+            selectedVoice,
+            {
+              cacheControl: "3600",
+              upsert: false
+            }
+          );
+
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+
+        const {
+          data
+        } =
+        supabaseClient.storage
+          .from("post-media")
+          .getPublicUrl(fileName);
+
+
+        voiceURL =
+          data.publicUrl;
+
+      }
+
+
+      /* =========================
+         INSERT STATUS
+      ========================= */
+
+      const {
+        error: insertError
+      } =
+      await supabaseClient
+        .from("statuses")
+        .insert({
+
+          user_id:
+            currentUser.id,
+
+          content:
+            text || null,
+
+          media_url:
+            mediaURL,
+
+          media_type:
+            mediaType,
+
+          voice_url:
+            voiceURL,
+
+          mention:
+            mention || null,
+
+          highlight:
+            highlight || null,
+
+          audience:
+            audience.value,
+
+          expires_at:
+            new Date(
+              Date.now() +
+              24 * 60 * 60 * 1000
+            ).toISOString()
+
+        });
+
+
+      if (insertError) {
+        throw insertError;
+      }
+
+
+      statusMessage.textContent =
+        "Status posted successfully! 🎉";
+
+
+      clearButton.click();
+
+      await loadStatuses();
+
+
+    } catch (error) {
+
+      console.error(error);
+
+      statusMessage.textContent =
+        error.message ||
+        "Something went wrong while posting.";
+
+    }
+
+
+    publishButton.disabled = false;
+
+    publishButton.textContent =
+      "Post Status";
+
+  }
+);
+
+
+/* =================================
+   LOAD STATUSES
+================================= */
+
+async function loadStatuses() {
+
+  statusList.innerHTML = `
+
+    <div class="loading">
+      Loading statuses...
+    </div>
+
+  `;
+
+
+  await loadCurrentUser();
+
+
+  const now =
+    new Date().toISOString();
+
+
+  const {
+    data,
+    error
+  } =
+  await supabaseClient
+    .from("statuses")
+    .select("*")
+    .gt("expires_at", now)
+    .order(
+      "created_at",
+      {
+        ascending: false
+      }
+    );
+
+
+  if (error) {
+
+    console.error(error);
+
+    statusList.innerHTML = `
+
+      <div class="empty">
+        Status is not ready yet.
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  statusList.innerHTML = "";
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    statusList.innerHTML = `
+
+      <div class="empty">
+        No active statuses yet.
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  data.forEach(
+    status => {
+
+      renderStatus(status);
+
+    }
+  );
+
+}
+
+
+/* =================================
+   RENDER STATUS
+================================= */
+
+function renderStatus(status) {
+
+  const card =
+    document.createElement("article");
+
+  card.className =
+    "status-card";
+
+
+  let mediaHTML = "";
+
+
+  if (
+    status.media_url &&
+    status.media_type === "video"
+  ) {
+
+    mediaHTML = `
+
+      <div class="status-media">
+
+        <video
+          src="${escapeAttribute(status.media_url)}"
+          controls
+          playsinline
+        ></video>
+
+      </div>
+
+    `;
+
+  } else if (
+    status.media_url
+  ) {
+
+    mediaHTML = `
+
+      <div class="status-media">
+
+        <img
+          src="${escapeAttribute(status.media_url)}"
+          alt="Status"
+        >
+
+      </div>
+
+    `;
+
+  }
+
+
+  let voiceHTML = "";
+
+
+  if (status.voice_url) {
+
+    voiceHTML = `
+
+      <audio
+        class="voice-player"
+        src="${escapeAttribute(status.voice_url)}"
+        controls
+      ></audio>
+
+    `;
+
+  }
+
+
+  const isOwner =
+    currentUser &&
+    status.user_id === currentUser.id;
+
+
+  card.innerHTML = `
+
+    <div class="status-head">
+
+      <div class="avatar">
+        Z
+      </div>
+
+      <div class="status-info">
+
+        <b>Zinko User</b>
+
+        <small>
+          ${formatDate(status.created_at)}
+        </small>
+
+      </div>
+
+    </div>
+
+
+    ${
+      status.content
+        ? `
+          <div class="status-content">
+            ${highlightText(
+              status.content,
+              status.highlight
+            )}
+          </div>
+        `
+        : ""
+    }
+
+
+    ${
+      status.mention
+        ? `
+          <div class="status-content">
+            <b>Mention:</b>
+            ${escapeHTML(status.mention)}
+          </div>
+        `
+        : ""
+    }
+
+
+    ${mediaHTML}
+
+    ${voiceHTML}
+
+
+    <div class="status-actions">
+
+      <button
+        type="button"
+        class="status-like"
+        data-status-id="${escapeAttribute(status.id)}"
+      >
+        ♡ Like
+      </button>
+
+      <button
+        type="button"
+        class="status-reply"
+      >
+        💬 Reply
+      </button>
+
+      ${
+        isOwner
+          ? `
+            <button
+              type="button"
+              class="status-viewers"
+              data-status-id="${escapeAttribute(status.id)}"
+            >
+              👁 Viewers
+            </button>
+
+            <button
+              type="button"
+              class="status-delete"
+              data-status-id="${escapeAttribute(status.id)}"
+            >
+              🗑 Delete
+            </button>
+          `
+          : ""
+      }
+
+    </div>
+
+
+    <div class="status-stats">
+      24-hour status
+    </div>
+
+
+    <div class="reply-box">
+
+      <div class="reply-form">
+
+        <input
+          class="reply-input"
+          type="text"
+          maxlength="1000"
+          placeholder="Reply to this status..."
+        >
+
+        <button
+          type="button"
+          class="reply-send"
+          data-status-id="${escapeAttribute(status.id)}"
+        >
+          Send
+        </button>
+
+      </div>
+
+
+      <div class="reply-list">
+        Loading replies...
+      </div>
+
+    </div>
+
+  `;
+
+
+  statusList.appendChild(card);
+
+
+  loadReplies(
+    status.id,
+    card
+  );
+
+}
+
+
+/* =================================
+   LOAD REPLIES
+================================= */
+
+async function loadReplies(
+  statusId,
+  card
+) {
+
+  const list =
+    card.querySelector(".reply-list");
+
+
+  const {
+    data,
+    error
+  } =
+  await supabaseClient
+    .from("status_replies")
+    .select("*")
+    .eq("status_id", statusId)
+    .order(
+      "created_at",
+      {
+        ascending: true
+      }
+    );
+
+
+  if (error) {
+
+    list.innerHTML =
+      `<small>Replies will be available after setup.</small>`;
+
+    return;
+
+  }
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    list.innerHTML =
+      `<small>No replies yet.</small>`;
+
+    return;
+
+  }
+
+
+  list.innerHTML = "";
+
+
+  data.forEach(
+    reply => {
+
+      const item =
+        document.createElement("div");
+
+      item.className =
+        "reply";
+
+
+      item.innerHTML = `
+
+        <b>Zinko User</b>
+
+        <small>
+          ${formatDate(reply.created_at)}
+        </small>
+
+        <div>
+          ${escapeHTML(
+            reply.content || ""
+          )}
+        </div>
+
+      `;
+
+
+      list.appendChild(item);
+
+    }
+  );
+
+}
+
+
+/* =================================
+   CLICK EVENTS
+================================= */
+
+statusList.addEventListener(
+  "click",
+  async event => {
+
+    const likeButton =
+      event.target.closest(".status-like");
+
+
+    if (likeButton) {
+
+      await likeStatus(
+        likeButton.dataset.statusId,
+        likeButton
+      );
+
+      return;
+
+    }
+
+
+    const replyButton =
+      event.target.closest(".reply-send");
+
+
+    if (replyButton) {
+
+      const card =
+        replyButton.closest(".status-card");
+
+
+      await addReply(
+        replyButton.dataset.statusId,
+        card
+      );
+
+      return;
+
+    }
+
+
+    const deleteButton =
+      event.target.closest(".status-delete");
+
+
+    if (deleteButton) {
+
+      await deleteStatus(
+        deleteButton.dataset.statusId
+      );
+
+      return;
+
+    }
+
+
+    const viewerButton =
+      event.target.closest(".status-viewers");
+
+
+    if (viewerButton) {
+
+      alert(
+        "Viewer tracking will be connected in the next Supabase step."
+      );
+
+      return;
+
+    }
+
+  }
+);
+
+
+/* =================================
+   LIKE STATUS
+================================= */
+
+async function likeStatus(
+  statusId,
+  button
+) {
+
+  await loadCurrentUser();
+
+
+  if (!currentUser) {
+
+    alert(
+      "Please log in to like a status."
+    );
+
+    return;
+
+  }
+
+
+  const {
+    data: existing
+  } =
+  await supabaseClient
+    .from("status_likes")
+    .select("id")
+    .eq(
+      "status_id",
+      statusId
+    )
+    .eq(
+      "user_id",
+      currentUser.id
+    )
+    .maybeSingle();
+
+
+  if (existing) {
+
+    const {
+      error
+    } =
+    await supabaseClient
+      .from("status_likes")
+      .delete()
+      .eq(
+        "id",
+        existing.id
+      );
+
+
+    if (error) {
+
+      alert(error.message);
+
+      return;
+
+    }
+
+
+    button.classList.remove("liked");
+
+    button.textContent =
+      "♡ Like";
+
+  } else {
+
+    const {
+      error
+    } =
+    await supabaseClient
+      .from("status_likes")
+      .insert({
+
+        status_id:
+          statusId,
+
+        user_id:
+          currentUser.id
+
+      });
+
+
+    if (error) {
+
+      alert(error.message);
+
+      return;
+
+    }
+
+
+    button.classList.add("liked");
+
+    button.textContent =
+      "♥ Liked";
+
+  }
+
+}
+
+
+/* =================================
+   ADD REPLY
+================================= */
+
+async function addReply(
+  statusId,
+  card
+) {
+
+  await loadCurrentUser();
+
+
+  if (!currentUser) {
+
+    alert(
+      "Please log in before replying."
+    );
+
+    return;
+
+  }
+
+
+  const input =
+    card.querySelector(".reply-input");
+
+
+  const text =
+    input.value.trim();
+
+
+  if (!text) {
+    return;
+  }
+
+
+  const {
+    error
+  } =
+  await supabaseClient
+    .from("status_replies")
+    .insert({
+
+      status_id:
+        statusId,
+
+      user_id:
+        currentUser.id,
+
+      content:
+        text
+
+    });
+
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+
+  }
+
+
+  input.value = "";
+
+
+  await loadReplies(
+    statusId,
+    card
+  );
+
+}
+
+
+/* =================================
+   DELETE STATUS
+================================= */
+
+async function deleteStatus(
+  statusId
+) {
+
+  await loadCurrentUser();
+
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  if (
+    !confirm(
+      "Delete this status?"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const {
+    error
+  } =
+  await supabaseClient
+    .from("statuses")
+    .delete()
+    .eq(
+      "id",
+      statusId
+    )
+    .eq(
+      "user_id",
+      currentUser.id
+    );
+
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+
+  }
+
+
+  await loadStatuses();
+
+}
+
+
+/* =================================
+   HIGHLIGHT TEXT
+================================= */
+
+function highlightText(
+  text,
+  highlight
+) {
+
+  const safeText =
+    escapeHTML(text);
+
+
+  if (!highlight) {
+    return safeText;
+  }
+
+
+  const safeHighlight =
+    escapeHTML(highlight);
+
+
+  const regex =
+    new RegExp(
+      "(" +
+      escapeRegExp(
+        safeHighlight
+      ) +
+      ")",
+      "gi"
+    );
+
+
+  return safeText.replace(
+    regex,
+    `<mark style="
+      background:#ffd34d;
+      color:#111;
+      border-radius:4px;
+      padding:1px 3px;
+    ">$1</mark>`
+  );
+
+}
+
+
+/* =================================
+   ESCAPE REGEX
+================================= */
+
+function escapeRegExp(
+  text
+) {
+
+  return text.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
+
+}
+
+
+/* =================================
+   ESCAPE HTML
+================================= */
+
+function escapeHTML(
+  text
+) {
+
+  const div =
+    document.createElement("div");
+
+  div.textContent =
+    text || "";
+
+  return div.innerHTML;
+
+}
+
+
+/* =================================
+   ESCAPE ATTRIBUTE
+================================= */
+
+function escapeAttribute(
+  text
+) {
+
+  return String(
+    text || ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    );
+
+}
+
+
+/* =================================
+   DATE
+================================= */
+
+function formatDate(
+  value
+) {
+
+  if (!value) {
+    return "";
+  }
+
+  return new Date(
+    value
+  ).toLocaleString();
+
+}
+
+
+/* =================================
+   START
+================================= */
+
+loadStatuses();
+
+</script></body>
+  </html>
