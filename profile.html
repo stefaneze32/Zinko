@@ -1,128 +1,573 @@
 <!doctype html>
-
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+
   <title>Profile — Zinko</title>
+
   <link rel="stylesheet" href="style.css">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head><body>
-<div class="app">  <header class="top">
-    <div class="wordmark"><span>Z</span>Profile</div>
+
+  <style>
+    .profile {
+      padding-bottom: 100px;
+    }
+
+    .profile-top {
+      text-align: center;
+      padding: 25px 16px 10px;
+    }
+
+    /* =========================
+       ZINKO PROFILE AVATAR
+    ========================= */
+
+    .avatar-wrap {
+      width: 112px;
+      height: 112px;
+      margin: 0 auto 14px;
+      padding: 5px;
+      border-radius: 50%;
+
+      background:
+        conic-gradient(
+          from 0deg,
+          #7155ff,
+          #10bce4,
+          #9b5cff,
+          #ffd34d,
+          #7155ff
+        );
+
+      box-shadow:
+        0 0 0 4px rgba(113,85,255,.12),
+        0 0 25px rgba(16,188,228,.25);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-wrap.verified {
+      background:
+        conic-gradient(
+          from 0deg,
+          #ffd34d,
+          #ff8a00,
+          #fff3a3,
+          #ffd34d,
+          #ff8a00,
+          #ffd34d
+        );
+
+      box-shadow:
+        0 0 0 4px rgba(255,211,77,.14),
+        0 0 30px rgba(255,180,30,.35);
+    }
+
+    .profile-avatar {
+      width: 100%;
+      height: 100%;
+
+      border-radius: 50%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background:
+        linear-gradient(
+          135deg,
+          #171d35,
+          #0b1120
+        );
+
+      color: white;
+      font-size: 42px;
+      font-weight: 900;
+
+      overflow: hidden;
+    }
+
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      margin-left: 5px;
+
+      width: 23px;
+      height: 23px;
+
+      border-radius: 50%;
+
+      background:
+        linear-gradient(
+          135deg,
+          #ffd34d,
+          #ff9d00
+        );
+
+      color: #241500;
+
+      font-size: 13px;
+      font-weight: 900;
+
+      vertical-align: middle;
+
+      box-shadow:
+        0 2px 8px rgba(255,174,0,.35);
+    }
+
+    .verified-text {
+      margin-top: 5px;
+      color: #ffd34d;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .profile-name {
+      margin: 8px 0 4px;
+      font-size: 24px;
+    }
+
+    .handle {
+      color: #9da6bf;
+      margin: 0;
+    }
+
+    .bio {
+      max-width: 500px;
+      margin: 12px auto;
+      color: #d8dced;
+      line-height: 1.5;
+    }
+
+    /* =========================
+       STATS
+    ========================= */
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 45px;
+
+      margin: 20px 0;
+    }
+
+    .stats div {
+      text-align: center;
+    }
+
+    .stats b {
+      display: block;
+      font-size: 19px;
+    }
+
+    .stats small {
+      color: #8f98b0;
+      font-size: 12px;
+    }
+
+    /* =========================
+       EDIT
+    ========================= */
+
+    .edit-panel {
+      margin: 18px 16px;
+      padding: 16px;
+
+      background: #101728;
+      border: 1px solid #202840;
+
+      border-radius: 18px;
+    }
+
+    .edit-panel input,
+    .edit-panel textarea {
+      width: 100%;
+      margin-bottom: 10px;
+
+      background: #0b1120;
+      color: white;
+
+      border: 1px solid #29314b;
+      border-radius: 12px;
+
+      padding: 12px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .edit-panel textarea {
+      resize: vertical;
+    }
+
+    .profile-actions {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* =========================
+       TABS
+    ========================= */
+
+    .profile-tabs {
+      display: flex;
+
+      margin-top: 25px;
+
+      border-bottom: 1px solid #202840;
+    }
+
+    .profile-tabs button {
+      flex: 1;
+
+      border: 0;
+      background: transparent;
+
+      color: #777f98;
+
+      padding: 14px 5px;
+
+      cursor: pointer;
+
+      font-weight: bold;
+    }
+
+    .profile-tabs button.active {
+      color: white;
+
+      border-bottom:
+        2px solid #7155ff;
+    }
+
+    /* =========================
+       CONTENT
+    ========================= */
+
+    #profileContent {
+      padding: 15px;
+    }
+
+    .content-card {
+      background: #101728;
+      border: 1px solid #202840;
+
+      border-radius: 18px;
+
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .content-date {
+      color: #858da6;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .content-text {
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .content-media {
+      margin-top: 10px;
+    }
+
+    .content-media img,
+    .content-media video {
+      width: 100%;
+      max-height: 500px;
+      object-fit: cover;
+      border-radius: 14px;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 35px 15px;
+      color: #858da6;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 10px;
+      color: #aeb5cb;
+      font-size: 13px;
+    }
+
+    .private-label {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #8f98b0;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <header class="top">
+
+    <div class="wordmark">
+      <span>Z</span>Profile
+    </div>
+
     <a href="settings.html">⚙</a>
-  </header>  <main class="profile"><div class="profile-avatar" id="profileAvatar">S</div>
 
-<h2 id="profileName">Loading...</h2>
+  </header>
 
-<p class="handle" id="profileHandle">
-  @username · Creator
-</p>
 
-<div class="stats">
-  <div><b>0</b><small>Posts</small></div>
-  <div><b>0</b><small>Followers</small></div>
-  <div><b>0</b><small>Following</small></div>
+  <main class="profile">
+
+    <!-- =========================
+         PROFILE HEADER
+    ========================= -->
+
+    <section class="profile-top">
+
+      <div
+        id="avatarWrap"
+        class="avatar-wrap"
+      >
+
+        <div
+          class="profile-avatar"
+          id="profileAvatar"
+        >
+          S
+        </div>
+
+      </div>
+
+
+      <h2
+        id="profileName"
+        class="profile-name"
+      >
+        Loading...
+      </h2>
+
+
+      <p
+        class="handle"
+        id="profileHandle"
+      >
+        @username · Creator
+      </p>
+
+
+      <div
+        id="verifiedText"
+        class="verified-text"
+        style="display:none;"
+      >
+        ✓ Zinko Verified
+      </div>
+
+
+      <p
+        class="bio"
+        id="profileBio"
+      >
+        Welcome to my Zinko world. 🌍
+      </p>
+
+
+      <div class="stats">
+
+        <div>
+          <b id="postsCount">0</b>
+          <small>Posts</small>
+        </div>
+
+        <div>
+          <b id="followersCount">0</b>
+          <small>Followers</small>
+        </div>
+
+        <div>
+          <b id="followingCount">0</b>
+          <small>Following</small>
+        </div>
+
+      </div>
+
+
+      <div class="profile-actions">
+
+        <button
+          class="btn primary"
+          id="editProfileButton"
+          type="button"
+        >
+          Edit Profile
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         EDIT PROFILE
+    ========================= -->
+
+    <section
+      id="editPanel"
+      class="edit-panel"
+      style="display:none;"
+    >
+
+      <input
+        id="editName"
+        type="text"
+        placeholder="Full name"
+      >
+
+      <input
+        id="editUsername"
+        type="text"
+        placeholder="Username"
+      >
+
+      <input
+        id="editCountry"
+        type="text"
+        placeholder="Country"
+      >
+
+      <textarea
+        id="editBio"
+        placeholder="Bio"
+        rows="4"
+      ></textarea>
+
+
+      <button
+        class="btn primary full"
+        id="saveProfile"
+        type="button"
+      >
+        Save Profile
+      </button>
+
+
+      <button
+        class="btn glass full"
+        id="cancelEdit"
+        type="button"
+      >
+        Cancel
+      </button>
+
+
+      <p
+        id="profileMessage"
+        class="message"
+      ></p>
+
+    </section>
+
+
+    <!-- =========================
+         PROFILE TABS
+    ========================= -->
+
+    <div class="profile-tabs">
+
+      <button
+        id="postsTab"
+        class="active"
+        type="button"
+      >
+        Posts
+      </button>
+
+
+      <button
+        id="videosTab"
+        type="button"
+      >
+        Videos
+      </button>
+
+
+      <button
+        id="likesTab"
+        type="button"
+      >
+        Likes
+      </button>
+
+    </div>
+
+
+    <div
+      id="profileContent"
+    >
+      Loading...
+    </div>
+
+  </main>
+
+
+  <!-- =========================
+       NAVIGATION
+  ========================= -->
+
+  <nav class="nav">
+
+    <a href="home.html">
+      ⌂
+      <small>Home</small>
+    </a>
+
+    <a href="live.html">
+      ◉
+      <small>Live</small>
+    </a>
+
+    <a href="discover.html">
+      ⌕
+      <small>Discover</small>
+    </a>
+
+    <a href="messages.html">
+      ✉
+      <small>Messages</small>
+    </a>
+
+    <a
+      class="active"
+      href="profile.html"
+    >
+      ●
+      <small>Profile</small>
+    </a>
+
+  </nav>
+
 </div>
 
-<p class="bio" id="profileBio">
-  Welcome to my Zinko world. 🌍
-</p>
 
-<button
-  class="btn primary"
-  id="editProfileButton"
-  type="button"
->
-  Edit Profile
-</button>
+<script>
 
-<section id="editPanel" style="display:none; margin-top:20px;">
-
-  <input
-    id="editName"
-    type="text"
-    placeholder="Full name"
-  >
-
-  <input
-    id="editUsername"
-    type="text"
-    placeholder="Username"
-  >
-
-  <input
-    id="editCountry"
-    type="text"
-    placeholder="Country"
-  >
-
-  <textarea
-    id="editBio"
-    placeholder="Bio"
-    rows="4"
-  ></textarea>
-
-  <button
-    class="btn primary full"
-    id="saveProfile"
-    type="button"
-  >
-    Save Profile
-  </button>
-
-  <button
-    class="btn glass full"
-    id="cancelEdit"
-    type="button"
-  >
-    Cancel
-  </button>
-
-  <p id="profileMessage" class="center muted"></p>
-
-</section>
-
-<div class="profile-tabs">
-
-  <button
-    id="postsTab"
-    class="active"
-    type="button"
-  >
-    Posts
-  </button>
-
-  <button
-    id="videosTab"
-    type="button"
-  >
-    Videos
-  </button>
-
-  <button
-    id="likesTab"
-    type="button"
-  >
-    Likes
-  </button>
-
-</div>
-
-<div
-  id="profileContent"
-  class="empty"
->
-  Your posts will appear here.
-</div>
-
-  </main>  <nav class="nav">
-    <a href="home.html">⌂<small>Home</small></a>
-    <a href="live.html">◉<small>Live</small></a>
-    <a href="discover.html">⌕<small>Discover</small></a>
-    <a href="messages.html">✉<small>Messages</small></a>
-    <a class="active" href="profile.html">●<small>Profile</small></a>
-  </nav></div><script>
+/* =========================================
+   SUPABASE
+========================================= */
 
 const SUPABASE_URL =
   "https://ggqhwoyzuypryocrxiru.supabase.co";
@@ -136,6 +581,37 @@ const supabaseClient =
     SUPABASE_PUBLISHABLE_KEY
   );
 
+
+/* =========================================
+   ELEMENTS
+========================================= */
+
+const avatarWrap =
+  document.getElementById("avatarWrap");
+
+const profileAvatar =
+  document.getElementById("profileAvatar");
+
+const profileName =
+  document.getElementById("profileName");
+
+const profileHandle =
+  document.getElementById("profileHandle");
+
+const profileBio =
+  document.getElementById("profileBio");
+
+const verifiedText =
+  document.getElementById("verifiedText");
+
+const postsCount =
+  document.getElementById("postsCount");
+
+const followersCount =
+  document.getElementById("followersCount");
+
+const followingCount =
+  document.getElementById("followingCount");
 
 const editButton =
   document.getElementById("editProfileButton");
@@ -168,220 +644,1129 @@ const profileContent =
 let currentUser = null;
 
 
+/* =========================================
+   LOAD USER
+========================================= */
+
+async function getCurrentUser() {
+
+  const {
+    data,
+    error
+  } =
+  await supabaseClient.auth.getUser();
+
+  if (
+    error ||
+    !data ||
+    !data.user
+  ) {
+
+    window.location.href =
+      "login.html";
+
+    return null;
+
+  }
+
+  currentUser =
+    data.user;
+
+  return currentUser;
+
+}
+
+
+/* =========================================
+   CHECK ZINKO VERIFICATION
+=========================================
+
+   IMPORTANT:
+
+   This reads app_metadata.
+
+   Normal users cannot change app_metadata
+   from this page.
+
+   Only a trusted Zinko admin/server should
+   set:
+
+   zinko_verified: true
+
+========================================= */
+
+function isZinkoVerified(user) {
+
+  if (!user) {
+    return false;
+  }
+
+  const metadata =
+    user.app_metadata || {};
+
+  return (
+    metadata.zinko_verified === true
+  );
+
+}
+
+
+/* =========================================
+   SHOW PROFILE
+========================================= */
+
 async function loadProfile() {
 
-  const { data, error } =
-    await supabaseClient.auth.getUser();
+  const user =
+    await getCurrentUser();
 
-  if (error || !data.user) {
-
-    window.location.href = "login.html";
-
+  if (!user) {
     return;
   }
 
-  currentUser = data.user;
 
   const metadata =
-    currentUser.user_metadata || {};
+    user.user_metadata || {};
+
 
   const name =
-    metadata.full_name || "Zinko User";
+    metadata.full_name ||
+    "Zinko User";
+
 
   const username =
-    metadata.username || "username";
+    metadata.username ||
+    "username";
+
 
   const country =
-    metadata.country || "";
+    metadata.country ||
+    "";
+
 
   const bio =
     metadata.bio ||
     "Welcome to my Zinko world. 🌍";
 
 
-  document.getElementById("profileName")
-    .textContent = name;
-
-  document.getElementById("profileHandle")
-    .textContent =
-    "@" + username + " · Creator";
-
-  document.getElementById("profileBio")
-    .textContent = bio;
-
-  document.getElementById("profileAvatar")
-    .textContent =
-    name.charAt(0).toUpperCase();
+  profileName.textContent =
+    name;
 
 
-  document.getElementById("editName")
-    .value = name;
+  profileHandle.textContent =
+    "@" +
+    username +
+    " · Creator";
 
-  document.getElementById("editUsername")
-    .value = username;
 
-  document.getElementById("editCountry")
-    .value = country;
+  profileBio.textContent =
+    bio;
 
-  document.getElementById("editBio")
-    .value = bio;
+
+  profileAvatar.textContent =
+    name
+      .charAt(0)
+      .toUpperCase();
+
+
+  document.getElementById(
+    "editName"
+  ).value = name;
+
+
+  document.getElementById(
+    "editUsername"
+  ).value = username;
+
+
+  document.getElementById(
+    "editCountry"
+  ).value = country;
+
+
+  document.getElementById(
+    "editBio"
+  ).value = bio;
+
+
+  /* =========================
+     VERIFICATION
+  ========================= */
+
+  if (
+    isZinkoVerified(user)
+  ) {
+
+    avatarWrap.classList.add(
+      "verified"
+    );
+
+
+    verifiedText.style.display =
+      "block";
+
+
+    profileName.innerHTML =
+      escapeHTML(name) +
+      `
+        <span
+          class="verified-badge"
+          title="Zinko Verified"
+        >
+          ✓
+        </span>
+      `;
+
+  }
+
+
+  await loadProfileStats();
+
+  await loadPosts();
+
 }
 
 
-editButton.addEventListener("click", () => {
+/* =========================================
+   PROFILE STATS
+========================================= */
 
-  editPanel.style.display = "block";
+async function loadProfileStats() {
 
-  editButton.style.display = "none";
-
-});
-
-
-cancelButton.addEventListener("click", () => {
-
-  editPanel.style.display = "none";
-
-  editButton.style.display = "inline-block";
-
-  profileMessage.textContent = "";
-
-});
-
-
-saveButton.addEventListener("click", async () => {
-
-  const name =
-    document.getElementById("editName")
-      .value.trim();
-
-  const username =
-    document.getElementById("editUsername")
-      .value.trim();
-
-  const country =
-    document.getElementById("editCountry")
-      .value.trim();
-
-  const bio =
-    document.getElementById("editBio")
-      .value.trim();
-
-
-  if (!name || !username) {
-
-    profileMessage.textContent =
-      "Full name and username are required.";
-
+  if (!currentUser) {
     return;
   }
 
 
-  saveButton.disabled = true;
+  /* POSTS */
 
-  saveButton.textContent =
-    "Saving...";
+  const {
+    count: postCount,
+    error: postError
+  } =
+  await supabaseClient
+    .from("posts")
+    .select(
+      "*",
+      {
+        count: "exact",
+        head: true
+      }
+    )
+    .eq(
+      "user_id",
+      currentUser.id
+    );
 
 
-  const { error } =
+  if (!postError) {
+
+    postsCount.textContent =
+      postCount || 0;
+
+  }
+
+
+  /*
+     FOLLOWERS / FOLLOWING
+
+     These use the optional follows table.
+
+     If it has not been created yet,
+     the profile safely keeps showing 0.
+  */
+
+  try {
+
+    const {
+      count: followers,
+      error: followerError
+    } =
+    await supabaseClient
+      .from("follows")
+      .select(
+        "*",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .eq(
+        "following_id",
+        currentUser.id
+      );
+
+
+    if (!followerError) {
+
+      followersCount.textContent =
+        followers || 0;
+
+    }
+
+
+    const {
+      count: following,
+      error: followingError
+    } =
+    await supabaseClient
+      .from("follows")
+      .select(
+        "*",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .eq(
+        "follower_id",
+        currentUser.id
+      );
+
+
+    if (!followingError) {
+
+      followingCount.textContent =
+        following || 0;
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "Follow system not created yet."
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   EDIT PROFILE
+========================================= */
+
+editButton.addEventListener(
+  "click",
+  () => {
+
+    editPanel.style.display =
+      "block";
+
+    editButton.style.display =
+      "none";
+
+  }
+);
+
+
+cancelButton.addEventListener(
+  "click",
+  () => {
+
+    editPanel.style.display =
+      "none";
+
+    editButton.style.display =
+      "inline-block";
+
+    profileMessage.textContent =
+      "";
+
+  }
+);
+
+
+/* =========================================
+   SAVE PROFILE
+========================================= */
+
+saveButton.addEventListener(
+  "click",
+  async () => {
+
+    const name =
+      document
+        .getElementById("editName")
+        .value
+        .trim();
+
+
+    const username =
+      document
+        .getElementById("editUsername")
+        .value
+        .trim();
+
+
+    const country =
+      document
+        .getElementById("editCountry")
+        .value
+        .trim();
+
+
+    const bio =
+      document
+        .getElementById("editBio")
+        .value
+        .trim();
+
+
+    if (
+      !name ||
+      !username
+    ) {
+
+      profileMessage.textContent =
+        "Full name and username are required.";
+
+      return;
+
+    }
+
+
+    saveButton.disabled =
+      true;
+
+    saveButton.textContent =
+      "Saving...";
+
+
+    const {
+      error
+    } =
     await supabaseClient.auth.updateUser({
 
       data: {
 
-        full_name: name,
+        full_name:
+          name,
 
-        username: username,
+        username:
+          username,
 
-        country: country,
+        country:
+          country,
 
-        bio: bio
+        bio:
+          bio
 
       }
 
     });
 
 
-  if (error) {
+    if (error) {
+
+      profileMessage.textContent =
+        error.message;
+
+      saveButton.disabled =
+        false;
+
+      saveButton.textContent =
+        "Save Profile";
+
+      return;
+
+    }
+
 
     profileMessage.textContent =
-      error.message;
+      "Profile updated successfully!";
 
-    saveButton.disabled = false;
+
+    profileName.textContent =
+      name;
+
+
+    profileHandle.textContent =
+      "@" +
+      username +
+      " · Creator";
+
+
+    profileBio.textContent =
+      bio;
+
+
+    profileAvatar.textContent =
+      name
+        .charAt(0)
+        .toUpperCase();
+
+
+    /*
+       Re-apply verification badge
+       after updating the profile.
+    */
+
+    if (
+      isZinkoVerified(
+        currentUser
+      )
+    ) {
+
+      profileName.innerHTML =
+        escapeHTML(name) +
+        `
+          <span
+            class="verified-badge"
+            title="Zinko Verified"
+          >
+            ✓
+          </span>
+        `;
+
+    }
+
+
+    saveButton.disabled =
+      false;
 
     saveButton.textContent =
       "Save Profile";
 
+  }
+);
+
+
+/* =========================================
+   POSTS
+========================================= */
+
+async function loadPosts() {
+
+  if (!currentUser) {
     return;
   }
 
 
-  profileMessage.textContent =
-    "Profile updated successfully!";
+  profileContent.innerHTML =
+    `
+      <div class="empty">
+        Loading your posts...
+      </div>
+    `;
 
 
-  document.getElementById("profileName")
-    .textContent = name;
-
-  document.getElementById("profileHandle")
-    .textContent =
-    "@" + username + " · Creator";
-
-  document.getElementById("profileBio")
-    .textContent = bio;
-
-  document.getElementById("profileAvatar")
-    .textContent =
-    name.charAt(0).toUpperCase();
-
-
-  saveButton.disabled = false;
-
-  saveButton.textContent =
-    "Save Profile";
-
-});
+  const {
+    data,
+    error
+  } =
+  await supabaseClient
+    .from("posts")
+    .select("*")
+    .eq(
+      "user_id",
+      currentUser.id
+    )
+    .order(
+      "created_at",
+      {
+        ascending: false
+      }
+    );
 
 
-function activateTab(tab) {
+  if (error) {
 
-  postsTab.classList.remove("active");
-  videosTab.classList.remove("active");
-  likesTab.classList.remove("active");
+    console.error(error);
 
-  tab.classList.add("active");
+    profileContent.innerHTML =
+      `
+        <div class="empty">
+          Unable to load your posts.
+        </div>
+      `;
+
+    return;
+
+  }
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    profileContent.innerHTML =
+      `
+        <div class="empty">
+          You haven't posted anything yet.
+        </div>
+      `;
+
+    return;
+
+  }
+
+
+  renderPosts(data);
+
 }
 
 
-postsTab.addEventListener("click", () => {
+/* =========================================
+   RENDER POSTS
+========================================= */
 
-  activateTab(postsTab);
+function renderPosts(
+  posts
+) {
 
-  profileContent.textContent =
-    "Your posts will appear here.";
-
-});
-
-
-videosTab.addEventListener("click", () => {
-
-  activateTab(videosTab);
-
-  profileContent.textContent =
-    "Your videos will appear here.";
-
-});
+  profileContent.innerHTML =
+    "";
 
 
-likesTab.addEventListener("click", () => {
+  posts.forEach(
+    post => {
 
-  activateTab(likesTab);
+      const card =
+        document.createElement(
+          "article"
+        );
 
-  profileContent.textContent =
-    "Posts and videos you like will appear here.";
+      card.className =
+        "content-card";
 
-});
 
+      let media =
+        "";
+
+
+      if (
+        post.media_url
+      ) {
+
+        if (
+          post.media_type ===
+          "video"
+        ) {
+
+          media =
+            `
+              <div class="content-media">
+
+                <video
+                  src="${escapeAttribute(post.media_url)}"
+                  controls
+                  playsinline
+                ></video>
+
+              </div>
+            `;
+
+        } else {
+
+          media =
+            `
+              <div class="content-media">
+
+                <img
+                  src="${escapeAttribute(post.media_url)}"
+                  alt="Post"
+                >
+
+              </div>
+            `;
+
+        }
+
+      }
+
+
+      card.innerHTML =
+        `
+          <div class="content-date">
+            ${formatDate(post.created_at)}
+          </div>
+
+          ${
+            post.content
+              ? `
+                <div class="content-text">
+                  ${escapeHTML(post.content)}
+                </div>
+              `
+              : ""
+          }
+
+          ${media}
+        `;
+
+
+      profileContent.appendChild(
+        card
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================
+   VIDEOS
+========================================= */
+
+async function loadVideos() {
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  profileContent.innerHTML =
+    `
+      <div class="empty">
+        Loading your videos...
+      </div>
+    `;
+
+
+  const {
+    data,
+    error
+  } =
+  await supabaseClient
+    .from("posts")
+    .select("*")
+    .eq(
+      "user_id",
+      currentUser.id
+    )
+    .eq(
+      "media_type",
+      "video"
+    )
+    .order(
+      "created_at",
+      {
+        ascending: false
+      }
+    );
+
+
+  if (error) {
+
+    profileContent.innerHTML =
+      `
+        <div class="empty">
+          Unable to load videos.
+        </div>
+      `;
+
+    return;
+
+  }
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    profileContent.innerHTML =
+      `
+        <div class="empty">
+          You haven't posted any videos yet.
+        </div>
+      `;
+
+    return;
+
+  }
+
+
+  renderPosts(data);
+
+}
+
+
+/* =========================================
+   PRIVATE LIKES
+========================================= */
+
+async function loadLikes() {
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  profileContent.innerHTML =
+    `
+      <div class="private-label">
+        🔒 Only you can see the posts you have liked.
+      </div>
+
+      <div class="empty">
+        Loading your likes...
+      </div>
+    `;
+
+
+  const {
+    data: likes,
+    error: likeError
+  } =
+  await supabaseClient
+    .from("post_likes")
+    .select("post_id")
+    .eq(
+      "user_id",
+      currentUser.id
+    );
+
+
+  if (likeError) {
+
+    console.error(likeError);
+
+    profileContent.innerHTML =
+      `
+        <div class="private-label">
+          🔒 Your likes are private.
+        </div>
+
+        <div class="empty">
+          Unable to load liked posts.
+        </div>
+      `;
+
+    return;
+
+  }
+
+
+  if (
+    !likes ||
+    likes.length === 0
+  ) {
+
+    profileContent.innerHTML =
+      `
+        <div class="private-label">
+          🔒 Only you can see your liked content.
+        </div>
+
+        <div class="empty">
+          You haven't liked any posts yet.
+        </div>
+      `;
+
+    return;
+
+  }
+
+
+  const postIds =
+    likes
+      .map(
+        like =>
+          like.post_id
+      )
+      .filter(Boolean);
+
+
+  if (
+    postIds.length === 0
+  ) {
+
+    return;
+
+  }
+
+
+  const {
+    data: posts,
+    error: postError
+  } =
+  await supabaseClient
+    .from("posts")
+    .select("*")
+    .in(
+      "id",
+      postIds
+    )
+    .order(
+      "created_at",
+      {
+        ascending: false
+      }
+    );
+
+
+  if (postError) {
+
+    console.error(postError);
+
+    profileContent.innerHTML =
+      `
+        <div class="empty">
+          Unable to load liked posts.
+        </div>
+      `;
+
+    return;
+
+  }
+
+
+  profileContent.innerHTML =
+    `
+      <div class="private-label">
+        🔒 Only you can see the posts you have liked.
+      </div>
+    `;
+
+
+  if (
+    !posts ||
+    posts.length === 0
+  ) {
+
+    profileContent.innerHTML +=
+      `
+        <div class="empty">
+          Your liked posts are empty.
+        </div>
+      `;
+
+    return;
+
+  }
+
+
+  posts.forEach(
+    post => {
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+      card.className =
+        "content-card";
+
+
+      let media =
+        "";
+
+
+      if (
+        post.media_url
+      ) {
+
+        if (
+          post.media_type ===
+          "video"
+        ) {
+
+          media =
+            `
+              <div class="content-media">
+
+                <video
+                  src="${escapeAttribute(post.media_url)}"
+                  controls
+                  playsinline
+                ></video>
+
+              </div>
+            `;
+
+        } else {
+
+          media =
+            `
+              <div class="content-media">
+
+                <img
+                  src="${escapeAttribute(post.media_url)}"
+                  alt="Liked post"
+                >
+
+              </div>
+            `;
+
+        }
+
+      }
+
+
+      card.innerHTML =
+        `
+          <div class="content-date">
+            ${formatDate(post.created_at)}
+          </div>
+
+          ${
+            post.content
+              ? `
+                <div class="content-text">
+                  ${escapeHTML(post.content)}
+                </div>
+              `
+              : ""
+          }
+
+          ${media}
+        `;
+
+
+      profileContent.appendChild(
+        card
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================
+   TABS
+========================================= */
+
+function activateTab(
+  tab
+) {
+
+  postsTab.classList.remove(
+    "active"
+  );
+
+  videosTab.classList.remove(
+    "active"
+  );
+
+  likesTab.classList.remove(
+    "active"
+  );
+
+
+  tab.classList.add(
+    "active"
+  );
+
+}
+
+
+postsTab.addEventListener(
+  "click",
+  async () => {
+
+    activateTab(
+      postsTab
+    );
+
+    await loadPosts();
+
+  }
+);
+
+
+videosTab.addEventListener(
+  "click",
+  async () => {
+
+    activateTab(
+      videosTab
+    );
+
+    await loadVideos();
+
+  }
+);
+
+
+likesTab.addEventListener(
+  "click",
+  async () => {
+
+    activateTab(
+      likesTab
+    );
+
+    await loadLikes();
+
+  }
+);
+
+
+/* =========================================
+   HELPERS
+========================================= */
+
+function escapeHTML(
+  text
+) {
+
+  const div =
+    document.createElement(
+      "div"
+    );
+
+  div.textContent =
+    text || "";
+
+  return div.innerHTML;
+
+}
+
+
+function escapeAttribute(
+  text
+) {
+
+  return String(
+    text || ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    );
+
+}
+
+
+function formatDate(
+  value
+) {
+
+  if (!value) {
+    return "";
+  }
+
+  return new Date(
+    value
+  ).toLocaleString();
+
+}
+
+
+/* =========================================
+   START
+========================================= */
 
 loadProfile();
 
-</script></body>
-</html>
+</script>
+
+</body>
+  </html>
