@@ -199,6 +199,10 @@
       font-weight: bold;
     }
 
+    .save-button.saved {
+      color: #ffd34d;
+    }
+
     .muted {
       color: #aeb5cb;
     }
@@ -240,9 +244,29 @@
       font-weight: bold;
     }
 
+    .comment-info {
+      flex: 1;
+      min-width: 0;
+    }
+
     .comment-text {
       margin: 7px 0 0 38px;
       word-break: break-word;
+    }
+
+    .comment-delete {
+      border: 0;
+      background: transparent;
+      color: #ff6b81;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    .comment-delete:disabled {
+      opacity: 0.5;
+      cursor: wait;
     }
 
     .comment-form {
@@ -380,8 +404,6 @@
 
   <main class="feed">
 
-    <!-- CREATE POST -->
-
     <section class="post">
 
       <div class="post-head">
@@ -457,8 +479,6 @@
     </section>
 
 
-    <!-- POSTS -->
-
     <div id="postsContainer">
       <div class="loading">
         Loading Zinko posts...
@@ -502,10 +522,6 @@
 
 <script>
 
-/* ================================
-   SUPABASE
-================================ */
-
 const SUPABASE_URL =
   "https://ggqhwoyzuypryocrxiru.supabase.co";
 
@@ -518,10 +534,6 @@ const supabaseClient =
     SUPABASE_PUBLISHABLE_KEY
   );
 
-
-/* ================================
-   ELEMENTS
-================================ */
 
 const postText =
   document.getElementById("postText");
@@ -543,6 +555,42 @@ const postsContainer =
 
 
 let selectedPhoto = null;
+let currentUser = null;
+
+
+/* ================================
+   CURRENT USER
+================================ */
+
+async function loadCurrentUser() {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient.auth.getUser();
+
+
+  if (error) {
+
+    console.error(error);
+
+    currentUser = null;
+
+    return null;
+
+  }
+
+
+  currentUser =
+    data && data.user
+      ? data.user
+      : null;
+
+
+  return currentUser;
+
+}
 
 
 /* ================================
@@ -601,6 +649,9 @@ async function loadPosts() {
   `;
 
 
+  await loadCurrentUser();
+
+
   const {
     data,
     error
@@ -627,6 +678,7 @@ async function loadPosts() {
     `;
 
     return;
+
   }
 
 
@@ -642,6 +694,7 @@ async function loadPosts() {
     `;
 
     return;
+
   }
 
 
@@ -833,7 +886,7 @@ async function renderPost(post) {
 
 
   await loadComments(
-    post.id,
+    post,
     article
   );
 
@@ -845,7 +898,7 @@ async function renderPost(post) {
 ================================ */
 
 async function loadComments(
-  postId,
+  post,
   article
 ) {
 
@@ -864,7 +917,7 @@ async function loadComments(
       .select("*")
       .eq(
         "post_id",
-        postId
+        post.id
       )
       .order(
         "created_at",
@@ -882,6 +935,7 @@ async function loadComments(
       `<div class="muted">Unable to load comments.</div>`;
 
     return;
+
   }
 
 
@@ -891,6 +945,7 @@ async function loadComments(
       `<div class="muted" style="margin-top:8px;">No comments yet.</div>`;
 
     return;
+
   }
 
 
@@ -907,6 +962,14 @@ async function loadComments(
         "comment";
 
 
+      const canDelete =
+        currentUser &&
+        (
+          comment.user_id === currentUser.id ||
+          post.user_id === currentUser.id
+        );
+
+
       commentElement.innerHTML = `
 
         <div class="comment-head">
@@ -915,7 +978,7 @@ async function loadComments(
             Z
           </div>
 
-          <div>
+          <div class="comment-info">
 
             <b>Zinko User</b>
 
@@ -924,6 +987,21 @@ async function loadComments(
             </small>
 
           </div>
+
+          ${
+            canDelete
+              ? `
+                <button
+                  type="button"
+                  class="comment-delete"
+                  data-comment-id="${escapeAttribute(comment.id)}"
+                  data-post-id="${escapeAttribute(post.id)}"
+                >
+                  Delete
+                </button>
+              `
+              : ""
+          }
 
         </div>
 
@@ -974,26 +1052,20 @@ async function addComment(
       "Write a comment first.";
 
     return;
+
   }
 
 
-  const {
-    data: userData,
-    error: userError
-  } =
-    await supabaseClient.auth.getUser();
+  await loadCurrentUser();
 
 
-  if (
-    userError ||
-    !userData ||
-    !userData.user
-  ) {
+  if (!currentUser) {
 
     message.textContent =
       "Please log in before commenting.";
 
     return;
+
   }
 
 
@@ -1018,7 +1090,7 @@ async function addComment(
 
         post_id: postId,
 
-        user_id: userData.user.id,
+        user_id: currentUser.id,
 
         content: text
 
@@ -1038,6 +1110,7 @@ async function addComment(
       "Send";
 
     return;
+
   }
 
 
@@ -1053,10 +1126,146 @@ async function addComment(
     "Send";
 
 
-  await loadComments(
-    postId,
-    article
-  );
+  const {
+    data: postData
+  } =
+    await supabaseClient
+      .from("posts")
+      .select("*")
+      .eq(
+        "id",
+        postId
+      )
+      .maybeSingle();
+
+
+  if (postData) {
+
+    await loadComments(
+      postData,
+      article
+    );
+
+  }
+
+}
+
+
+/* ================================
+   DELETE COMMENT
+================================ */
+
+async function deleteComment(
+  commentId,
+  postId,
+  commentElement
+) {
+
+  await loadCurrentUser();
+
+
+  if (!currentUser) {
+
+    alert(
+      "Please log in before deleting a comment."
+    );
+
+    return;
+
+  }
+
+
+  const confirmed =
+    confirm(
+      "Delete this comment?"
+    );
+
+
+  if (!confirmed) {
+
+    return;
+
+  }
+
+
+  const deleteButton =
+    commentElement.querySelector(
+      ".comment-delete"
+    );
+
+
+  if (deleteButton) {
+
+    deleteButton.disabled = true;
+
+    deleteButton.textContent =
+      "Deleting...";
+
+  }
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("comments")
+      .delete()
+      .eq(
+        "id",
+        commentId
+      );
+
+
+  if (error) {
+
+    console.error(error);
+
+    alert(
+      error.message
+    );
+
+    if (deleteButton) {
+
+      deleteButton.disabled = false;
+
+      deleteButton.textContent =
+        "Delete";
+
+    }
+
+    return;
+
+  }
+
+
+  commentElement.remove();
+
+
+  const article =
+    document.getElementById(
+      `comments-${postId}`
+    );
+
+
+  if (article) {
+
+    const commentsList =
+      article.querySelector(
+        ".comments-list"
+      );
+
+
+    if (
+      commentsList &&
+      commentsList.children.length === 0
+    ) {
+
+      commentsList.innerHTML =
+        `<div class="muted" style="margin-top:8px;">No comments yet.</div>`;
+
+    }
+
+  }
 
 }
 
@@ -1070,29 +1279,22 @@ async function toggleLike(
   button
 ) {
 
-  const {
-    data: userData,
-    error: userError
-  } =
-    await supabaseClient.auth.getUser();
+  await loadCurrentUser();
 
 
-  if (
-    userError ||
-    !userData ||
-    !userData.user
-  ) {
+  if (!currentUser) {
 
     alert(
       "Please log in to like posts."
     );
 
     return;
+
   }
 
 
   const userId =
-    userData.user.id;
+    currentUser.id;
 
 
   const {
@@ -1117,9 +1319,12 @@ async function toggleLike(
 
     console.error(checkError);
 
-    alert(checkError.message);
+    alert(
+      checkError.message
+    );
 
     return;
+
   }
 
 
@@ -1144,6 +1349,7 @@ async function toggleLike(
       alert(error.message);
 
       return;
+
     }
 
 
@@ -1174,6 +1380,7 @@ async function toggleLike(
       alert(error.message);
 
       return;
+
     }
 
 
@@ -1225,6 +1432,7 @@ async function refreshLikeCount(
     console.error(error);
 
     return;
+
   }
 
 
@@ -1250,23 +1458,11 @@ async function refreshLikeCount(
 
 async function updateLikeStates() {
 
-  const {
-    data: userData
-  } =
-    await supabaseClient.auth.getUser();
-
-
-  if (
-    !userData ||
-    !userData.user
-  ) {
+  if (!currentUser) {
 
     return;
+
   }
-
-
-  const userId =
-    userData.user.id;
 
 
   const {
@@ -1278,7 +1474,7 @@ async function updateLikeStates() {
       .select("post_id")
       .eq(
         "user_id",
-        userId
+        currentUser.id
       );
 
 
@@ -1287,12 +1483,14 @@ async function updateLikeStates() {
     console.error(error);
 
     return;
+
   }
 
 
   if (!likes) {
 
     return;
+
   }
 
 
@@ -1352,6 +1550,7 @@ postButton.addEventListener(
         "Write something or add a photo.";
 
       return;
+
     }
 
 
@@ -1360,25 +1559,16 @@ postButton.addEventListener(
     postButton.textContent =
       "Posting...";
 
-
     postMessage.textContent =
       "";
 
 
     try {
 
-      const {
-        data: userData,
-        error: userError
-      } =
-        await supabaseClient.auth.getUser();
+      await loadCurrentUser();
 
 
-      if (
-        userError ||
-        !userData ||
-        !userData.user
-      ) {
+      if (!currentUser) {
 
         throw new Error(
           "Please log in before creating a post."
@@ -1388,13 +1578,11 @@ postButton.addEventListener(
 
 
       const user =
-        userData.user;
+        currentUser;
 
 
       let imageURL = null;
 
-
-      /* UPLOAD PHOTO */
 
       if (selectedPhoto) {
 
@@ -1446,8 +1634,6 @@ postButton.addEventListener(
 
       }
 
-
-      /* SAVE POST */
 
       const {
         error: insertError
@@ -1525,20 +1711,17 @@ postsContainer.addEventListener(
 
     if (likeButton) {
 
-      const postId =
-        likeButton.dataset.postId;
-
-
       await toggleLike(
-        postId,
+        likeButton.dataset.postId,
         likeButton
       );
 
       return;
+
     }
 
 
-    /* COMMENT */
+    /* COMMENT SEND */
 
     const commentButton =
       event.target.closest(
@@ -1548,10 +1731,6 @@ postsContainer.addEventListener(
 
     if (commentButton) {
 
-      const postId =
-        commentButton.dataset.postId;
-
-
       const article =
         commentButton.closest(
           ".post"
@@ -1559,11 +1738,39 @@ postsContainer.addEventListener(
 
 
       await addComment(
-        postId,
+        commentButton.dataset.postId,
         article
       );
 
       return;
+
+    }
+
+
+    /* DELETE COMMENT */
+
+    const deleteButton =
+      event.target.closest(
+        ".comment-delete"
+      );
+
+
+    if (deleteButton) {
+
+      const commentElement =
+        deleteButton.closest(
+          ".comment"
+        );
+
+
+      await deleteComment(
+        deleteButton.dataset.commentId,
+        deleteButton.dataset.postId,
+        commentElement
+      );
+
+      return;
+
     }
 
 
@@ -1577,13 +1784,9 @@ postsContainer.addEventListener(
 
     if (commentToggle) {
 
-      const postId =
-        commentToggle.dataset.postId;
-
-
       const comments =
         document.getElementById(
-          `comments-${postId}`
+          `comments-${commentToggle.dataset.postId}`
         );
 
 
@@ -1594,10 +1797,12 @@ postsContainer.addEventListener(
           block: "nearest"
         });
 
+
         const input =
           comments.querySelector(
             ".comment-input"
           );
+
 
         if (input) {
 
@@ -1608,6 +1813,7 @@ postsContainer.addEventListener(
       }
 
       return;
+
     }
 
 
@@ -1631,9 +1837,7 @@ postsContainer.addEventListener(
         + postId;
 
 
-      if (
-        navigator.share
-      ) {
+      if (navigator.share) {
 
         try {
 
@@ -1674,6 +1878,7 @@ postsContainer.addEventListener(
       }
 
       return;
+
     }
 
 
@@ -1698,19 +1903,13 @@ postsContainer.addEventListener(
         )
       ) {
 
-        saveButton.textContent =
-          "🔖";
-
         alert(
           "Post saved on this page."
         );
 
-      } else {
-
-        saveButton.textContent =
-          "🔖";
-
       }
+
+      return;
 
     }
 
@@ -1727,18 +1926,12 @@ postsContainer.addEventListener(
   event => {
 
     if (
-      event.key !== "Enter"
-    ) {
-
-      return;
-    }
-
-
-    if (
+      event.key !== "Enter" ||
       event.shiftKey
     ) {
 
       return;
+
     }
 
 
@@ -1751,6 +1944,7 @@ postsContainer.addEventListener(
     if (!input) {
 
       return;
+
     }
 
 
