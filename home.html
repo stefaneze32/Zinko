@@ -5,9 +5,222 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Zinko Home</title>
 
-  <link rel="stylesheet" href="style.css">
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      color: #111;
+    }
+
+    .app {
+      max-width: 700px;
+      margin: auto;
+      padding-bottom: 80px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: white;
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .wordmark {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .wordmark span {
+      display: inline-flex;
+      width: 34px;
+      height: 34px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+      margin-right: 6px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .top-actions button {
+      border: 0;
+      background: transparent;
+      font-size: 22px;
+    }
+
+    .stories {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 14px 16px;
+      background: white;
+    }
+
+    .story {
+      min-width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      position: relative;
+    }
+
+    .story small {
+      position: absolute;
+      top: 66px;
+      font-size: 10px;
+      white-space: nowrap;
+      font-weight: normal;
+    }
+
+    .story.add {
+      background: #eee;
+      font-size: 26px;
+    }
+
+    .feed {
+      padding: 14px;
+    }
+
+    .post {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    }
+
+    .post-head {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .post-head small {
+      display: block;
+      color: #777;
+      margin-top: 3px;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #111;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    textarea {
+      font-family: inherit;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: #111;
+      color: white;
+    }
+
+    .glass {
+      background: #eee;
+    }
+
+    .full {
+      width: 100%;
+    }
+
+    .engage {
+      display: flex;
+      gap: 18px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+    }
+
+    .engage button {
+      border: 0;
+      background: transparent;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    .like-button.liked {
+      font-weight: bold;
+    }
+
+    .muted {
+      color: #777;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 700px;
+      margin: auto;
+      height: 64px;
+      background: white;
+      border-top: 1px solid #ddd;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 20;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: #555;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .nav a.active {
+      color: #111;
+      font-weight: bold;
+    }
+
+    .nav small {
+      display: block;
+      font-size: 10px;
+      margin-top: 3px;
+    }
+  </style>
 </head>
 
 <body>
@@ -15,46 +228,85 @@
 <div class="app">
 
 <header class="top">
-  <div class="wordmark"><span>Z</span>Zinko</div>
+
+  <div class="wordmark">
+    <span>Z</span>Zinko
+  </div>
 
   <div class="top-actions">
     <button type="button">⌕</button>
     <button type="button">♡</button>
     <button type="button">✉</button>
   </div>
+
 </header>
 
 
 <div class="stories">
-  <div class="story add">＋<small>Your status</small></div>
-  <div class="story">M<small>Maya</small></div>
-  <div class="story">J<small>Jay</small></div>
-  <div class="story">A<small>Ada</small></div>
-  <div class="story">K<small>Kofi</small></div>
+
+  <div class="story add">
+    ＋
+    <small>Your status</small>
+  </div>
+
+  <div class="story">
+    M
+    <small>Maya</small>
+  </div>
+
+  <div class="story">
+    J
+    <small>Jay</small>
+  </div>
+
+  <div class="story">
+    A
+    <small>Ada</small>
+  </div>
+
+  <div class="story">
+    K
+    <small>Kofi</small>
+  </div>
+
 </div>
 
 
 <main class="feed">
+
 
 <!-- CREATE POST -->
 
 <section class="post">
 
   <div class="post-head">
-    <div class="avatar" id="myAvatar">S</div>
+
+    <div class="avatar">
+      S
+    </div>
 
     <div>
-      <b id="myName">Create a post</b>
+      <b>Create a post</b>
       <small>Share something with Zinko</small>
     </div>
+
   </div>
+
 
   <textarea
     id="postText"
     placeholder="What's happening?"
     rows="4"
-    style="width:100%;margin-top:12px;padding:12px;border-radius:12px;border:1px solid #ddd;resize:none;"
+    style="
+      width:100%;
+      margin-top:12px;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid #ddd;
+      resize:none;
+    "
   ></textarea>
+
 
   <div style="margin-top:12px;">
 
@@ -75,7 +327,12 @@
 
   </div>
 
-  <div id="photoPreview" style="margin-top:12px;"></div>
+
+  <div
+    id="photoPreview"
+    style="margin-top:12px;"
+  ></div>
+
 
   <button
     id="postButton"
@@ -85,6 +342,7 @@
   >
     Post
   </button>
+
 
   <p
     id="postMessage"
@@ -140,8 +398,10 @@
 const SUPABASE_URL =
   "https://ggqhwoyzuypryocrxiru.supabase.co";
 
+
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
+
 
 const supabaseClient =
   window.supabase.createClient(
@@ -153,17 +413,22 @@ const supabaseClient =
 const postText =
   document.getElementById("postText");
 
+
 const photoInput =
   document.getElementById("photoInput");
+
 
 const photoPreview =
   document.getElementById("photoPreview");
 
+
 const postButton =
   document.getElementById("postButton");
 
+
 const postMessage =
   document.getElementById("postMessage");
+
 
 const postsContainer =
   document.getElementById("postsContainer");
@@ -174,48 +439,68 @@ let selectedPhoto = null;
 
 /* PHOTO PREVIEW */
 
-photoInput.addEventListener("change", () => {
+photoInput.addEventListener(
+  "change",
+  () => {
 
-  const file = photoInput.files[0];
+    const file =
+      photoInput.files[0];
 
-  if (!file) {
-    selectedPhoto = null;
-    photoPreview.innerHTML = "";
-    return;
+
+    if (!file) {
+
+      selectedPhoto = null;
+
+      photoPreview.innerHTML = "";
+
+      return;
+    }
+
+
+    selectedPhoto = file;
+
+
+    const imageURL =
+      URL.createObjectURL(file);
+
+
+    photoPreview.innerHTML = `
+
+      <img
+        src="${imageURL}"
+        alt="Selected photo"
+        style="
+          width:100%;
+          max-height:400px;
+          object-fit:cover;
+          border-radius:14px;
+        "
+      >
+
+    `;
+
   }
-
-  selectedPhoto = file;
-
-  const imageURL =
-    URL.createObjectURL(file);
-
-  photoPreview.innerHTML = `
-    <img
-      src="${imageURL}"
-      alt="Selected photo"
-      style="
-        width:100%;
-        max-height:400px;
-        object-fit:cover;
-        border-radius:14px;
-      "
-    >
-  `;
-
-});
+);
 
 
 /* LOAD POSTS */
 
 async function loadPosts() {
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await supabaseClient
       .from("posts")
       .select("*")
-      .order("created_at", {
-        ascending: false
-      });
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
+
 
   if (error) {
 
@@ -231,19 +516,40 @@ async function loadPosts() {
   postsContainer.innerHTML = "";
 
 
-  data.forEach(post => {
+  for (const post of data) {
 
     const article =
       document.createElement("article");
 
+
     article.className = "post";
+
+
+    const {
+      count: likeCount
+    } =
+      await supabaseClient
+        .from("post_likes")
+        .select(
+          "*",
+          {
+            count: "exact",
+            head: true
+          }
+        )
+        .eq(
+          "post_id",
+          post.id
+        );
 
 
     let photoHTML = "";
 
+
     if (post.image_url) {
 
       photoHTML = `
+
         <img
           src="${post.image_url}"
           alt="Zinko post"
@@ -255,6 +561,7 @@ async function loadPosts() {
             object-fit:cover;
           "
         >
+
       `;
 
     }
@@ -269,13 +576,17 @@ async function loadPosts() {
         </div>
 
         <div>
+
           <b>Zinko User</b>
+
           <small>
-            Just now
+            ${formatDate(post.created_at)}
           </small>
+
         </div>
 
       </div>
+
 
       ${
         post.content
@@ -283,21 +594,33 @@ async function loadPosts() {
           : ""
       }
 
+
       ${photoHTML}
+
 
       <div class="engage">
 
-        <button type="button">
+        <button
+          type="button"
+          class="like-button"
+          data-post-id="${post.id}"
+        >
           ♡
+          <span class="like-count">
+            ${likeCount || 0}
+          </span>
         </button>
+
 
         <button type="button">
           💬
         </button>
 
+
         <button type="button">
           ↗
         </button>
+
 
         <button type="button">
           🔖
@@ -310,166 +633,444 @@ async function loadPosts() {
 
     postsContainer.appendChild(article);
 
-  });
+  }
+
+
+  await updateLikeStates();
 
 }
 
 
-/* CREATE POST */
+/* LIKE / UNLIKE */
 
-postButton.addEventListener("click", async () => {
+async function toggleLike(postId, button) {
 
-  const text =
-    postText.value.trim();
+  const {
+    data: userData
+  } =
+    await supabaseClient.auth.getUser();
 
 
-  if (!text && !selectedPhoto) {
+  if (
+    !userData ||
+    !userData.user
+  ) {
 
-    postMessage.textContent =
-      "Write something or add a photo.";
+    alert(
+      "Please log in to like posts."
+    );
 
     return;
-
   }
 
 
-  postButton.disabled = true;
-
-  postButton.textContent =
-    "Posting...";
+  const userId =
+    userData.user.id;
 
 
-  try {
-
-    const {
-      data: userData,
-      error: userError
-    } =
-      await supabaseClient.auth.getUser();
-
-
-    if (userError || !userData.user) {
-
-      throw new Error(
-        "Please log in before creating a post."
-      );
-
-    }
-
-
-    const user =
-      userData.user;
+  const {
+    data: existingLike,
+    error: checkError
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select("id")
+      .eq(
+        "post_id",
+        postId
+      )
+      .eq(
+        "user_id",
+        userId
+      )
+      .maybeSingle();
 
 
-    let imageURL = null;
+  if (checkError) {
+
+    console.error(checkError);
+
+    return;
+  }
 
 
-    /* UPLOAD PHOTO */
-
-    if (selectedPhoto) {
-
-      const fileExtension =
-        selectedPhoto.name
-          .split(".")
-          .pop();
-
-
-      const fileName =
-        `${user.id}/${Date.now()}.${fileExtension}`;
-
-
-      const {
-        error: uploadError
-      } =
-        await supabaseClient.storage
-          .from("post-media")
-          .upload(
-            fileName,
-            selectedPhoto,
-            {
-              cacheControl: "3600",
-              upsert: false
-            }
-          );
-
-
-      if (uploadError) {
-
-        throw uploadError;
-
-      }
-
-
-      const {
-        data: publicURLData
-      } =
-        supabaseClient.storage
-          .from("post-media")
-          .getPublicUrl(fileName);
-
-
-      imageURL =
-        publicURLData.publicUrl;
-
-    }
-
-
-    /* SAVE POST */
+  if (existingLike) {
 
     const {
-      error: insertError
+      error
     } =
       await supabaseClient
-        .from("posts")
+        .from("post_likes")
+        .delete()
+        .eq(
+          "id",
+          existingLike.id
+        );
+
+
+    if (error) {
+
+      console.error(error);
+
+      alert(error.message);
+
+      return;
+    }
+
+
+    button.classList.remove(
+      "liked"
+    );
+
+  } else {
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("post_likes")
         .insert({
 
-          user_id: user.id,
+          post_id: postId,
 
-          content: text,
-
-          image_url: imageURL
+          user_id: userId
 
         });
 
 
-    if (insertError) {
+    if (error) {
 
-      throw insertError;
+      console.error(error);
 
+      alert(error.message);
+
+      return;
     }
 
 
-    postText.value = "";
-
-    photoInput.value = "";
-
-    selectedPhoto = null;
-
-    photoPreview.innerHTML = "";
-
-    postMessage.textContent =
-      "Posted successfully! 🎉";
-
-
-    await loadPosts();
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    postMessage.textContent =
-      error.message;
+    button.classList.add(
+      "liked"
+    );
 
   }
 
 
-  postButton.disabled = false;
+  await refreshLikeCount(
+    postId,
+    button
+  );
 
-  postButton.textContent =
-    "Post";
+}
 
-});
+
+/* UPDATE LIKE COUNT */
+
+async function refreshLikeCount(
+  postId,
+  button
+) {
+
+  const {
+    count
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select(
+        "*",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .eq(
+        "post_id",
+        postId
+      );
+
+
+  const countElement =
+    button.querySelector(
+      ".like-count"
+    );
+
+
+  countElement.textContent =
+    count || 0;
+
+}
+
+
+/* CHECK USER LIKES */
+
+async function updateLikeStates() {
+
+  const {
+    data: userData
+  } =
+    await supabaseClient.auth.getUser();
+
+
+  if (
+    !userData ||
+    !userData.user
+  ) {
+
+    return;
+  }
+
+
+  const userId =
+    userData.user.id;
+
+
+  const {
+    data: likes
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select("post_id")
+      .eq(
+        "user_id",
+        userId
+      );
+
+
+  if (!likes) {
+
+    return;
+  }
+
+
+  const likedPosts =
+    new Set(
+      likes.map(
+        like => like.post_id
+      )
+    );
+
+
+  document
+    .querySelectorAll(
+      ".like-button"
+    )
+    .forEach(button => {
+
+      const postId =
+        button.dataset.postId;
+
+
+      if (
+        likedPosts.has(postId)
+      ) {
+
+        button.classList.add(
+          "liked"
+        );
+
+      }
+
+    });
+
+}
+
+
+/* LIKE BUTTON EVENTS */
+
+postsContainer.addEventListener(
+  "click",
+  event => {
+
+    const button =
+      event.target.closest(
+        ".like-button"
+      );
+
+
+    if (!button) {
+
+      return;
+    }
+
+
+    const postId =
+      button.dataset.postId;
+
+
+    toggleLike(
+      postId,
+      button
+    );
+
+  }
+);
+
+
+/* CREATE POST */
+
+postButton.addEventListener(
+  "click",
+  async () => {
+
+    const text =
+      postText.value.trim();
+
+
+    if (
+      !text &&
+      !selectedPhoto
+    ) {
+
+      postMessage.textContent =
+        "Write something or add a photo.";
+
+      return;
+    }
+
+
+    postButton.disabled = true;
+
+    postButton.textContent =
+      "Posting...";
+
+
+    try {
+
+      const {
+        data: userData,
+        error: userError
+      } =
+        await supabaseClient.auth.getUser();
+
+
+      if (
+        userError ||
+        !userData.user
+      ) {
+
+        throw new Error(
+          "Please log in before creating a post."
+        );
+
+      }
+
+
+      const user =
+        userData.user;
+
+
+      let imageURL = null;
+
+
+      /* UPLOAD PHOTO */
+
+      if (selectedPhoto) {
+
+        const fileExtension =
+          selectedPhoto.name
+            .split(".")
+            .pop();
+
+
+        const fileName =
+          `${user.id}/${Date.now()}.${fileExtension}`;
+
+
+        const {
+          error: uploadError
+        } =
+          await supabaseClient.storage
+            .from("post-media")
+            .upload(
+              fileName,
+              selectedPhoto,
+              {
+                cacheControl: "3600",
+                upsert: false
+              }
+            );
+
+
+        if (uploadError) {
+
+          throw uploadError;
+
+        }
+
+
+        const {
+          data: publicURLData
+        } =
+          supabaseClient.storage
+            .from("post-media")
+            .getPublicUrl(
+              fileName
+            );
+
+
+        imageURL =
+          publicURLData.publicUrl;
+
+      }
+
+
+      /* SAVE POST */
+
+      const {
+        error: insertError
+      } =
+        await supabaseClient
+          .from("posts")
+          .insert({
+
+            user_id: user.id,
+
+            content: text,
+
+            image_url: imageURL
+
+          });
+
+
+      if (insertError) {
+
+        throw insertError;
+
+      }
+
+
+      postText.value = "";
+
+      photoInput.value = "";
+
+      selectedPhoto = null;
+
+      photoPreview.innerHTML = "";
+
+
+      postMessage.textContent =
+        "Posted successfully! 🎉";
+
+
+      await loadPosts();
+
+
+    } catch (error) {
+
+      console.error(error);
+
+      postMessage.textContent =
+        error.message;
+
+    }
+
+
+    postButton.disabled = false;
+
+    postButton.textContent =
+      "Post";
+
+  }
+);
 
 
 /* ESCAPE HTML */
@@ -477,12 +1078,27 @@ postButton.addEventListener("click", async () => {
 function escapeHTML(text) {
 
   const div =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   div.textContent =
     text;
 
   return div.innerHTML;
+
+}
+
+
+/* DATE */
+
+function formatDate(dateString) {
+
+  const date =
+    new Date(dateString);
+
+
+  return date.toLocaleString();
 
 }
 
@@ -494,4 +1110,4 @@ loadPosts();
 </script>
 
 </body>
-</html>
+  </html>
