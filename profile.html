@@ -3,7 +3,16 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">  <title>Profile — Zinko</title>  <link rel="stylesheet" href="style.css">  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  <style>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Profile — Zinko</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
     .profile {
       padding-bottom: 100px;
     }
@@ -343,6 +352,11 @@
       max-height: 500px;
       object-fit: cover;
       border-radius: 14px;
+      display: block;
+    }
+
+    .content-media video {
+      background: #000;
     }
 
     .empty {
@@ -383,220 +397,248 @@
       font-size: 11px;
       font-weight: 700;
     }
-  </style></head><body><div class="app">  <header class="top"><div class="wordmark">
-  <span>Z</span>Profile
-</div>
 
-<a href="settings.html">⚙</a>
+  </style>
 
-  </header>  <main class="profile"><!-- PROFILE HEADER -->
+</head>
 
-<section class="profile-top">
+<body>
 
-  <div
-    id="avatarWrap"
-    class="avatar-wrap"
-  >
+<div class="app">
 
-    <div
-      class="profile-avatar"
-      id="profileAvatar"
+  <header class="top">
+
+    <div class="wordmark">
+      <span>Z</span>Profile
+    </div>
+
+    <a href="settings.html">⚙</a>
+
+  </header>
+
+
+  <main class="profile">
+
+    <!-- PROFILE HEADER -->
+
+    <section class="profile-top">
+
+      <div
+        id="avatarWrap"
+        class="avatar-wrap"
+      >
+
+        <div
+          class="profile-avatar"
+          id="profileAvatar"
+        >
+          S
+        </div>
+
+      </div>
+
+
+      <h2
+        id="profileName"
+        class="profile-name"
+      >
+        Loading...
+      </h2>
+
+
+      <p
+        class="handle"
+        id="profileHandle"
+      >
+        @username · Creator
+      </p>
+
+
+      <div
+        id="verifiedText"
+        class="verified-profile-label"
+        style="display:none;"
+      >
+        ✦ Zinko Verified
+      </div>
+
+
+      <p
+        class="bio"
+        id="profileBio"
+      >
+        Welcome to my Zinko world. 🌍
+      </p>
+
+
+      <div class="stats">
+
+        <div>
+          <b id="postsCount">0</b>
+          <small>Posts</small>
+        </div>
+
+        <div>
+          <b id="followersCount">0</b>
+          <small>Followers</small>
+        </div>
+
+        <div>
+          <b id="followingCount">0</b>
+          <small>Following</small>
+        </div>
+
+      </div>
+
+
+      <div class="profile-actions">
+
+        <button
+          class="btn primary"
+          id="editProfileButton"
+          type="button"
+        >
+          Edit Profile
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- EDIT PROFILE -->
+
+    <section
+      id="editPanel"
+      class="edit-panel"
+      style="display:none;"
     >
-      S
+
+      <input
+        id="editName"
+        type="text"
+        placeholder="Full name"
+      >
+
+      <input
+        id="editUsername"
+        type="text"
+        placeholder="Username"
+      >
+
+      <input
+        id="editCountry"
+        type="text"
+        placeholder="Country"
+      >
+
+      <textarea
+        id="editBio"
+        placeholder="Bio"
+        rows="4"
+      ></textarea>
+
+
+      <button
+        class="btn primary full"
+        id="saveProfile"
+        type="button"
+      >
+        Save Profile
+      </button>
+
+
+      <button
+        class="btn glass full"
+        id="cancelEdit"
+        type="button"
+      >
+        Cancel
+      </button>
+
+
+      <p
+        id="profileMessage"
+        class="message"
+      ></p>
+
+    </section>
+
+
+    <!-- PROFILE TABS -->
+
+    <div class="profile-tabs">
+
+      <button
+        id="postsTab"
+        class="active"
+        type="button"
+      >
+        Posts
+      </button>
+
+      <button
+        id="videosTab"
+        type="button"
+      >
+        Videos
+      </button>
+
+      <button
+        id="likesTab"
+        type="button"
+      >
+        Likes
+      </button>
+
     </div>
 
-  </div>
 
-
-  <h2
-    id="profileName"
-    class="profile-name"
-  >
-    Loading...
-  </h2>
-
-
-  <p
-    class="handle"
-    id="profileHandle"
-  >
-    @username · Creator
-  </p>
-
-
-  <div
-    id="verifiedText"
-    class="verified-profile-label"
-    style="display:none;"
-  >
-    ✦ Zinko Verified
-  </div>
-
-
-  <p
-    class="bio"
-    id="profileBio"
-  >
-    Welcome to my Zinko world. 🌍
-  </p>
-
-
-  <div class="stats">
-
-    <div>
-      <b id="postsCount">0</b>
-      <small>Posts</small>
+    <div id="profileContent">
+      Loading...
     </div>
 
-    <div>
-      <b id="followersCount">0</b>
-      <small>Followers</small>
-    </div>
-
-    <div>
-      <b id="followingCount">0</b>
-      <small>Following</small>
-    </div>
-
-  </div>
+  </main>
 
 
-  <div class="profile-actions">
+  <!-- NAVIGATION -->
 
-    <button
-      class="btn primary"
-      id="editProfileButton"
-      type="button"
+  <nav class="nav">
+
+    <a href="home.html">
+      ⌂
+      <small>Home</small>
+    </a>
+
+    <a href="live.html">
+      ◉
+      <small>Live</small>
+    </a>
+
+    <a href="discover.html">
+      ⌕
+      <small>Discover</small>
+    </a>
+
+    <a href="messages.html">
+      ✉
+      <small>Messages</small>
+    </a>
+
+    <a
+      class="active"
+      href="profile.html"
     >
-      Edit Profile
-    </button>
+      ●
+      <small>Profile</small>
+    </a>
 
-  </div>
-
-</section>
-
-
-<!-- EDIT PROFILE -->
-
-<section
-  id="editPanel"
-  class="edit-panel"
-  style="display:none;"
->
-
-  <input
-    id="editName"
-    type="text"
-    placeholder="Full name"
-  >
-
-  <input
-    id="editUsername"
-    type="text"
-    placeholder="Username"
-  >
-
-  <input
-    id="editCountry"
-    type="text"
-    placeholder="Country"
-  >
-
-  <textarea
-    id="editBio"
-    placeholder="Bio"
-    rows="4"
-  ></textarea>
-
-
-  <button
-    class="btn primary full"
-    id="saveProfile"
-    type="button"
-  >
-    Save Profile
-  </button>
-
-
-  <button
-    class="btn glass full"
-    id="cancelEdit"
-    type="button"
-  >
-    Cancel
-  </button>
-
-
-  <p
-    id="profileMessage"
-    class="message"
-  ></p>
-
-</section>
-
-
-<!-- PROFILE TABS -->
-
-<div class="profile-tabs">
-
-  <button
-    id="postsTab"
-    class="active"
-    type="button"
-  >
-    Posts
-  </button>
-
-  <button
-    id="videosTab"
-    type="button"
-  >
-    Videos
-  </button>
-
-  <button
-    id="likesTab"
-    type="button"
-  >
-    Likes
-  </button>
+  </nav>
 
 </div>
 
 
-<div id="profileContent">
-  Loading...
-</div>
-
-  </main>  <!-- NAVIGATION -->  <nav class="nav"><a href="home.html">
-  ⌂
-  <small>Home</small>
-</a>
-
-<a href="live.html">
-  ◉
-  <small>Live</small>
-</a>
-
-<a href="discover.html">
-  ⌕
-  <small>Discover</small>
-</a>
-
-<a href="messages.html">
-  ✉
-  <small>Messages</small>
-</a>
-
-<a
-  class="active"
-  href="profile.html"
->
-  ●
-  <small>Profile</small>
-</a>
-
-  </nav></div><script>
+<script>
 
 /* =========================================
    SUPABASE
@@ -675,6 +717,7 @@ const profileContent =
 
 
 let currentUser = null;
+
 let currentUserVerified = false;
 
 
@@ -715,13 +758,6 @@ async function getCurrentUser() {
 
 /* =========================================
    CHECK ZINKO VERIFICATION
-=========================================
-
-   Verification is controlled by the
-   zinko_verifications table.
-
-   Users do NOT get a switch or button
-   to verify themselves.
 ========================================= */
 
 async function checkZinkoVerification(
@@ -805,7 +841,9 @@ function applyVerification(
         </span>
       `;
 
-  } else {
+  }
+
+  else {
 
     avatarWrap.classList.remove(
       "verified"
@@ -1021,7 +1059,9 @@ async function loadProfileStats() {
 
     }
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.log(
       "Follow system not available yet."
@@ -1281,11 +1321,10 @@ async function loadPosts() {
 
 /* =========================================
    RENDER POSTS
+   FIXED FOR YOUR DATABASE
 ========================================= */
 
-function renderPosts(
-  posts
-) {
+function renderPosts(posts) {
 
   profileContent.innerHTML =
     "";
@@ -1308,43 +1347,50 @@ function renderPosts(
         "";
 
 
+      /* =========================
+         VIDEO
+      ========================= */
+
       if (
-        post.media_url
+        post.video_url
       ) {
 
-        if (
-          post.media_type ===
-          "video"
-        ) {
+        media =
+          `
+            <div class="content-media">
 
-          media =
-            `
-              <div class="content-media">
+              <video
+                src="${escapeAttribute(post.video_url)}"
+                controls
+                playsinline
+                preload="metadata"
+              ></video>
 
-                <video
-                  src="${escapeAttribute(post.media_url)}"
-                  controls
-                  playsinline
-                ></video>
+            </div>
+          `;
 
-              </div>
-            `;
+      }
 
-        } else {
 
-          media =
-            `
-              <div class="content-media">
+      /* =========================
+         IMAGE
+      ========================= */
 
-                <img
-                  src="${escapeAttribute(post.media_url)}"
-                  alt="Post"
-                >
+      else if (
+        post.image_url
+      ) {
 
-              </div>
-            `;
+        media =
+          `
+            <div class="content-media">
 
-        }
+              <img
+                src="${escapeAttribute(post.image_url)}"
+                alt="Post"
+              >
+
+            </div>
+          `;
 
       }
 
@@ -1381,6 +1427,7 @@ function renderPosts(
 
 /* =========================================
    VIDEOS
+   FIXED FOR video_url
 ========================================= */
 
 async function loadVideos() {
@@ -1409,9 +1456,10 @@ async function loadVideos() {
       "user_id",
       currentUser.id
     )
-    .eq(
-      "media_type",
-      "video"
+    .not(
+      "video_url",
+      "is",
+      null
     )
     .order(
       "created_at",
@@ -1650,43 +1698,50 @@ async function loadLikes() {
         "";
 
 
+      /* =========================
+         LIKED VIDEO
+      ========================= */
+
       if (
-        post.media_url
+        post.video_url
       ) {
 
-        if (
-          post.media_type ===
-          "video"
-        ) {
+        media =
+          `
+            <div class="content-media">
 
-          media =
-            `
-              <div class="content-media">
+              <video
+                src="${escapeAttribute(post.video_url)}"
+                controls
+                playsinline
+                preload="metadata"
+              ></video>
 
-                <video
-                  src="${escapeAttribute(post.media_url)}"
-                  controls
-                  playsinline
-                ></video>
+            </div>
+          `;
 
-              </div>
-            `;
+      }
 
-        } else {
 
-          media =
-            `
-              <div class="content-media">
+      /* =========================
+         LIKED IMAGE
+      ========================= */
 
-                <img
-                  src="${escapeAttribute(post.media_url)}"
-                  alt="Liked post"
-                >
+      else if (
+        post.image_url
+      ) {
 
-              </div>
-            `;
+        media =
+          `
+            <div class="content-media">
 
-        }
+              <img
+                src="${escapeAttribute(post.image_url)}"
+                alt="Liked post"
+              >
+
+            </div>
+          `;
 
       }
 
@@ -1861,5 +1916,7 @@ function formatDate(
 
 loadProfile();
 
-</script></body>
+</script>
+
+</body>
   </html>
