@@ -1,1 +1,602 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Live — Zinko</title><link rel="stylesheet" href="style.css"></head><body><div class="app"><header class="top"><div class="wordmark"><span>Z</span>Live</div><a class="btn primary small-btn" href="start-live.html">＋ Go Live</a></header><main class="live-list"><div class="live-card"><div class="live-media live-purple"><b>LIVE</b><span>2.8K watching</span></div><h3>Music & Chill 🎵</h3><p>@mayarivers ✓ · Music</p><button class="btn primary full">Watch Live</button></div><div class="live-card"><div class="live-media live-red"><b>LIVE</b><span>904 watching</span></div><h3>Gaming Challenge 🎮</h3><p>@kofi ✓ · Gaming</p><button class="btn primary full">Watch Live</button></div></main><nav class="nav"><a href="home.html">⌂<small>Home</small></a><a class="active" href="live.html">◉<small>Live</small></a><a href="discover.html">⌕<small>Discover</small></a><a href="messages.html">✉<small>Messages</small></a><a href="profile.html">●<small>Profile</small></a></nav></div></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live — Zinko</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+.live-page{
+  padding:18px 15px 100px;
+}
+
+.live-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+}
+
+.live-header h2{
+  margin:0;
+}
+
+.live-subtitle{
+  color:#858da6;
+  font-size:12px;
+  margin-top:4px;
+}
+
+.live-grid{
+  display:grid;
+  gap:16px;
+}
+
+.live-card{
+  background:#101728;
+  border:1px solid #202840;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 8px 25px rgba(0,0,0,.18);
+}
+
+.live-media{
+  height:210px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.live-purple{
+  background:
+    radial-gradient(circle at 30% 30%,#9b5cff,#28164d 55%,#0b1120);
+}
+
+.live-red{
+  background:
+    radial-gradient(circle at 70% 30%,#ff5b5b,#42141f 55%,#0b1120);
+}
+
+.live-blue{
+  background:
+    radial-gradient(circle at 50% 20%,#10bce4,#102d4c 55%,#0b1120);
+}
+
+.live-green{
+  background:
+    radial-gradient(circle at 50% 20%,#27d17f,#123d2c 55%,#0b1120);
+}
+
+.live-badge{
+  position:absolute;
+  top:12px;
+  left:12px;
+  background:#ff3158;
+  color:white;
+  padding:6px 9px;
+  border-radius:8px;
+  font-size:11px;
+  font-weight:900;
+}
+
+.viewer-badge{
+  position:absolute;
+  top:12px;
+  right:12px;
+  background:rgba(0,0,0,.55);
+  color:white;
+  padding:6px 9px;
+  border-radius:8px;
+  font-size:11px;
+}
+
+.live-symbol{
+  font-size:55px;
+}
+
+.live-info{
+  padding:15px;
+}
+
+.live-info h3{
+  margin:0 0 7px;
+}
+
+.live-info p{
+  margin:0 0 13px;
+  color:#9da6bf;
+  font-size:13px;
+}
+
+.live-category{
+  display:inline-block;
+  margin-bottom:12px;
+  padding:5px 9px;
+  border-radius:20px;
+  background:#171f35;
+  color:#b9c1d8;
+  font-size:11px;
+}
+
+.live-actions{
+  display:flex;
+  gap:8px;
+}
+
+.live-actions .btn{
+  flex:1;
+}
+
+.empty-live{
+  text-align:center;
+  padding:45px 15px;
+  color:#858da6;
+}
+
+.live-section-title{
+  margin:24px 0 12px;
+  font-size:16px;
+}
+
+.creator-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  margin-bottom:9px;
+  background:#101728;
+  border:1px solid #202840;
+  border-radius:15px;
+}
+
+.creator-avatar{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#7155ff,#10bce4);
+  color:white;
+  font-weight:900;
+}
+
+.creator-info{
+  flex:1;
+}
+
+.creator-info b{
+  display:block;
+  font-size:13px;
+}
+
+.creator-info small{
+  color:#858da6;
+}
+
+.online-dot{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:#22d47a;
+}
+
+@media(min-width:700px){
+  .live-grid{
+    grid-template-columns:1fr 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="top">
+
+  <div class="wordmark">
+    <span>Z</span>Live
+  </div>
+
+  <a
+    class="btn primary small-btn"
+    href="start-live.html"
+  >
+    ＋ Go Live
+  </a>
+
+</header>
+
+
+<main class="live-page">
+
+  <div class="live-header">
+
+    <div>
+      <h2>Live Now 🔴</h2>
+
+      <div class="live-subtitle">
+        Watch creators live on Zinko
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- LIVE STREAMS -->
+
+  <section>
+
+    <div class="live-grid">
+
+
+      <!-- STREAM 1 -->
+
+      <article class="live-card">
+
+        <div class="live-media live-purple">
+
+          <span class="live-badge">
+            LIVE
+          </span>
+
+          <span class="viewer-badge">
+            👁 2.8K
+          </span>
+
+          <div class="live-symbol">
+            🎵
+          </div>
+
+        </div>
+
+
+        <div class="live-info">
+
+          <h3>
+            Music & Chill 🎵
+          </h3>
+
+          <p>
+            @mayarivers ✓ · Live music and vibes
+          </p>
+
+          <span class="live-category">
+            🎵 Music
+          </span>
+
+
+          <div class="live-actions">
+
+            <button
+              class="btn primary"
+              onclick="watchLive('Music & Chill 🎵','@mayarivers')"
+            >
+              Watch Live
+            </button>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- STREAM 2 -->
+
+      <article class="live-card">
+
+        <div class="live-media live-red">
+
+          <span class="live-badge">
+            LIVE
+          </span>
+
+          <span class="viewer-badge">
+            👁 904
+          </span>
+
+          <div class="live-symbol">
+            🎮
+          </div>
+
+        </div>
+
+
+        <div class="live-info">
+
+          <h3>
+            Gaming Challenge 🎮
+          </h3>
+
+          <p>
+            @kofi ✓ · Gaming and challenges
+          </p>
+
+          <span class="live-category">
+            🎮 Gaming
+          </span>
+
+
+          <div class="live-actions">
+
+            <button
+              class="btn primary"
+              onclick="watchLive('Gaming Challenge 🎮','@kofi')"
+            >
+              Watch Live
+            </button>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- STREAM 3 -->
+
+      <article class="live-card">
+
+        <div class="live-media live-blue">
+
+          <span class="live-badge">
+            LIVE
+          </span>
+
+          <span class="viewer-badge">
+            👁 1.2K
+          </span>
+
+          <div class="live-symbol">
+            🎤
+          </div>
+
+        </div>
+
+
+        <div class="live-info">
+
+          <h3>
+            Late Night Talk 🎤
+          </h3>
+
+          <p>
+            @zinkoTalks · Join the conversation
+          </p>
+
+          <span class="live-category">
+            💬 Talk
+          </span>
+
+
+          <div class="live-actions">
+
+            <button
+              class="btn primary"
+              onclick="watchLive('Late Night Talk 🎤','@zinkoTalks')"
+            >
+              Watch Live
+            </button>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- STREAM 4 -->
+
+      <article class="live-card">
+
+        <div class="live-media live-green">
+
+          <span class="live-badge">
+            LIVE
+          </span>
+
+          <span class="viewer-badge">
+            👁 638
+          </span>
+
+          <div class="live-symbol">
+            😂
+          </div>
+
+        </div>
+
+
+        <div class="live-info">
+
+          <h3>
+            Comedy Night 😂
+          </h3>
+
+          <p>
+            @funnyvibes · Laugh together
+          </p>
+
+          <span class="live-category">
+            😂 Comedy
+          </span>
+
+
+          <div class="live-actions">
+
+            <button
+              class="btn primary"
+              onclick="watchLive('Comedy Night 😂','@funnyvibes')"
+            >
+              Watch Live
+            </button>
+
+          </div>
+
+        </div>
+
+      </article>
+
+    </div>
+
+  </section>
+
+
+  <!-- CREATOR SECTION -->
+
+  <h3 class="live-section-title">
+    🟢 Creators currently live
+  </h3>
+
+
+  <section>
+
+    <div class="creator-row">
+
+      <div class="creator-avatar">
+        M
+      </div>
+
+      <div class="creator-info">
+
+        <b>
+          Maya Rivers ✓
+        </b>
+
+        <small>
+          Music & Chill
+        </small>
+
+      </div>
+
+      <span class="online-dot"></span>
+
+    </div>
+
+
+    <div class="creator-row">
+
+      <div class="creator-avatar">
+        K
+      </div>
+
+      <div class="creator-info">
+
+        <b>
+          Kofi ✓
+        </b>
+
+        <small>
+          Gaming Challenge
+        </small>
+
+      </div>
+
+      <span class="online-dot"></span>
+
+    </div>
+
+
+    <div class="creator-row">
+
+      <div class="creator-avatar">
+        Z
+      </div>
+
+      <div class="creator-info">
+
+        <b>
+          Zinko Talks
+        </b>
+
+        <small>
+          Late Night Talk
+        </small>
+
+      </div>
+
+      <span class="online-dot"></span>
+
+    </div>
+
+  </section>
+
+
+</main>
+
+
+<!-- NAVIGATION -->
+
+<nav class="nav">
+
+  <a href="home.html">
+    ⌂
+    <small>Home</small>
+  </a>
+
+
+  <a
+    class="active"
+    href="live.html"
+  >
+    ◉
+    <small>Live</small>
+  </a>
+
+
+  <a href="discover.html">
+    ⌕
+    <small>Discover</small>
+  </a>
+
+
+  <a href="messages.html">
+    ✉
+    <small>Messages</small>
+  </a>
+
+
+  <a href="profile.html">
+    ●
+    <small>Profile</small>
+  </a>
+
+</nav>
+
+
+</div>
+
+
+<script>
+
+function watchLive(title,creator){
+
+  /*
+    The real live-room system will be connected
+    after the live-room/database stage.
+  */
+
+  const params =
+    new URLSearchParams({
+
+      title:title,
+
+      creator:creator
+
+    });
+
+
+  window.location.href =
+    "watch-live.html?" +
+    params.toString();
+
+}
+
+</script>
+
+</body>
+</html>
