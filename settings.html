@@ -1,1 +1,1848 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Settings — Zinko</title><link rel="stylesheet" href="style.css"></head><body><main class="auth-page"><div class="auth-card"><a class="back" href="profile.html">← Profile</a><h2>Settings</h2><div class="setting">👤 Account & profile <span>›</span></div><div class="setting">🔒 Privacy & safety <span>›</span></div><div class="setting">🔔 Notifications <span>›</span></div><div class="setting">🛡 Security & login <span>›</span></div><div class="setting">🚫 Blocked accounts <span>›</span></div><div class="setting">💬 Content preferences <span>›</span></div><div class="setting">🌐 Language <span>›</span></div><div class="setting">❓ Help & support <span>›</span></div><div class="setting">ℹ About Zinko <span>›</span></div><button class="btn danger full">Log out</button></div></main></body></html>
+<!doctype html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
+
+  <title>Settings — Zinko</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    body {
+      margin: 0;
+    }
+
+    .settings-page {
+      min-height: 100vh;
+      padding: 18px 15px 40px;
+      box-sizing: border-box;
+    }
+
+    .settings-card {
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .back {
+      display: inline-block;
+      margin-bottom: 18px;
+      text-decoration: none;
+    }
+
+    .settings-title {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+
+    .settings-subtitle {
+      margin: 0 0 22px;
+      color: #8f98b0;
+      font-size: 13px;
+    }
+
+    .setting {
+      width: 100%;
+      box-sizing: border-box;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 17px 15px;
+      margin-bottom: 9px;
+
+      background: #101728;
+      border: 1px solid #202840;
+
+      border-radius: 16px;
+
+      color: white;
+      cursor: pointer;
+
+      transition: .2s;
+    }
+
+    .setting:hover {
+      transform: translateY(-1px);
+      border-color: #394563;
+    }
+
+    .setting-left {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .setting-icon {
+      width: 34px;
+      height: 34px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 11px;
+
+      background: #171f35;
+
+      font-size: 17px;
+    }
+
+    .setting-name {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .setting-description {
+      display: block;
+      margin-top: 3px;
+      color: #858da6;
+      font-size: 11px;
+      font-weight: normal;
+    }
+
+    .arrow {
+      color: #858da6;
+      font-size: 22px;
+    }
+
+    .section {
+      display: none;
+
+      margin-top: 15px;
+      padding: 17px;
+
+      background: #101728;
+      border: 1px solid #202840;
+
+      border-radius: 18px;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .section h3 {
+      margin-top: 0;
+      margin-bottom: 6px;
+    }
+
+    .section p {
+      color: #9da6bf;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .field {
+      margin: 13px 0;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      color: #cbd1e2;
+      font-size: 12px;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+
+      width: 100%;
+      box-sizing: border-box;
+
+      padding: 12px;
+
+      background: #0b1120;
+      color: white;
+
+      border: 1px solid #29314b;
+      border-radius: 12px;
+
+      outline: none;
+      font-family: inherit;
+    }
+
+    .field textarea {
+      resize: vertical;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 13px 0;
+
+      border-bottom: 1px solid #202840;
+
+      font-size: 13px;
+    }
+
+    .option:last-child {
+      border-bottom: 0;
+    }
+
+    .option-text {
+      padding-right: 12px;
+    }
+
+    .option-title {
+      font-weight: 700;
+    }
+
+    .option-description {
+      display: block;
+      margin-top: 3px;
+      color: #858da6;
+      font-size: 11px;
+    }
+
+    .toggle {
+      width: 45px;
+      height: 25px;
+
+      position: relative;
+
+      appearance: none;
+
+      background: #29314b;
+
+      border-radius: 30px;
+
+      cursor: pointer;
+
+      transition: .2s;
+      flex-shrink: 0;
+    }
+
+    .toggle::after {
+      content: "";
+
+      position: absolute;
+
+      width: 19px;
+      height: 19px;
+
+      top: 3px;
+      left: 3px;
+
+      border-radius: 50%;
+
+      background: white;
+
+      transition: .2s;
+    }
+
+    .toggle:checked {
+      background: #7155ff;
+    }
+
+    .toggle:checked::after {
+      left: 23px;
+    }
+
+    .settings-message {
+      text-align: center;
+
+      margin-top: 12px;
+
+      color: #9da6bf;
+
+      font-size: 12px;
+    }
+
+    .danger-zone {
+      margin-top: 25px;
+      padding-top: 15px;
+
+      border-top: 1px solid #202840;
+    }
+
+    .info-box {
+      padding: 14px;
+
+      background: #0b1120;
+
+      border: 1px solid #202840;
+
+      border-radius: 13px;
+
+      color: #aeb5cb;
+
+      font-size: 13px;
+
+      line-height: 1.5;
+    }
+
+    .support-button {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+<main class="settings-page">
+
+  <div class="settings-card">
+
+    <a
+      class="back"
+      href="profile.html"
+    >
+      ← Profile
+    </a>
+
+
+    <h2 class="settings-title">
+      Settings
+    </h2>
+
+    <p class="settings-subtitle">
+      Manage your Zinko account and experience.
+    </p>
+
+
+    <!-- =========================
+         SETTINGS MENU
+    ========================== -->
+
+    <div
+      class="setting"
+      onclick="openSection('account')"
+    >
+
+      <div class="setting-left">
+
+        <div class="setting-icon">
+          👤
+        </div>
+
+        <div>
+          <div class="setting-name">
+            Account & profile
+          </div>
+
+          <span class="setting-description">
+            Manage your Zinko profile
+          </span>
+        </div>
+
+      </div>
+
+      <span class="arrow">
+        ›
+      </span>
+
+    </div>
+
+
+    <div
+      class="setting"
+      onclick="openSection('privacy')"
+    >
+
+      <div class="setting-left">
+
+        <div class="setting-icon">
+          🔒
+        </div>
+
+        <div>
+          <div class="setting-name">
+            Privacy & safety
+          </div>
+
+          <span class="setting-description">
+            Control who can interact with you
+          </span>
+        </div>
+
+      </div>
+
+      <span class="arrow">
+        ›
+      </span>
+
+    </div>
+
+
+    <div
+      class="setting"
+      onclick="openSection('notifications')"
+    >
+
+      <div class="setting-left">
+
+        <div class="setting-icon">
+          🔔
+        </div>
+
+        <div>
+          <div class="setting-name">
+            Notifications
+          </div>
+
+          <span class="setting-description">
+            Manage Zinko notifications
+          </span>
+        </div>
+
+      </div>
+
+      <span class="arrow">
+        ›
+      </span>
+
+    </div>
+
+
+    <div
+      class="setting"
+      onclick="openSection('security')"
+    >
+
+      <div class="setting-left">
+
+        <div class="setting-icon">
+          🛡
+        </div>
+
+        <div>
+          <div class="setting-name">
+            Security & login
+          </div>
+
+          <span class="setting-description">
+            Protect your account
+          </span>
+        </div>
+
+      </div>
+
+      <span class="arrow">
+        ›
+      </span>
+
+    </div>
+
+
+    <div
+      class="setting"
+      onclick="openSection('blocked')"
+    >
+
+      <div class="setting-left">
+
+        <div class="setting-icon">
+          🚫
+        </div>
+
+        <div>
+          <div class="setting-name">
+            Blocked accounts
+          </div>
+
+          <span class="setting-description">
+            Manage accounts you blocked
+          </span>
+        </div>
+
+      </div>
+
+      <span class="arrow">
+        ›
+      </span>
+
+    </div>
+
+
+    <div
+      class="setting"
+      onclick="openSection('content')"
+    >
+
+      <div class="setting-left">
+
+        <div class="setting-icon">
+          💬
+        </div>
+
+        <div>
+          <div class="setting-name">
+            Content preferences
+          </div>
+
+          <span class="setting-description">
+            Control what you see on Zinko
+          </span>
+        </div>
+
+      </div>
+
+      <span class="arrow">
+        ›
+      </span>
+
+    </div>
+
+
+    <div
+      class="setting"
+      onclick="openSection('language')"
+    >
+
+      <div class="setting-left">
+
+        <div class="setting-icon">
+          🌐
+        </div>
+
+        <div>
+          <div class="setting-name">
+            Language
+          </div>
+
+          <span class="setting-description">
+            Choose your Zinko language
+          </span>
+        </div>
+
+      </div>
+
+      <span class="arrow">
+        ›
+      </span>
+
+    </div>
+
+
+    <div
+      class="setting"
+      onclick="openSection('help')"
+    >
+
+      <div class="setting-left">
+
+        <div class="setting-icon">
+          ❓
+        </div>
+
+        <div>
+          <div class="setting-name">
+            Help & support
+          </div>
+
+          <span class="setting-description">
+            Get help with Zinko
+          </span>
+        </div>
+
+      </div>
+
+      <span class="arrow">
+        ›
+      </span>
+
+    </div>
+
+
+    <div
+      class="setting"
+      onclick="openSection('about')"
+    >
+
+      <div class="setting-left">
+
+        <div class="setting-icon">
+          ℹ️
+        </div>
+
+        <div>
+          <div class="setting-name">
+            About Zinko
+          </div>
+
+          <span class="setting-description">
+            Learn more about Zinko
+          </span>
+        </div>
+
+      </div>
+
+      <span class="arrow">
+        ›
+      </span>
+
+    </div>
+
+
+    <!-- =========================
+         ACCOUNT
+    ========================== -->
+
+    <section
+      id="account"
+      class="section"
+    >
+
+      <h3>
+        👤 Account & Profile
+      </h3>
+
+      <p>
+        Update the information shown on your Zinko profile.
+      </p>
+
+
+      <div class="field">
+
+        <label>
+          Full name
+        </label>
+
+        <input
+          id="accountName"
+          type="text"
+          placeholder="Your full name"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Username
+        </label>
+
+        <input
+          id="accountUsername"
+          type="text"
+          placeholder="Username"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Country
+        </label>
+
+        <input
+          id="accountCountry"
+          type="text"
+          placeholder="Country"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Bio
+        </label>
+
+        <textarea
+          id="accountBio"
+          rows="4"
+          placeholder="Tell people about yourself"
+        ></textarea>
+
+      </div>
+
+
+      <button
+        class="btn primary full"
+        onclick="saveAccount()"
+      >
+        Save Changes
+      </button>
+
+
+      <p
+        id="accountMessage"
+        class="settings-message"
+      ></p>
+
+    </section>
+
+
+    <!-- =========================
+         PRIVACY
+    ========================== -->
+
+    <section
+      id="privacy"
+      class="section"
+    >
+
+      <h3>
+        🔒 Privacy & Safety
+      </h3>
+
+      <p>
+        Choose how other Zinko users can interact with you.
+      </p>
+
+
+      <div class="option">
+
+        <div class="option-text">
+
+          <div class="option-title">
+            Private account
+          </div>
+
+          <span class="option-description">
+            Only approved people can follow you.
+          </span>
+
+        </div>
+
+        <input
+          id="privateAccount"
+          class="toggle"
+          type="checkbox"
+        >
+
+      </div>
+
+
+      <div class="option">
+
+        <div class="option-text">
+
+          <div class="option-title">
+            Allow comments
+          </div>
+
+          <span class="option-description">
+            Allow people to comment on your posts.
+          </span>
+
+        </div>
+
+        <input
+          id="allowComments"
+          class="toggle"
+          type="checkbox"
+          checked
+        >
+
+      </div>
+
+
+      <div class="option">
+
+        <div class="option-text">
+
+          <div class="option-title">
+            Allow messages
+          </div>
+
+          <span class="option-description">
+            Allow other users to message you.
+          </span>
+
+        </div>
+
+        <input
+          id="allowMessages"
+          class="toggle"
+          type="checkbox"
+          checked
+        >
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         NOTIFICATIONS
+    ========================== -->
+
+    <section
+      id="notifications"
+      class="section"
+    >
+
+      <h3>
+        🔔 Notifications
+      </h3>
+
+      <p>
+        Decide which notifications you want from Zinko.
+      </p>
+
+
+      <div class="option">
+
+        <div class="option-text">
+          <div class="option-title">
+            Likes
+          </div>
+
+          <span class="option-description">
+            Notify me when someone likes my content.
+          </span>
+        </div>
+
+        <input
+          id="notifyLikes"
+          class="toggle"
+          type="checkbox"
+          checked
+        >
+
+      </div>
+
+
+      <div class="option">
+
+        <div class="option-text">
+          <div class="option-title">
+            Comments
+          </div>
+
+          <span class="option-description">
+            Notify me about new comments.
+          </span>
+        </div>
+
+        <input
+          id="notifyComments"
+          class="toggle"
+          type="checkbox"
+          checked
+        >
+
+      </div>
+
+
+      <div class="option">
+
+        <div class="option-text">
+          <div class="option-title">
+            Followers
+          </div>
+
+          <span class="option-description">
+            Notify me when someone follows me.
+          </span>
+        </div>
+
+        <input
+          id="notifyFollowers"
+          class="toggle"
+          type="checkbox"
+          checked
+        >
+
+      </div>
+
+
+      <div class="option">
+
+        <div class="option-text">
+          <div class="option-title">
+            Live notifications
+          </div>
+
+          <span class="option-description">
+            Notify me when creators I follow go live.
+          </span>
+        </div>
+
+        <input
+          id="notifyLive"
+          class="toggle"
+          type="checkbox"
+          checked
+        >
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         SECURITY
+    ========================== -->
+
+    <section
+      id="security"
+      class="section"
+    >
+
+      <h3>
+        🛡 Security & Login
+      </h3>
+
+      <p>
+        Keep your Zinko account secure.
+      </p>
+
+
+      <button
+        class="btn primary full"
+        onclick="resetPassword()"
+      >
+        Send Password Reset Email
+      </button>
+
+
+      <p
+        id="securityMessage"
+        class="settings-message"
+      ></p>
+
+
+      <div class="danger-zone">
+
+        <button
+          class="btn danger full"
+          onclick="logout()"
+        >
+          Log Out of Zinko
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         BLOCKED
+    ========================== -->
+
+    <section
+      id="blocked"
+      class="section"
+    >
+
+      <h3>
+        🚫 Blocked Accounts
+      </h3>
+
+      <p>
+        Accounts that you block will appear here.
+      </p>
+
+
+      <div class="info-box">
+
+        You currently have no blocked accounts.
+
+        <br><br>
+
+        The full blocking system will be connected to the Zinko database when we build the user-blocking table.
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         CONTENT
+    ========================== -->
+
+    <section
+      id="content"
+      class="section"
+    >
+
+      <h3>
+        💬 Content Preferences
+      </h3>
+
+      <p>
+        Control the type of content you prefer to see.
+      </p>
+
+
+      <div class="option">
+
+        <div class="option-text">
+
+          <div class="option-title">
+            Show sensitive content
+          </div>
+
+          <span class="option-description">
+            Allow more mature or sensitive content to appear.
+          </span>
+
+        </div>
+
+        <input
+          id="sensitiveContent"
+          class="toggle"
+          type="checkbox"
+        >
+
+      </div>
+
+
+      <div class="option">
+
+        <div class="option-text">
+
+          <div class="option-title">
+            Autoplay videos
+          </div>
+
+          <span class="option-description">
+            Automatically play videos while browsing.
+          </span>
+
+        </div>
+
+        <input
+          id="autoplayVideos"
+          class="toggle"
+          type="checkbox"
+          checked
+        >
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         LANGUAGE
+    ========================== -->
+
+    <section
+      id="language"
+      class="section"
+    >
+
+      <h3>
+        🌐 Language
+      </h3>
+
+      <p>
+        Choose the language you want Zinko to use.
+      </p>
+
+
+      <div class="field">
+
+        <label>
+          Zinko Language
+        </label>
+
+        <select id="languageSelect">
+
+          <option value="English">
+            English
+          </option>
+
+          <option value="French">
+            Français
+          </option>
+
+          <option value="Spanish">
+            Español
+          </option>
+
+          <option value="Portuguese">
+            Português
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <button
+        class="btn primary full"
+        onclick="saveLanguage()"
+      >
+        Save Language
+      </button>
+
+
+      <p
+        id="languageMessage"
+        class="settings-message"
+      ></p>
+
+    </section>
+
+
+    <!-- =========================
+         HELP
+    ========================== -->
+
+    <section
+      id="help"
+      class="section"
+    >
+
+      <h3>
+        ❓ Help & Support
+      </h3>
+
+      <p>
+        Need help with your Zinko account?
+      </p>
+
+
+      <div class="info-box">
+
+        <strong>
+          Zinko Support
+        </strong>
+
+        <br><br>
+
+        For account problems, verification questions, reports or other issues, contact the Zinko support team.
+
+      </div>
+
+
+      <button
+        class="btn primary support-button"
+        onclick="showSupportMessage()"
+      >
+        Contact Zinko Support
+      </button>
+
+
+      <p
+        id="supportMessage"
+        class="settings-message"
+      ></p>
+
+    </section>
+
+
+    <!-- =========================
+         ABOUT
+    ========================== -->
+
+    <section
+      id="about"
+      class="section"
+    >
+
+      <h3>
+        ℹ️ About Zinko
+      </h3>
+
+
+      <div class="info-box">
+
+        <strong>
+          Zinko
+        </strong>
+
+        <br><br>
+
+        A social platform for sharing posts, videos, live streams and connecting with people.
+
+        <br><br>
+
+        <strong>
+          Version
+        </strong>
+
+        <br>
+
+        Zinko 1.0
+
+        <br><br>
+
+        Built for the Zinko community 🌍
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         LOGOUT
+    ========================== -->
+
+    <button
+      class="btn danger full"
+      style="margin-top:18px;"
+      onclick="logout()"
+    >
+      Log out
+    </button>
+
+
+    <p
+      id="globalMessage"
+      class="settings-message"
+    ></p>
+
+  </div>
+
+</main>
+
+
+<script>
+
+/* =========================================
+   SUPABASE
+========================================= */
+
+const SUPABASE_URL =
+  "https://ggqhwoyzuypryocrxiru.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
+
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+
+/* =========================================
+   OPEN SETTINGS SECTION
+========================================= */
+
+function openSection(id) {
+
+  const sections =
+    document.querySelectorAll(
+      ".section"
+    );
+
+  sections.forEach(
+    section => {
+
+      section.classList.remove(
+        "active"
+      );
+
+    }
+  );
+
+
+  const target =
+    document.getElementById(id);
+
+
+  if (target) {
+
+    target.classList.add(
+      "active"
+    );
+
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+  }
+
+}
+
+
+/* =========================================
+   LOAD USER
+========================================= */
+
+async function loadUserSettings() {
+
+  const {
+    data,
+    error
+  } =
+  await supabaseClient.auth.getUser();
+
+
+  if (
+    error ||
+    !data ||
+    !data.user
+  ) {
+
+    window.location.href =
+      "login.html";
+
+    return;
+
+  }
+
+
+  const user =
+    data.user;
+
+
+  const metadata =
+    user.user_metadata || {};
+
+
+  document.getElementById(
+    "accountName"
+  ).value =
+    metadata.full_name || "";
+
+
+  document.getElementById(
+    "accountUsername"
+  ).value =
+    metadata.username || "";
+
+
+  document.getElementById(
+    "accountCountry"
+  ).value =
+    metadata.country || "";
+
+
+  document.getElementById(
+    "accountBio"
+  ).value =
+    metadata.bio || "";
+
+
+  loadLocalSettings();
+
+}
+
+
+/* =========================================
+   SAVE ACCOUNT
+========================================= */
+
+async function saveAccount() {
+
+  const name =
+    document.getElementById(
+      "accountName"
+    ).value.trim();
+
+
+  const username =
+    document.getElementById(
+      "accountUsername"
+    ).value.trim();
+
+
+  const country =
+    document.getElementById(
+      "accountCountry"
+    ).value.trim();
+
+
+  const bio =
+    document.getElementById(
+      "accountBio"
+    ).value.trim();
+
+
+  const message =
+    document.getElementById(
+      "accountMessage"
+    );
+
+
+  if (
+    !name ||
+    !username
+  ) {
+
+    message.textContent =
+      "Name and username are required.";
+
+    return;
+
+  }
+
+
+  message.textContent =
+    "Saving...";
+
+
+  const {
+    error
+  } =
+  await supabaseClient.auth.updateUser({
+
+    data: {
+
+      full_name:
+        name,
+
+      username:
+        username,
+
+      country:
+        country,
+
+      bio:
+        bio
+
+    }
+
+  });
+
+
+  if (error) {
+
+    message.textContent =
+      error.message;
+
+    return;
+
+  }
+
+
+  message.textContent =
+    "✓ Profile updated successfully.";
+
+}
+
+
+/* =========================================
+   LOCAL SETTINGS
+========================================= */
+
+function loadLocalSettings() {
+
+  const saved =
+    JSON.parse(
+      localStorage.getItem(
+        "zinko_settings"
+      ) || "{}"
+    );
+
+
+  if (
+    saved.privateAccount !== undefined
+  ) {
+
+    document.getElementById(
+      "privateAccount"
+    ).checked =
+      saved.privateAccount;
+
+  }
+
+
+  if (
+    saved.allowComments !== undefined
+  ) {
+
+    document.getElementById(
+      "allowComments"
+    ).checked =
+      saved.allowComments;
+
+  }
+
+
+  if (
+    saved.allowMessages !== undefined
+  ) {
+
+    document.getElementById(
+      "allowMessages"
+    ).checked =
+      saved.allowMessages;
+
+  }
+
+
+  if (
+    saved.notifyLikes !== undefined
+  ) {
+
+    document.getElementById(
+      "notifyLikes"
+    ).checked =
+      saved.notifyLikes;
+
+  }
+
+
+  if (
+    saved.notifyComments !== undefined
+  ) {
+
+    document.getElementById(
+      "notifyComments"
+    ).checked =
+      saved.notifyComments;
+
+  }
+
+
+  if (
+    saved.notifyFollowers !== undefined
+  ) {
+
+    document.getElementById(
+      "notifyFollowers"
+    ).checked =
+      saved.notifyFollowers;
+
+  }
+
+
+  if (
+    saved.notifyLive !== undefined
+  ) {
+
+    document.getElementById(
+      "notifyLive"
+    ).checked =
+      saved.notifyLive;
+
+  }
+
+
+  if (
+    saved.sensitiveContent !== undefined
+  ) {
+
+    document.getElementById(
+      "sensitiveContent"
+    ).checked =
+      saved.sensitiveContent;
+
+  }
+
+
+  if (
+    saved.autoplayVideos !== undefined
+  ) {
+
+    document.getElementById(
+      "autoplayVideos"
+    ).checked =
+      saved.autoplayVideos;
+
+  }
+
+
+  if (
+    saved.language
+  ) {
+
+    document.getElementById(
+      "languageSelect"
+    ).value =
+      saved.language;
+
+  }
+
+
+  setupAutoSave();
+
+}
+
+
+/* =========================================
+   AUTO SAVE SETTINGS
+========================================= */
+
+function setupAutoSave() {
+
+  const ids = [
+
+    "privateAccount",
+
+    "allowComments",
+
+    "allowMessages",
+
+    "notifyLikes",
+
+    "notifyComments",
+
+    "notifyFollowers",
+
+    "notifyLive",
+
+    "sensitiveContent",
+
+    "autoplayVideos"
+
+  ];
+
+
+  ids.forEach(
+    id => {
+
+      const element =
+        document.getElementById(id);
+
+
+      element.addEventListener(
+        "change",
+        saveLocalSettings
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================
+   SAVE LOCAL SETTINGS
+========================================= */
+
+function saveLocalSettings() {
+
+  const settings = {
+
+    privateAccount:
+      document.getElementById(
+        "privateAccount"
+      ).checked,
+
+    allowComments:
+      document.getElementById(
+        "allowComments"
+      ).checked,
+
+    allowMessages:
+      document.getElementById(
+        "allowMessages"
+      ).checked,
+
+    notifyLikes:
+      document.getElementById(
+        "notifyLikes"
+      ).checked,
+
+    notifyComments:
+      document.getElementById(
+        "notifyComments"
+      ).checked,
+
+    notifyFollowers:
+      document.getElementById(
+        "notifyFollowers"
+      ).checked,
+
+    notifyLive:
+      document.getElementById(
+        "notifyLive"
+      ).checked,
+
+    sensitiveContent:
+      document.getElementById(
+        "sensitiveContent"
+      ).checked,
+
+    autoplayVideos:
+      document.getElementById(
+        "autoplayVideos"
+      ).checked
+
+  };
+
+
+  localStorage.setItem(
+    "zinko_settings",
+    JSON.stringify(settings)
+  );
+
+}
+
+
+/* =========================================
+   LANGUAGE
+========================================= */
+
+function saveLanguage() {
+
+  const language =
+    document.getElementById(
+      "languageSelect"
+    ).value;
+
+
+  const saved =
+    JSON.parse(
+      localStorage.getItem(
+        "zinko_settings"
+      ) || "{}"
+    );
+
+
+  saved.language =
+    language;
+
+
+  localStorage.setItem(
+    "zinko_settings",
+    JSON.stringify(saved)
+  );
+
+
+  document.getElementById(
+    "languageMessage"
+  ).textContent =
+    "✓ Language preference saved.";
+
+}
+
+
+/* =========================================
+   PASSWORD RESET
+========================================= */
+
+async function resetPassword() {
+
+  const message =
+    document.getElementById(
+      "securityMessage"
+    );
+
+
+  const {
+    data,
+    error
+  } =
+  await supabaseClient.auth.getUser();
+
+
+  if (
+    error ||
+    !data ||
+    !data.user ||
+    !data.user.email
+  ) {
+
+    message.textContent =
+      "Unable to find your account email.";
+
+    return;
+
+  }
+
+
+  message.textContent =
+    "Sending password reset email...";
+
+
+  const {
+    error: resetError
+  } =
+  await supabaseClient.auth.resetPasswordForEmail(
+    data.user.email,
+    {
+      redirectTo:
+        window.location.origin +
+        "/settings.html"
+    }
+  );
+
+
+  if (resetError) {
+
+    message.textContent =
+      resetError.message;
+
+    return;
+
+  }
+
+
+  message.textContent =
+    "✓ Password reset email sent to " +
+    data.user.email;
+
+}
+
+
+/* =========================================
+   SUPPORT
+========================================= */
+
+function showSupportMessage() {
+
+  document.getElementById(
+    "supportMessage"
+  ).textContent =
+    "Zinko Support will be connected to the support system next.";
+
+}
+
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+async function logout() {
+
+  const message =
+    document.getElementById(
+      "globalMessage"
+    );
+
+
+  message.textContent =
+    "Logging out...";
+
+
+  const {
+    error
+  } =
+  await supabaseClient.auth.signOut();
+
+
+  if (error) {
+
+    message.textContent =
+      error.message;
+
+    return;
+
+  }
+
+
+  window.location.href =
+    "login.html";
+
+}
+
+
+/* =========================================
+   START
+========================================= */
+
+loadUserSettings();
+
+</script>
+
+</body>
+
+  </html>
