@@ -1,1 +1,1756 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
+<title>Watch Live — Zinko</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+  margin:0;
+  background:#070b14;
+  color:#fff;
+}
+
+.watch-page{
+  min-height:100vh;
+  padding-bottom:90px;
+}
+
+.watch-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px;
+  background:#0b1120;
+  border-bottom:1px solid #202840;
+}
+
+.back{
+  color:#fff;
+  text-decoration:none;
+  font-weight:700;
+}
+
+.live-badge{
+  background:#e5233b;
+  color:#fff;
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:11px;
+  font-weight:800;
+}
+
+.video-area{
+  position:relative;
+  width:100%;
+  aspect-ratio:16/10;
+  background:#02040a;
+  overflow:hidden;
+}
+
+#remoteVideo{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  background:#02040a;
+}
+
+.video-placeholder{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  color:#8992aa;
+  text-align:center;
+}
+
+.video-placeholder-icon{
+  font-size:48px;
+  margin-bottom:10px;
+}
+
+.video-status{
+  position:absolute;
+  left:12px;
+  bottom:12px;
+  background:rgba(0,0,0,.65);
+  padding:7px 10px;
+  border-radius:9px;
+  font-size:11px;
+}
+
+.viewer-count{
+  position:absolute;
+  right:12px;
+  bottom:12px;
+  background:rgba(0,0,0,.65);
+  padding:7px 10px;
+  border-radius:9px;
+  font-size:11px;
+}
+
+.live-info{
+  padding:15px;
+  background:#0b1120;
+  border-bottom:1px solid #202840;
+}
+
+.live-title{
+  margin:0 0 7px;
+  font-size:20px;
+}
+
+.live-meta{
+  margin:0;
+  color:#929ab1;
+  font-size:12px;
+}
+
+.host-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:14px;
+}
+
+.host-avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  background:#7155ff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+}
+
+.host-name{
+  font-weight:700;
+}
+
+.host-category{
+  color:#8f98b0;
+  font-size:11px;
+  margin-top:3px;
+}
+
+.follow-button{
+  margin-left:auto;
+  border:0;
+  background:#7155ff;
+  color:#fff;
+  border-radius:10px;
+  padding:9px 13px;
+  font-weight:700;
+}
+
+.chat-section{
+  padding:14px;
+}
+
+.chat-title{
+  font-size:15px;
+  font-weight:800;
+  margin-bottom:10px;
+}
+
+.chat-box{
+  height:300px;
+  overflow-y:auto;
+  background:#0b1120;
+  border:1px solid #202840;
+  border-radius:15px;
+  padding:10px;
+  box-sizing:border-box;
+}
+
+.chat-message{
+  margin-bottom:10px;
+  line-height:1.4;
+}
+
+.chat-user{
+  color:#a99cff;
+  font-weight:700;
+  font-size:12px;
+}
+
+.chat-text{
+  color:#e5e8f0;
+  font-size:13px;
+}
+
+.empty-chat{
+  color:#747d96;
+  text-align:center;
+  padding-top:100px;
+  font-size:12px;
+}
+
+.chat-controls{
+  display:flex;
+  gap:7px;
+  margin-top:9px;
+}
+
+.chat-input{
+  flex:1;
+  min-width:0;
+  background:#101728;
+  border:1px solid #29314b;
+  color:#fff;
+  border-radius:12px;
+  padding:12px;
+  outline:none;
+}
+
+.send-button{
+  border:0;
+  background:#7155ff;
+  color:#fff;
+  border-radius:12px;
+  padding:0 16px;
+  font-weight:800;
+}
+
+.action-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  padding:0 14px 14px;
+}
+
+.action-button{
+  border:1px solid #29314b;
+  background:#101728;
+  color:#fff;
+  border-radius:12px;
+  padding:11px 5px;
+  font-size:11px;
+  font-weight:700;
+}
+
+.action-button:active{
+  transform:scale(.97);
+}
+
+.gift-panel{
+  display:none;
+  margin:0 14px 14px;
+  padding:14px;
+  background:#101728;
+  border:1px solid #29314b;
+  border-radius:15px;
+}
+
+.gift-panel.show{
+  display:block;
+}
+
+.gift-title{
+  font-weight:800;
+  margin-bottom:10px;
+}
+
+.gift-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.gift-button{
+  border:1px solid #29314b;
+  background:#0b1120;
+  color:#fff;
+  border-radius:12px;
+  padding:10px 5px;
+  font-size:11px;
+}
+
+.gift-emoji{
+  display:block;
+  font-size:25px;
+  margin-bottom:4px;
+}
+
+.message{
+  min-height:18px;
+  text-align:center;
+  color:#9ea6bc;
+  font-size:11px;
+  padding:0 14px 10px;
+}
+
+@media(max-width:380px){
+  .action-row{
+    grid-template-columns:repeat(4,1fr);
+  }
+
+  .action-button{
+    font-size:9px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="watch-page">
+
+<header class="watch-header">
+
+<a class="back" href="live.html">
+← Live
+</a>
+
+<div class="live-badge">
+● LIVE
+</div>
+
+</header>
+
+
+<!-- VIDEO -->
+
+<section class="video-area">
+
+<video
+id="remoteVideo"
+autoplay
+playsinline
+controls
+></video>
+
+<div
+id="videoPlaceholder"
+class="video-placeholder"
+>
+
+<div class="video-placeholder-icon">
+📺
+</div>
+
+<div>
+Waiting for the live stream...
+</div>
+
+</div>
+
+<div
+id="videoStatus"
+class="video-status"
+>
+Connecting...
+</div>
+
+<div
+id="viewerCount"
+class="viewer-count"
+>
+👥 0 watching
+</div>
+
+</section>
+
+
+<!-- LIVE INFORMATION -->
+
+<section class="live-info">
+
+<h1
+id="liveTitle"
+class="live-title"
+>
+Zinko Live
+</h1>
+
+<p
+id="liveMeta"
+class="live-meta"
+>
+Connecting to live...
+</p>
+
+
+<div class="host-row">
+
+<div
+id="hostAvatar"
+class="host-avatar"
+>
+Z
+</div>
+
+<div>
+
+<div
+id="hostName"
+class="host-name"
+>
+Zinko Creator
+</div>
+
+<div
+id="hostCategory"
+class="host-category"
+>
+Live
+</div>
+
+</div>
+
+<button
+id="followButton"
+class="follow-button"
+type="button"
+>
+Follow
+</button>
+
+</div>
+
+</section>
+
+
+<!-- ACTIONS -->
+
+<div class="action-row">
+
+<button
+id="likeButton"
+class="action-button"
+type="button"
+>
+❤️ Like
+</button>
+
+<button
+id="reactionButton"
+class="action-button"
+type="button"
+>
+🔥 React
+</button>
+
+<button
+id="giftButton"
+class="action-button"
+type="button"
+>
+🎁 Gift
+</button>
+
+<button
+id="shareButton"
+class="action-button"
+type="button"
+>
+↗ Share
+</button>
+
+</div>
+
+
+<!-- GIFTS -->
+
+<div
+id="giftPanel"
+class="gift-panel"
+>
+
+<div class="gift-title">
+🎁 Send a gift
+</div>
+
+<div
+id="giftGrid"
+class="gift-grid"
+>
+Loading gifts...
+</div>
+
+</div>
+
+
+<!-- CHAT -->
+
+<section class="chat-section">
+
+<div class="chat-title">
+💬 Live chat
+</div>
+
+<div
+id="chatBox"
+class="chat-box"
+>
+
+<div
+id="emptyChat"
+class="empty-chat"
+>
+No messages yet.<br>
+Be the first to say hello!
+</div>
+
+</div>
+
+<div class="chat-controls">
+
+<input
+id="chatInput"
+class="chat-input"
+maxlength="500"
+placeholder="Say something..."
+>
+
+<button
+id="sendButton"
+class="send-button"
+type="button"
+>
+Send
+</button>
+
+</div>
+
+</section>
+
+
+<p
+id="pageMessage"
+class="message"
+></p>
+
+</div>
+
+
+<script>
+
+/* =========================================
+   SUPABASE
+========================================= */
+
+const SUPABASE_URL =
+"https://ggqhwoyzuypryocrxiru.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+"sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
+
+const supabaseClient =
+window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_PUBLISHABLE_KEY
+);
+
+
+/* =========================================
+   ELEMENTS
+========================================= */
+
+const remoteVideo =
+document.getElementById("remoteVideo");
+
+const videoPlaceholder =
+document.getElementById("videoPlaceholder");
+
+const videoStatus =
+document.getElementById("videoStatus");
+
+const viewerCount =
+document.getElementById("viewerCount");
+
+const liveTitle =
+document.getElementById("liveTitle");
+
+const liveMeta =
+document.getElementById("liveMeta");
+
+const hostName =
+document.getElementById("hostName");
+
+const hostAvatar =
+document.getElementById("hostAvatar");
+
+const hostCategory =
+document.getElementById("hostCategory");
+
+const chatBox =
+document.getElementById("chatBox");
+
+const emptyChat =
+document.getElementById("emptyChat");
+
+const chatInput =
+document.getElementById("chatInput");
+
+const sendButton =
+document.getElementById("sendButton");
+
+const giftButton =
+document.getElementById("giftButton");
+
+const giftPanel =
+document.getElementById("giftPanel");
+
+const giftGrid =
+document.getElementById("giftGrid");
+
+const likeButton =
+document.getElementById("likeButton");
+
+const reactionButton =
+document.getElementById("reactionButton");
+
+const shareButton =
+document.getElementById("shareButton");
+
+const pageMessage =
+document.getElementById("pageMessage");
+
+const followButton =
+document.getElementById("followButton");
+
+
+/* =========================================
+   VARIABLES
+========================================= */
+
+let currentUser = null;
+let liveId = null;
+let liveSession = null;
+let viewerJoined = false;
+
+
+/* =========================================
+   MESSAGE
+========================================= */
+
+function showMessage(text){
+
+pageMessage.textContent = text;
+
+setTimeout(() => {
+
+if(pageMessage.textContent === text){
+
+pageMessage.textContent = "";
+
+}
+
+},4000);
+
+}
+
+
+/* =========================================
+   GET LIVE ID
+========================================= */
+
+function getLiveId(){
+
+const params =
+new URLSearchParams(
+window.location.search
+);
+
+const urlLive =
+params.get("live");
+
+if(urlLive){
+
+return urlLive;
+
+}
+
+
+/*
+If live-room stored the actual
+database ID, use that.
+*/
+
+try{
+
+const saved =
+JSON.parse(
+localStorage.getItem(
+"zinko_current_live"
+) || "null"
+);
+
+if(saved){
+
+return saved.databaseId ||
+saved.liveDatabaseId ||
+saved.liveId ||
+null;
+
+}
+
+}catch(error){
+
+console.log(error);
+
+}
+
+return null;
+
+}
+
+
+/* =========================================
+   CURRENT USER
+========================================= */
+
+async function getCurrentUser(){
+
+const result =
+await supabaseClient.auth.getUser();
+
+if(
+result.error ||
+!result.data ||
+!result.data.user
+){
+
+window.location.href =
+"login.html";
+
+return null;
+
+}
+
+currentUser =
+result.data.user;
+
+return currentUser;
+
+}
+
+
+/* =========================================
+   LOAD LIVE SESSION
+========================================= */
+
+async function loadLive(){
+
+if(!liveId){
+
+showMessage(
+"No live stream was specified."
+);
+
+videoStatus.textContent =
+"Live not found";
+
+return;
+
+}
+
+
+/*
+First try the database UUID.
+*/
+
+let query =
+await supabaseClient
+.from("zinko_live_sessions")
+.select("*")
+.eq("id",liveId)
+.maybeSingle();
+
+
+/*
+If the URL contains the temporary
+zinko live ID, try the host's
+currently active live instead.
+*/
+
+if(
+!query.data &&
+!query.error
+){
+
+query =
+await supabaseClient
+.from("zinko_live_sessions")
+.select("*")
+.eq("status","live")
+.order("started_at",{ascending:false})
+.limit(1)
+.maybeSingle();
+
+}
+
+
+if(query.error){
+
+console.error(query.error);
+
+showMessage(
+"Unable to load the live stream."
+);
+
+return;
+
+}
+
+
+if(!query.data){
+
+showMessage(
+"This live stream is no longer available."
+);
+
+videoStatus.textContent =
+"Live unavailable";
+
+return;
+
+}
+
+
+liveSession =
+query.data;
+
+
+/* =========================================
+   DISPLAY INFORMATION
+========================================= */
+
+liveTitle.textContent =
+liveSession.title ||
+"Zinko Live";
+
+liveMeta.textContent =
+`${liveSession.category || "General"} • ${liveSession.viewer_count || 0} watching`;
+
+hostCategory.textContent =
+liveSession.category ||
+"Live";
+
+viewerCount.textContent =
+`👥 ${liveSession.viewer_count || 0} watching`;
+
+
+/* =========================================
+   HOST
+========================================= */
+
+hostName.textContent =
+"Zinko Creator";
+
+hostAvatar.textContent =
+"Z";
+
+
+/* =========================================
+   JOIN VIEWER
+========================================= */
+
+await joinLive();
+
+
+/* =========================================
+   LOAD CHAT
+========================================= */
+
+await loadMessages();
+
+
+/* =========================================
+   LOAD GIFTS
+========================================= */
+
+await loadGifts();
+
+
+/* =========================================
+   REALTIME
+========================================= */
+
+subscribeRealtime();
+
+
+/* =========================================
+   VIDEO
+========================================= */
+
+videoStatus.textContent =
+"Live room connected";
+
+}
+
+
+/* =========================================
+   JOIN LIVE
+========================================= */
+
+async function joinLive(){
+
+if(!currentUser || !liveSession){
+
+return;
+
+}
+
+
+const { error } =
+await supabaseClient
+.from("zinko_live_viewers")
+.upsert({
+
+live_id:
+liveSession.id,
+
+user_id:
+currentUser.id,
+
+last_seen_at:
+new Date().toISOString()
+
+},{
+onConflict:
+"live_id,user_id"
+});
+
+
+if(error){
+
+console.error(
+"Viewer join error:",
+error
+);
+
+return;
+
+}
+
+viewerJoined =
+true;
+
+
+/*
+Increase local displayed
+viewer number.
+*/
+
+const count =
+Number(
+liveSession.viewer_count || 0
+) + 1;
+
+viewerCount.textContent =
+`👥 ${count} watching`;
+
+}
+
+
+/* =========================================
+   LOAD CHAT
+========================================= */
+
+async function loadMessages(){
+
+const { data,error } =
+await supabaseClient
+.from("zinko_live_messages")
+.select("*")
+.eq("live_id",liveSession.id)
+.eq("is_deleted",false)
+.order("created_at",{ascending:true})
+.limit(200);
+
+
+if(error){
+
+console.error(error);
+
+return;
+
+}
+
+
+chatBox.innerHTML = "";
+
+if(!data || data.length === 0){
+
+chatBox.appendChild(emptyChat);
+
+return;
+
+}
+
+
+data.forEach(
+message => {
+
+addChatMessage(
+message
+);
+
+});
+
+scrollChat();
+
+}
+
+
+/* =========================================
+   ADD CHAT MESSAGE
+========================================= */
+
+function addChatMessage(message){
+
+if(emptyChat.parentElement){
+
+emptyChat.remove();
+
+}
+
+
+const wrapper =
+document.createElement("div");
+
+wrapper.className =
+"chat-message";
+
+
+const username =
+document.createElement("div");
+
+username.className =
+"chat-user";
+
+username.textContent =
+message.user_id === currentUser?.id
+? "You"
+: "Viewer";
+
+
+const text =
+document.createElement("div");
+
+text.className =
+"chat-text";
+
+text.textContent =
+message.message;
+
+
+wrapper.appendChild(username);
+wrapper.appendChild(text);
+
+chatBox.appendChild(wrapper);
+
+}
+
+
+/* =========================================
+   SEND MESSAGE
+========================================= */
+
+async function sendMessage(){
+
+const text =
+chatInput.value.trim();
+
+
+if(!text){
+
+return;
+
+}
+
+
+if(!liveSession){
+
+showMessage(
+"Live room is not ready."
+);
+
+return;
+
+}
+
+
+sendButton.disabled =
+true;
+
+
+const { error } =
+await supabaseClient
+.from("zinko_live_messages")
+.insert({
+
+live_id:
+liveSession.id,
+
+user_id:
+currentUser.id,
+
+message:
+text
+
+});
+
+
+sendButton.disabled =
+false;
+
+
+if(error){
+
+console.error(error);
+
+showMessage(
+"Message could not be sent."
+);
+
+return;
+
+}
+
+
+chatInput.value = "";
+
+}
+
+
+sendButton.addEventListener(
+"click",
+sendMessage
+);
+
+
+chatInput.addEventListener(
+"keydown",
+event => {
+
+if(event.key === "Enter"){
+
+event.preventDefault();
+
+sendMessage();
+
+}
+
+});
+
+
+/* =========================================
+   REALTIME
+========================================= */
+
+function subscribeRealtime(){
+
+const channel =
+supabaseClient
+.channel(
+"zinko-watch-" +
+liveSession.id
+);
+
+
+/* CHAT */
+
+channel.on(
+"postgres_changes",
+{
+event:"INSERT",
+schema:"public",
+table:"zinko_live_messages",
+filter:
+"live_id=eq." +
+liveSession.id
+},
+payload => {
+
+addChatMessage(
+payload.new
+);
+
+scrollChat();
+
+}
+);
+
+
+/* REACTIONS */
+
+channel.on(
+"postgres_changes",
+{
+event:"INSERT",
+schema:"public",
+table:"zinko_live_reactions",
+filter:
+"live_id=eq." +
+liveSession.id
+},
+payload => {
+
+showFloatingReaction(
+payload.new.reaction
+);
+
+}
+);
+
+
+/* GIFTS */
+
+channel.on(
+"postgres_changes",
+{
+event:"INSERT",
+schema:"public",
+table:"zinko_live_gifts",
+filter:
+"live_id=eq." +
+liveSession.id
+},
+payload => {
+
+showMessage(
+"🎁 A gift was sent!"
+);
+
+}
+);
+
+
+/* VIEWERS */
+
+channel.on(
+"postgres_changes",
+{
+event:"INSERT",
+schema:"public",
+table:"zinko_live_viewers",
+filter:
+"live_id=eq." +
+liveSession.id
+},
+payload => {
+
+refreshViewerCount();
+
+}
+);
+
+
+/* LIVE STATUS */
+
+channel.on(
+"postgres_changes",
+{
+event:"UPDATE",
+schema:"public",
+table:"zinko_live_sessions",
+filter:
+"id=eq." +
+liveSession.id
+},
+payload => {
+
+liveSession =
+payload.new;
+
+if(
+liveSession.status === "ended"
+){
+
+videoStatus.textContent =
+"Live ended";
+
+showMessage(
+"This live stream has ended."
+);
+
+}
+
+refreshViewerCount();
+
+}
+);
+
+
+channel.subscribe();
+
+}
+
+
+/* =========================================
+   REFRESH VIEWER COUNT
+========================================= */
+
+async function refreshViewerCount(){
+
+const { count,error } =
+await supabaseClient
+.from("zinko_live_viewers")
+.select("*",{count:"exact",head:true})
+.eq("live_id",liveSession.id);
+
+
+if(error){
+
+return;
+
+}
+
+
+const total =
+Number(count || 0);
+
+viewerCount.textContent =
+`👥 ${total} watching`;
+
+liveMeta.textContent =
+`${liveSession.category || "General"} • ${total} watching`;
+
+}
+
+
+/* =========================================
+   REACTION
+========================================= */
+
+async function sendReaction(
+reaction
+){
+
+if(!liveSession){
+
+return;
+
+}
+
+
+const { error } =
+await supabaseClient
+.from("zinko_live_reactions")
+.insert({
+
+live_id:
+liveSession.id,
+
+user_id:
+currentUser.id,
+
+reaction:
+reaction
+
+});
+
+
+if(error){
+
+console.error(error);
+
+showMessage(
+"Reaction could not be sent."
+);
+
+}
+
+}
+
+
+likeButton.addEventListener(
+"click",
+async () => {
+
+await sendReaction("❤️");
+
+showFloatingReaction("❤️");
+
+});
+
+
+reactionButton.addEventListener(
+"click",
+async () => {
+
+await sendReaction("🔥");
+
+showFloatingReaction("🔥");
+
+});
+
+
+/* =========================================
+   FLOATING REACTION
+========================================= */
+
+function showFloatingReaction(
+emoji
+){
+
+const reaction =
+document.createElement("div");
+
+reaction.textContent =
+emoji;
+
+reaction.style.position =
+"fixed";
+
+reaction.style.right =
+"25px";
+
+reaction.style.bottom =
+"130px";
+
+reaction.style.fontSize =
+"34px";
+
+reaction.style.zIndex =
+"9999";
+
+reaction.style.pointerEvents =
+"none";
+
+document.body.appendChild(
+reaction
+);
+
+
+setTimeout(() => {
+
+reaction.style.transition =
+"all 1.2s ease";
+
+reaction.style.transform =
+"translateY(-180px)";
+
+reaction.style.opacity =
+"0";
+
+},20);
+
+
+setTimeout(() => {
+
+reaction.remove();
+
+},1400);
+
+}
+
+
+/* =========================================
+   GIFTS
+========================================= */
+
+giftButton.addEventListener(
+"click",
+() => {
+
+giftPanel.classList.toggle(
+"show"
+);
+
+});
+
+
+async function loadGifts(){
+
+const { data,error } =
+await supabaseClient
+.from("zinko_gifts")
+.select("*")
+.eq("active",true)
+.order("coin_price",{ascending:true});
+
+
+if(error){
+
+console.error(error);
+
+giftGrid.innerHTML =
+"Unable to load gifts.";
+
+return;
+
+}
+
+
+giftGrid.innerHTML = "";
+
+
+if(!data || data.length === 0){
+
+giftGrid.textContent =
+"No gifts available.";
+
+return;
+
+}
+
+
+data.forEach(
+gift => {
+
+const button =
+document.createElement("button");
+
+button.className =
+"gift-button";
+
+button.type =
+"button";
+
+button.innerHTML =
+`
+<span class="gift-emoji">
+${gift.emoji}
+</span>
+${gift.name}<br>
+${gift.coin_price} coins
+`;
+
+button.addEventListener(
+"click",
+() => {
+
+sendGift(gift);
+
+});
+
+giftGrid.appendChild(
+button
+);
+
+});
+
+}
+
+
+/* =========================================
+   SEND GIFT
+========================================= */
+
+async function sendGift(gift){
+
+if(!liveSession){
+
+return;
+
+}
+
+
+if(
+currentUser.id ===
+liveSession.host_id
+){
+
+showMessage(
+"You cannot send a gift to yourself."
+);
+
+return;
+
+}
+
+
+showMessage(
+`🎁 ${gift.name} selected. Coin payment will be processed by the Zinko wallet system.`
+);
+
+
+/*
+The actual wallet deduction and
+payment verification must happen
+through a secure backend function.
+
+We intentionally do NOT deduct coins
+from the browser.
+*/
+
+}
+
+
+/* =========================================
+   SHARE
+========================================= */
+
+shareButton.addEventListener(
+"click",
+async () => {
+
+const url =
+window.location.href;
+
+
+try{
+
+if(navigator.share){
+
+await navigator.share({
+
+title:
+liveTitle.textContent,
+
+text:
+"Join my Zinko Live",
+
+url:url
+
+});
+
+}else{
+
+await navigator.clipboard.writeText(
+url
+);
+
+showMessage(
+"✓ Live link copied."
+);
+
+}
+
+}catch(error){
+
+console.log(
+"Share cancelled."
+);
+
+}
+
+});
+
+
+/* =========================================
+   FOLLOW
+========================================= */
+
+followButton.addEventListener(
+"click",
+() => {
+
+followButton.textContent =
+"Following";
+
+followButton.disabled =
+true;
+
+showMessage(
+"Following creator."
+);
+
+});
+
+
+/* =========================================
+   SCROLL CHAT
+========================================= */
+
+function scrollChat(){
+
+chatBox.scrollTop =
+chatBox.scrollHeight;
+
+}
+
+
+/* =========================================
+   LEAVE LIVE
+========================================= */
+
+async function leaveLive(){
+
+if(
+viewerJoined &&
+currentUser &&
+liveSession
+){
+
+await supabaseClient
+.from("zinko_live_viewers")
+.delete()
+.eq(
+"live_id",
+liveSession.id
+)
+.eq(
+"user_id",
+currentUser.id
+);
+
+}
+
+}
+
+
+/* =========================================
+   PAGE EXIT
+========================================= */
+
+window.addEventListener(
+"beforeunload",
+() => {
+
+if(
+viewerJoined &&
+currentUser &&
+liveSession
+){
+
+supabaseClient
+.from("zinko_live_viewers")
+.delete()
+.eq(
+"live_id",
+liveSession.id
+)
+.eq(
+"user_id",
+currentUser.id
+);
+
+}
+
+});
+
+
+/* =========================================
+   INITIALIZE
+========================================= */
+
+async function initialize(){
+
+const user =
+await getCurrentUser();
+
+if(!user){
+
+return;
+
+}
+
+liveId =
+getLiveId();
+
+await loadLive();
+
+}
+
+
+initialize();
+
+</script>
+
+</body>
+  </html>
