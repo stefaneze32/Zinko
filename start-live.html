@@ -1,1 +1,1647 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Go Live — Zinko</title><link rel="stylesheet" href="style.css"></head><body><main class="auth-page"><div class="auth-card"><a class="back" href="live.html">← Live</a><h2>Start your live</h2><div class="camera-preview">CAMERA PREVIEW</div><input placeholder="Stream title"><select><option>Choose category</option><option>Music</option><option>Gaming</option><option>Education</option><option>Comedy</option></select><select><option>Audience: Everyone</option><option>Followers</option><option>Private</option></select><div class="live-controls"><button>🎙 Mic</button><button>🔄 Camera</button><button>👥 Invite</button></div><button class="btn primary full">Start Live</button></div></main></body></html>
+<!doctype html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
+
+  <title>Go Live — Zinko</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    body {
+      margin: 0;
+    }
+
+    .live-page {
+      min-height: 100vh;
+      padding: 18px 15px 40px;
+      box-sizing: border-box;
+    }
+
+    .live-card {
+      width: 100%;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    .back {
+      display: inline-block;
+      margin-bottom: 18px;
+      text-decoration: none;
+    }
+
+    .live-title {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+
+    .live-subtitle {
+      margin: 0 0 18px;
+      color: #8f98b0;
+      font-size: 13px;
+    }
+
+    /* CAMERA */
+
+    .camera-box {
+      position: relative;
+
+      width: 100%;
+      aspect-ratio: 16 / 10;
+
+      overflow: hidden;
+
+      background: #070b14;
+
+      border: 1px solid #252e48;
+
+      border-radius: 20px;
+
+      margin-bottom: 15px;
+    }
+
+    #cameraPreview {
+      width: 100%;
+      height: 100%;
+
+      display: block;
+
+      object-fit: cover;
+
+      background: #070b14;
+    }
+
+    .camera-placeholder {
+      position: absolute;
+
+      inset: 0;
+
+      display: flex;
+      flex-direction: column;
+
+      align-items: center;
+      justify-content: center;
+
+      color: #8f98b0;
+
+      text-align: center;
+
+      pointer-events: none;
+    }
+
+    .camera-placeholder-icon {
+      font-size: 42px;
+      margin-bottom: 8px;
+    }
+
+    .camera-placeholder-text {
+      font-size: 13px;
+    }
+
+    .live-indicator {
+      position: absolute;
+
+      top: 12px;
+      left: 12px;
+
+      padding: 6px 10px;
+
+      border-radius: 9px;
+
+      background: rgba(220, 35, 55, .95);
+
+      color: white;
+
+      font-size: 11px;
+      font-weight: 800;
+
+      display: none;
+    }
+
+    .camera-status {
+      position: absolute;
+
+      right: 12px;
+      top: 12px;
+
+      padding: 6px 10px;
+
+      border-radius: 9px;
+
+      background: rgba(0,0,0,.55);
+
+      color: white;
+
+      font-size: 11px;
+    }
+
+    /* CONTROLS */
+
+    .live-controls {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 8px;
+
+      margin-bottom: 18px;
+    }
+
+    .control-button {
+      border: 1px solid #29314b;
+
+      background: #101728;
+
+      color: white;
+
+      border-radius: 13px;
+
+      padding: 12px 8px;
+
+      cursor: pointer;
+
+      font-size: 12px;
+
+      font-weight: 700;
+    }
+
+    .control-button.active {
+      background: #7155ff;
+
+      border-color: #7155ff;
+    }
+
+    .control-button.off {
+      background: #3a1820;
+
+      border-color: #69313d;
+    }
+
+    /* FORM */
+
+    .form-section {
+      padding: 16px;
+
+      background: #101728;
+
+      border: 1px solid #202840;
+
+      border-radius: 18px;
+
+      margin-bottom: 14px;
+    }
+
+    .form-section h3 {
+      margin-top: 0;
+      margin-bottom: 13px;
+      font-size: 16px;
+    }
+
+    .field {
+      margin-bottom: 13px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .field label {
+      display: block;
+
+      margin-bottom: 6px;
+
+      color: #cbd1e2;
+
+      font-size: 12px;
+
+      font-weight: 700;
+    }
+
+    .field input,
+    .field select {
+
+      width: 100%;
+
+      box-sizing: border-box;
+
+      padding: 13px;
+
+      background: #0b1120;
+
+      color: white;
+
+      border: 1px solid #29314b;
+
+      border-radius: 12px;
+
+      outline: none;
+
+      font-family: inherit;
+
+      font-size: 14px;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: #7155ff;
+    }
+
+    .field small {
+      display: block;
+
+      margin-top: 5px;
+
+      color: #858da6;
+
+      font-size: 10px;
+    }
+
+    /* INVITE */
+
+    .invite-row {
+      display: flex;
+
+      gap: 8px;
+    }
+
+    .invite-row input {
+      flex: 1;
+    }
+
+    .invite-button {
+      white-space: nowrap;
+
+      border: 1px solid #29314b;
+
+      background: #171f35;
+
+      color: white;
+
+      border-radius: 12px;
+
+      padding: 0 14px;
+
+      cursor: pointer;
+
+      font-weight: 700;
+    }
+
+    /* NOTICE */
+
+    .notice {
+      padding: 13px;
+
+      margin-bottom: 15px;
+
+      background: rgba(113,85,255,.08);
+
+      border: 1px solid rgba(113,85,255,.22);
+
+      border-radius: 13px;
+
+      color: #bfc5dc;
+
+      font-size: 11px;
+
+      line-height: 1.5;
+    }
+
+    /* MESSAGE */
+
+    .live-message {
+      min-height: 18px;
+
+      margin: 10px 0;
+
+      text-align: center;
+
+      color: #aeb5cb;
+
+      font-size: 12px;
+    }
+
+    /* START */
+
+    .start-button {
+      width: 100%;
+
+      min-height: 52px;
+
+      font-size: 15px;
+
+      font-weight: 800;
+    }
+
+    .start-button:disabled {
+      opacity: .55;
+
+      cursor: not-allowed;
+    }
+
+    .privacy-note {
+      margin-top: 12px;
+
+      text-align: center;
+
+      color: #777f98;
+
+      font-size: 10px;
+
+      line-height: 1.5;
+    }
+
+    /* ERROR */
+
+    .error-box {
+      display: none;
+
+      padding: 12px;
+
+      margin-bottom: 13px;
+
+      background: rgba(220,35,55,.08);
+
+      border: 1px solid rgba(220,35,55,.25);
+
+      border-radius: 12px;
+
+      color: #ff9eaa;
+
+      font-size: 12px;
+
+      line-height: 1.5;
+    }
+
+    @media (max-width: 380px) {
+
+      .live-controls {
+        grid-template-columns:
+          1fr 1fr 1fr;
+      }
+
+      .control-button {
+        font-size: 10px;
+        padding: 10px 4px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+<main class="live-page">
+
+  <div class="live-card">
+
+    <a
+      class="back"
+      href="live.html"
+    >
+      ← Live
+    </a>
+
+
+    <h2 class="live-title">
+      Start your live
+    </h2>
+
+    <p class="live-subtitle">
+      Set up your camera, microphone and live stream.
+    </p>
+
+
+    <!-- CAMERA -->
+
+    <div class="camera-box">
+
+      <video
+        id="cameraPreview"
+        autoplay
+        muted
+        playsinline
+      ></video>
+
+
+      <div
+        id="cameraPlaceholder"
+        class="camera-placeholder"
+      >
+
+        <div class="camera-placeholder-icon">
+          🎥
+        </div>
+
+        <div class="camera-placeholder-text">
+          Camera preview will appear here
+        </div>
+
+      </div>
+
+
+      <div
+        id="liveIndicator"
+        class="live-indicator"
+      >
+        ● LIVE
+      </div>
+
+
+      <div
+        id="cameraStatus"
+        class="camera-status"
+      >
+        Camera off
+      </div>
+
+    </div>
+
+
+    <!-- CAMERA CONTROLS -->
+
+    <div class="live-controls">
+
+      <button
+        id="micButton"
+        class="control-button"
+        type="button"
+      >
+        🎙 Mic
+      </button>
+
+
+      <button
+        id="cameraButton"
+        class="control-button"
+        type="button"
+      >
+        📷 Camera
+      </button>
+
+
+      <button
+        id="switchCameraButton"
+        class="control-button"
+        type="button"
+      >
+        🔄 Switch
+      </button>
+
+    </div>
+
+
+    <!-- ERROR -->
+
+    <div
+      id="errorBox"
+      class="error-box"
+    ></div>
+
+
+    <!-- STREAM INFORMATION -->
+
+    <section class="form-section">
+
+      <h3>
+        🎬 Live stream information
+      </h3>
+
+
+      <div class="field">
+
+        <label for="streamTitle">
+          Stream title
+        </label>
+
+        <input
+          id="streamTitle"
+          type="text"
+          maxlength="100"
+          placeholder="What are you going live about?"
+        >
+
+        <small>
+          Give viewers a reason to join your live.
+        </small>
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="category">
+          Category
+        </label>
+
+        <select id="category">
+
+          <option value="">
+            Choose category
+          </option>
+
+          <option value="Music">
+            🎵 Music
+          </option>
+
+          <option value="Gaming">
+            🎮 Gaming
+          </option>
+
+          <option value="Comedy">
+            😂 Comedy
+          </option>
+
+          <option value="Education">
+            📚 Education
+          </option>
+
+          <option value="Talk">
+            🎤 Talk & Chat
+          </option>
+
+          <option value="Sports">
+            ⚽ Sports
+          </option>
+
+          <option value="Lifestyle">
+            🌍 Lifestyle
+          </option>
+
+          <option value="News">
+            📰 News
+          </option>
+
+          <option value="Other">
+            ✨ Other
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="audience">
+          Audience
+        </label>
+
+        <select id="audience">
+
+          <option value="everyone">
+            🌍 Everyone
+          </option>
+
+          <option value="followers">
+            👥 Followers
+          </option>
+
+          <option value="private">
+            🔒 Private
+          </option>
+
+        </select>
+
+      </div>
+
+    </section>
+
+
+    <!-- INVITE -->
+
+    <section class="form-section">
+
+      <h3>
+        👥 Invite people
+      </h3>
+
+
+      <div class="invite-row">
+
+        <input
+          id="inviteLink"
+          type="text"
+          readonly
+          value="Your live link will appear here"
+        >
+
+
+        <button
+          id="inviteButton"
+          class="invite-button"
+          type="button"
+        >
+          Share
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- INFORMATION -->
+
+    <div class="notice">
+
+      <strong>
+        💬 Live interaction
+      </strong>
+
+      <br><br>
+
+      When the live room is connected, viewers will be able to join your stream, send real-time messages, react, and interact with you while you are live.
+
+    </div>
+
+
+    <div class="notice">
+
+      <strong>
+        🎁 Gifts & earnings
+      </strong>
+
+      <br><br>
+
+      Zinko's gift and payment system will be connected separately to the live room and backend. This allows us to support different payment methods and currencies for users in different countries.
+
+    </div>
+
+
+    <!-- MESSAGE -->
+
+    <p
+      id="liveMessage"
+      class="live-message"
+    ></p>
+
+
+    <!-- START -->
+
+    <button
+      id="startLiveButton"
+      class="btn primary start-button"
+      type="button"
+    >
+      🔴 Start Live
+    </button>
+
+
+    <p class="privacy-note">
+
+      By starting a live stream, you agree to follow Zinko's community rules and live-stream policies.
+
+    </p>
+
+  </div>
+
+</main>
+
+
+<script>
+
+/* =========================================
+   SUPABASE
+========================================= */
+
+const SUPABASE_URL =
+  "https://ggqhwoyzuypryocrxiru.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
+
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+
+/* =========================================
+   ELEMENTS
+========================================= */
+
+const video =
+  document.getElementById(
+    "cameraPreview"
+  );
+
+const placeholder =
+  document.getElementById(
+    "cameraPlaceholder"
+  );
+
+const cameraStatus =
+  document.getElementById(
+    "cameraStatus"
+  );
+
+const micButton =
+  document.getElementById(
+    "micButton"
+  );
+
+const cameraButton =
+  document.getElementById(
+    "cameraButton"
+  );
+
+const switchCameraButton =
+  document.getElementById(
+    "switchCameraButton"
+  );
+
+const streamTitle =
+  document.getElementById(
+    "streamTitle"
+  );
+
+const category =
+  document.getElementById(
+    "category"
+  );
+
+const audience =
+  document.getElementById(
+    "audience"
+  );
+
+const inviteLink =
+  document.getElementById(
+    "inviteLink"
+  );
+
+const inviteButton =
+  document.getElementById(
+    "inviteButton"
+  );
+
+const startLiveButton =
+  document.getElementById(
+    "startLiveButton"
+  );
+
+const liveMessage =
+  document.getElementById(
+    "liveMessage"
+  );
+
+const errorBox =
+  document.getElementById(
+    "errorBox"
+  );
+
+
+/* =========================================
+   VARIABLES
+========================================= */
+
+let currentStream =
+  null;
+
+let currentFacingMode =
+  "user";
+
+let microphoneEnabled =
+  true;
+
+let cameraEnabled =
+  true;
+
+let currentUser =
+  null;
+
+
+/* =========================================
+   SHOW ERROR
+========================================= */
+
+function showError(
+  message
+) {
+
+  errorBox.textContent =
+    message;
+
+  errorBox.style.display =
+    "block";
+
+}
+
+
+function clearError() {
+
+  errorBox.textContent =
+    "";
+
+  errorBox.style.display =
+    "none";
+
+}
+
+
+/* =========================================
+   GET USER
+========================================= */
+
+async function getCurrentUser() {
+
+  const {
+    data,
+    error
+  } =
+  await supabaseClient.auth.getUser();
+
+
+  if (
+    error ||
+    !data ||
+    !data.user
+  ) {
+
+    window.location.href =
+      "login.html";
+
+    return null;
+
+  }
+
+
+  currentUser =
+    data.user;
+
+  return currentUser;
+
+}
+
+
+/* =========================================
+   START CAMERA
+========================================= */
+
+async function startCamera() {
+
+  clearError();
+
+
+  if (
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ) {
+
+    showError(
+      "Your browser does not support camera and microphone access."
+    );
+
+    return false;
+
+  }
+
+
+  try {
+
+    if (currentStream) {
+
+      currentStream
+        .getTracks()
+        .forEach(
+          track =>
+            track.stop()
+        );
+
+    }
+
+
+    currentStream =
+      await navigator.mediaDevices.getUserMedia({
+
+        video: {
+          facingMode:
+            currentFacingMode
+        },
+
+        audio: true
+
+      });
+
+
+    video.srcObject =
+      currentStream;
+
+
+    placeholder.style.display =
+      "none";
+
+
+    cameraEnabled =
+      true;
+
+    microphoneEnabled =
+      true;
+
+
+    updateControls();
+
+
+    cameraStatus.textContent =
+      "Camera ready";
+
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "Camera error:",
+      error
+    );
+
+
+    showError(
+      "Camera or microphone permission was denied. Please allow camera and microphone access in your browser settings, then try again."
+    );
+
+
+    cameraStatus.textContent =
+      "Camera unavailable";
+
+
+    return false;
+
+  }
+
+}
+
+
+/* =========================================
+   UPDATE CONTROLS
+========================================= */
+
+function updateControls() {
+
+  if (cameraEnabled) {
+
+    cameraButton.textContent =
+      "📷 Camera";
+
+    cameraButton.classList.add(
+      "active"
+    );
+
+  } else {
+
+    cameraButton.textContent =
+      "📷 Camera Off";
+
+    cameraButton.classList.remove(
+      "active"
+    );
+
+  }
+
+
+  if (microphoneEnabled) {
+
+    micButton.textContent =
+      "🎙 Mic";
+
+    micButton.classList.add(
+      "active"
+    );
+
+  } else {
+
+    micButton.textContent =
+      "🔇 Mic Off";
+
+    micButton.classList.add(
+      "off"
+    );
+
+    micButton.classList.remove(
+      "active"
+    );
+
+  }
+
+
+  if (cameraEnabled) {
+
+    cameraStatus.textContent =
+      "Camera ready";
+
+  } else {
+
+    cameraStatus.textContent =
+      "Camera off";
+
+  }
+
+}
+
+
+/* =========================================
+   TOGGLE MICROPHONE
+========================================= */
+
+micButton.addEventListener(
+  "click",
+  () => {
+
+    if (!currentStream) {
+
+      showError(
+        "Start your camera first."
+      );
+
+      return;
+
+    }
+
+
+    const audioTracks =
+      currentStream.getAudioTracks();
+
+
+    if (
+      audioTracks.length === 0
+    ) {
+
+      showError(
+        "No microphone was detected."
+      );
+
+      return;
+
+    }
+
+
+    microphoneEnabled =
+      !microphoneEnabled;
+
+
+    audioTracks.forEach(
+      track => {
+
+        track.enabled =
+          microphoneEnabled;
+
+      }
+    );
+
+
+    updateControls();
+
+  }
+);
+
+
+/* =========================================
+   TOGGLE CAMERA
+========================================= */
+
+cameraButton.addEventListener(
+  "click",
+  () => {
+
+    if (!currentStream) {
+
+      showError(
+        "Start your camera first."
+      );
+
+      return;
+
+    }
+
+
+    const videoTracks =
+      currentStream.getVideoTracks();
+
+
+    if (
+      videoTracks.length === 0
+    ) {
+
+      showError(
+        "No camera was detected."
+      );
+
+      return;
+
+    }
+
+
+    cameraEnabled =
+      !cameraEnabled;
+
+
+    videoTracks.forEach(
+      track => {
+
+        track.enabled =
+          cameraEnabled;
+
+      }
+    );
+
+
+    updateControls();
+
+  }
+);
+
+
+/* =========================================
+   SWITCH CAMERA
+========================================= */
+
+switchCameraButton.addEventListener(
+  "click",
+  async () => {
+
+    if (!currentStream) {
+
+      showError(
+        "Start your camera first."
+      );
+
+      return;
+
+    }
+
+
+    currentFacingMode =
+      currentFacingMode === "user"
+        ? "environment"
+        : "user";
+
+
+    const oldAudioState =
+      microphoneEnabled;
+
+
+    const oldCameraState =
+      cameraEnabled;
+
+
+    const success =
+      await startCamera();
+
+
+    if (success) {
+
+      microphoneEnabled =
+        oldAudioState;
+
+      cameraEnabled =
+        oldCameraState;
+
+
+      currentStream
+        .getAudioTracks()
+        .forEach(
+          track =>
+            track.enabled =
+              microphoneEnabled
+        );
+
+
+      currentStream
+        .getVideoTracks()
+        .forEach(
+          track =>
+            track.enabled =
+              cameraEnabled
+        );
+
+
+      updateControls();
+
+    }
+
+  }
+);
+
+
+/* =========================================
+   SHARE / INVITE
+========================================= */
+
+inviteButton.addEventListener(
+  "click",
+  async () => {
+
+    const title =
+      streamTitle.value.trim();
+
+
+    if (!title) {
+
+      showError(
+        "Enter a live title before sharing your live."
+      );
+
+      return;
+
+    }
+
+
+    const temporaryId =
+      generateLiveId();
+
+
+    const link =
+      window.location.origin +
+      "/live-room.html?live=" +
+      encodeURIComponent(
+        temporaryId
+      );
+
+
+    inviteLink.value =
+      link;
+
+
+    try {
+
+      if (
+        navigator.share
+      ) {
+
+        await navigator.share({
+
+          title:
+            "Join my Zinko Live",
+
+          text:
+            title,
+
+          url:
+            link
+
+        });
+
+      } else {
+
+        await navigator.clipboard.writeText(
+          link
+        );
+
+
+        liveMessage.textContent =
+          "✓ Live link copied.";
+
+      }
+
+    } catch (error) {
+
+      console.log(
+        "Share cancelled."
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================
+   GENERATE LIVE ID
+========================================= */
+
+function generateLiveId() {
+
+  const random =
+    Math.random()
+      .toString(36)
+      .substring(2, 10);
+
+
+  return (
+    "zinko-" +
+    Date.now() +
+    "-" +
+    random
+  );
+
+}
+
+
+/* =========================================
+   START LIVE
+========================================= */
+
+startLiveButton.addEventListener(
+  "click",
+  async () => {
+
+    clearError();
+
+
+    const title =
+      streamTitle.value.trim();
+
+
+    const selectedCategory =
+      category.value;
+
+
+    const selectedAudience =
+      audience.value;
+
+
+    if (!title) {
+
+      showError(
+        "Please enter a title for your live stream."
+      );
+
+      streamTitle.focus();
+
+      return;
+
+    }
+
+
+    if (!selectedCategory) {
+
+      showError(
+        "Please choose a live stream category."
+      );
+
+      category.focus();
+
+      return;
+
+    }
+
+
+    if (!currentStream) {
+
+      showError(
+        "Please turn on your camera before starting your live."
+      );
+
+      await startCamera();
+
+      return;
+
+    }
+
+
+    if (!currentUser) {
+
+      const user =
+        await getCurrentUser();
+
+
+      if (!user) {
+
+        return;
+
+      }
+
+    }
+
+
+    const liveId =
+      generateLiveId();
+
+
+    const liveData = {
+
+      liveId:
+        liveId,
+
+      userId:
+        currentUser.id,
+
+      title:
+        title,
+
+      category:
+        selectedCategory,
+
+      audience:
+        selectedAudience,
+
+      startedAt:
+        new Date().toISOString()
+
+    };
+
+
+    /*
+      Temporary live configuration.
+
+      The next live-room stage will use
+      this information to create the actual
+      real-time live session.
+    */
+
+    localStorage.setItem(
+      "zinko_current_live",
+      JSON.stringify(
+        liveData
+      )
+    );
+
+
+    startLiveButton.disabled =
+      true;
+
+    startLiveButton.textContent =
+      "Preparing your live...";
+
+
+    liveMessage.textContent =
+      "Setting up your Zinko live room...";
+
+
+    /*
+      The live room will be connected
+      in the next step.
+    */
+
+    window.location.href =
+      "live-room.html?live=" +
+      encodeURIComponent(
+        liveId
+      );
+
+  }
+);
+
+
+/* =========================================
+   STOP CAMERA WHEN LEAVING
+========================================= */
+
+window.addEventListener(
+  "beforeunload",
+  () => {
+
+    if (currentStream) {
+
+      currentStream
+        .getTracks()
+        .forEach(
+          track =>
+            track.stop()
+        );
+
+    }
+
+  }
+);
+
+
+/* =========================================
+   LOAD SAVED DRAFT
+========================================= */
+
+function loadDraft() {
+
+  try {
+
+    const saved =
+      JSON.parse(
+        localStorage.getItem(
+          "zinko_live_draft"
+        ) || "null"
+      );
+
+
+    if (!saved) {
+
+      return;
+
+    }
+
+
+    streamTitle.value =
+      saved.title || "";
+
+
+    category.value =
+      saved.category || "";
+
+
+    audience.value =
+      saved.audience ||
+      "everyone";
+
+  } catch (error) {
+
+    console.log(
+      "No live draft available."
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   SAVE DRAFT
+========================================= */
+
+function saveDraft() {
+
+  const draft = {
+
+    title:
+      streamTitle.value.trim(),
+
+    category:
+      category.value,
+
+    audience:
+      audience.value
+
+  };
+
+
+  localStorage.setItem(
+    "zinko_live_draft",
+    JSON.stringify(
+      draft
+    )
+  );
+
+}
+
+
+streamTitle.addEventListener(
+  "input",
+  saveDraft
+);
+
+
+category.addEventListener(
+  "change",
+  saveDraft
+);
+
+
+audience.addEventListener(
+  "change",
+  saveDraft
+);
+
+
+/* =========================================
+   START
+========================================= */
+
+async function initialize() {
+
+  loadDraft();
+
+
+  const user =
+    await getCurrentUser();
+
+
+  if (!user) {
+
+    return;
+
+  }
+
+
+  /*
+    Request camera/microphone permission
+    when the page is ready.
+  */
+
+  await startCamera();
+
+}
+
+
+initialize();
+
+</script>
+
+</body>
+
+</html>
