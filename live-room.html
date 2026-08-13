@@ -1,1322 +1,840 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-
-  <meta charset="utf-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width,initial-scale=1"
-  >
-
-  <title>Zinko Live Room</title>
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      background: #070b14;
-      color: white;
-      font-family: Arial, sans-serif;
-    }
-
-    button,
-    input {
-      font-family: inherit;
-    }
-
-    .room {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background: #070b14;
-    }
-
-    /* =========================================
-       VIDEO
-    ========================================= */
-
-    .video-area {
-      position: relative;
-      width: 100%;
-      height: min(58vh, 560px);
-      min-height: 330px;
-      background: #02040a;
-      overflow: hidden;
-    }
-
-    #localVideo {
-      width: 100%;
-      height: 100%;
-      display: block;
-      object-fit: cover;
-      background: #02040a;
-    }
-
-    .video-placeholder {
-      position: absolute;
-      inset: 0;
-
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-
-      text-align: center;
-      color: #9aa3bb;
-
-      background:
-        radial-gradient(
-          circle at center,
-          #18203a 0,
-          #070b14 55%,
-          #02040a 100%
-        );
-    }
-
-    .video-placeholder-icon {
-      font-size: 55px;
-      margin-bottom: 10px;
-    }
-
-    .video-placeholder-text {
-      font-size: 14px;
-    }
-
-    .video-placeholder small {
-      display: block;
-      margin-top: 7px;
-      color: #69738d;
-      font-size: 11px;
-    }
-
-    /* =========================================
-       TOP BAR
-    ========================================= */
-
-    .room-top {
-      position: absolute;
-      z-index: 10;
-
-      top: 0;
-      left: 0;
-      right: 0;
-
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      padding: 13px;
-
-      background:
-        linear-gradient(
-          to bottom,
-          rgba(0,0,0,.72),
-          rgba(0,0,0,0)
-        );
-    }
-
-    .host-info {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      min-width: 0;
-    }
-
-    .host-avatar {
-      width: 39px;
-      height: 39px;
-
-      border-radius: 50%;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      background: #7155ff;
-      color: white;
-
-      font-weight: 800;
-      flex-shrink: 0;
-    }
-
-    .host-text {
-      min-width: 0;
-    }
-
-    .host-name {
-      font-size: 13px;
-      font-weight: 800;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .stream-title-small {
-      margin-top: 3px;
-      max-width: 190px;
-
-      color: #c5ccdf;
-      font-size: 10px;
-
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .live-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-
-      padding: 6px 9px;
-
-      border-radius: 9px;
-
-      background: rgba(220,35,55,.95);
-
-      color: white;
-
-      font-size: 10px;
-      font-weight: 900;
-    }
-
-    .viewer-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-
-      margin-left: 5px;
-
-      padding: 6px 9px;
-
-      border-radius: 9px;
-
-      background: rgba(0,0,0,.58);
-
-      color: white;
-
-      font-size: 10px;
-      font-weight: 700;
-    }
-
-    /* =========================================
-       VIDEO MESSAGE
-    ========================================= */
-
-    .connection-status {
-      position: absolute;
-      z-index: 8;
-
-      left: 50%;
-      bottom: 14px;
-
-      transform: translateX(-50%);
-
-      padding: 7px 11px;
-
-      border-radius: 10px;
-
-      background: rgba(0,0,0,.62);
-
-      color: #d6dbee;
-
-      font-size: 10px;
-
-      white-space: nowrap;
-    }
-
-    /* =========================================
-       MAIN CONTENT
-    ========================================= */
-
-    .room-content {
-      flex: 1;
-      width: 100%;
-      max-width: 760px;
-      margin: 0 auto;
-
-      padding: 13px 13px 95px;
-    }
-
-    .room-title {
-      margin: 0 0 5px;
-      font-size: 18px;
-    }
-
-    .room-category {
-      margin: 0 0 13px;
-
-      color: #8e98b2;
-      font-size: 11px;
-    }
-
-    /* =========================================
-       ACTIONS
-    ========================================= */
-
-    .action-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 7px;
-
-      margin-bottom: 13px;
-    }
-
-    .action-button {
-      border: 1px solid #29314b;
-
-      background: #101728;
-      color: white;
-
-      border-radius: 12px;
-
-      padding: 11px 5px;
-
-      cursor: pointer;
-
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .action-button:active {
-      transform: scale(.98);
-    }
-
-    .action-button.active {
-      background: #7155ff;
-      border-color: #7155ff;
-    }
-
-    .action-button.danger {
-      background: #35151c;
-      border-color: #70313d;
-    }
-
-    /* =========================================
-       CHAT
-    ========================================= */
-
-    .chat-section {
-      background: #101728;
-      border: 1px solid #202840;
-      border-radius: 17px;
-
-      overflow: hidden;
-
-      margin-bottom: 13px;
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      padding: 13px 14px;
-
-      border-bottom: 1px solid #202840;
-    }
-
-    .section-header strong {
-      font-size: 14px;
-    }
-
-    .online-count {
-      color: #8e98b2;
-      font-size: 10px;
-    }
-
-    .messages {
-      height: 285px;
-      overflow-y: auto;
-
-      padding: 10px 12px;
-
-      scroll-behavior: smooth;
-    }
-
-    .message {
-      display: flex;
-      gap: 8px;
-
-      margin-bottom: 11px;
-    }
-
-    .message-avatar {
-      width: 28px;
-      height: 28px;
-
-      border-radius: 50%;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      background: #252e48;
-
-      color: white;
-
-      font-size: 10px;
-      font-weight: 800;
-
-      flex-shrink: 0;
-    }
-
-    .message-content {
-      min-width: 0;
-    }
-
-    .message-name {
-      margin-bottom: 2px;
-
-      color: #aeb7d0;
-
-      font-size: 10px;
-      font-weight: 800;
-    }
-
-    .message-text {
-      color: #f4f6fb;
-
-      font-size: 12px;
-      line-height: 1.45;
-
-      word-break: break-word;
-    }
-
-    .system-message {
-      padding: 8px 10px;
-      margin-bottom: 9px;
-
-      border-radius: 9px;
-
-      background: rgba(113,85,255,.08);
-
-      color: #9da6bf;
-
-      font-size: 10px;
-      text-align: center;
-    }
-
-    .chat-input-row {
-      display: flex;
-      gap: 7px;
-
-      padding: 10px;
-
-      border-top: 1px solid #202840;
-    }
-
-    .chat-input {
-      flex: 1;
-
-      min-width: 0;
-
-      padding: 12px;
-
-      background: #0b1120;
-      color: white;
-
-      border: 1px solid #29314b;
-      border-radius: 12px;
-
-      outline: none;
-
-      font-size: 12px;
-    }
-
-    .chat-input:focus {
-      border-color: #7155ff;
-    }
-
-    .send-button {
-      width: 75px;
-
-      border: 0;
-
-      background: #7155ff;
-      color: white;
-
-      border-radius: 12px;
-
-      cursor: pointer;
-
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    /* =========================================
-       REACTIONS
-    ========================================= */
-
-    .reaction-bar {
-      display: flex;
-      gap: 7px;
-
-      padding: 11px 0;
-
-      overflow-x: auto;
-    }
-
-    .reaction-button {
-      min-width: 45px;
-
-      border: 1px solid #29314b;
-
-      background: #101728;
-
-      color: white;
-
-      border-radius: 12px;
-
-      padding: 9px 7px;
-
-      cursor: pointer;
-
-      font-size: 17px;
-    }
-
-    /* =========================================
-       GIFTS
-    ========================================= */
-
-    .gift-section {
-      padding: 14px;
-
-      background: #101728;
-
-      border: 1px solid #202840;
-
-      border-radius: 17px;
-
-      margin-bottom: 13px;
-    }
-
-    .gift-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      margin-bottom: 11px;
-    }
-
-    .gift-header strong {
-      font-size: 14px;
-    }
-
-    .coin-balance {
-      color: #f2c95c;
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    .gift-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 7px;
-    }
-
-    .gift-button {
-      border: 1px solid #29314b;
-
-      background: #0b1120;
-
-      color: white;
-
-      border-radius: 13px;
-
-      padding: 10px 5px;
-
-      cursor: pointer;
-    }
-
-    .gift-button:active {
-      transform: scale(.97);
-    }
-
-    .gift-emoji {
-      display: block;
-      font-size: 24px;
-      margin-bottom: 5px;
-    }
-
-    .gift-name {
-      display: block;
-      font-size: 10px;
-      font-weight: 800;
-    }
-
-    .gift-price {
-      display: block;
-      margin-top: 3px;
-      color: #f2c95c;
-      font-size: 9px;
-    }
-
-    /* =========================================
-       NOTICE
-    ========================================= */
-
-    .notice {
-      padding: 12px;
-
-      margin-bottom: 13px;
-
-      border-radius: 13px;
-
-      background: rgba(113,85,255,.07);
-
-      border: 1px solid rgba(113,85,255,.18);
-
-      color: #aeb6cd;
-
-      font-size: 10px;
-
-      line-height: 1.5;
-    }
-
-    /* =========================================
-       MODAL
-    ========================================= */
-
-    .modal {
-      position: fixed;
-      z-index: 100;
-
-      inset: 0;
-
-      display: none;
-
-      align-items: flex-end;
-      justify-content: center;
-
-      background: rgba(0,0,0,.65);
-    }
-
-    .modal.show {
-      display: flex;
-    }
-
-    .modal-card {
-      width: 100%;
-      max-width: 600px;
-
-      padding: 18px;
-
-      background: #101728;
-
-      border: 1px solid #29314b;
-
-      border-radius: 20px 20px 0 0;
-    }
-
-    .modal-card h3 {
-      margin-top: 0;
-    }
-
-    .modal-card p {
-      color: #9ca5bc;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .modal-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 15px;
-    }
-
-    .modal-button {
-      padding: 13px;
-
-      border-radius: 12px;
-
-      border: 1px solid #29314b;
-
-      background: #171f35;
-
-      color: white;
-
-      cursor: pointer;
-
-      font-weight: 800;
-    }
-
-    .modal-button.end {
-      background: #b92339;
-      border-color: #b92339;
-    }
-
-    /* =========================================
-       TOAST
-    ========================================= */
-
-    .toast {
-      position: fixed;
-      z-index: 200;
-
-      left: 50%;
-      bottom: 25px;
-
-      transform: translateX(-50%);
-
-      max-width: 90%;
-
-      padding: 11px 14px;
-
-      border-radius: 12px;
-
-      background: #171f35;
-
-      border: 1px solid #29314b;
-
-      color: white;
-
-      font-size: 11px;
-
-      display: none;
-
-      text-align: center;
-    }
-
-    .toast.show {
-      display: block;
-    }
-
-    @media (min-width: 700px) {
-
-      .video-area {
-        height: 560px;
-      }
-
-      .room {
-        background: #040710;
-      }
-
-    }
-
-  </style>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zinko Live Room</title>
+
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:#070b14;
+  color:white;
+  font-family:Arial,sans-serif;
+}
+
+button,input{font-family:inherit}
+
+.room{
+  min-height:100vh;
+  background:#070b14;
+}
+
+.video-area{
+  position:relative;
+  width:100%;
+  height:min(58vh,560px);
+  min-height:330px;
+  background:#02040a;
+  overflow:hidden;
+}
+
+#localVideo{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  background:#02040a;
+}
+
+.video-placeholder{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:#9aa3bb;
+  background:radial-gradient(circle,#18203a 0,#070b14 55%,#02040a 100%);
+}
+
+.video-placeholder-icon{
+  font-size:55px;
+  margin-bottom:10px;
+}
+
+.video-placeholder small{
+  display:block;
+  margin-top:7px;
+  color:#69738d;
+  font-size:11px;
+}
+
+.room-top{
+  position:absolute;
+  z-index:10;
+  top:0;
+  left:0;
+  right:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:13px;
+  background:linear-gradient(to bottom,rgba(0,0,0,.72),rgba(0,0,0,0));
+}
+
+.host-info{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+}
+
+.host-avatar{
+  width:39px;
+  height:39px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#7155ff;
+  font-weight:800;
+  flex-shrink:0;
+}
+
+.host-text{min-width:0}
+
+.host-name{
+  font-size:13px;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.stream-title-small{
+  margin-top:3px;
+  max-width:190px;
+  color:#c5ccdf;
+  font-size:10px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.live-badge,.viewer-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:6px 9px;
+  border-radius:9px;
+  font-size:10px;
+  font-weight:800;
+}
+
+.live-badge{
+  background:rgba(220,35,55,.95);
+}
+
+.viewer-badge{
+  margin-left:5px;
+  background:rgba(0,0,0,.58);
+}
+
+.connection-status{
+  position:absolute;
+  z-index:8;
+  left:50%;
+  bottom:14px;
+  transform:translateX(-50%);
+  padding:7px 11px;
+  border-radius:10px;
+  background:rgba(0,0,0,.62);
+  color:#d6dbee;
+  font-size:10px;
+  white-space:nowrap;
+}
+
+.room-content{
+  width:100%;
+  max-width:760px;
+  margin:auto;
+  padding:13px 13px 95px;
+}
+
+.room-title{
+  margin:0 0 5px;
+  font-size:18px;
+}
+
+.room-category{
+  margin:0 0 13px;
+  color:#8e98b2;
+  font-size:11px;
+}
+
+.action-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+  margin-bottom:13px;
+}
+
+.action-button{
+  border:1px solid #29314b;
+  background:#101728;
+  color:white;
+  border-radius:12px;
+  padding:11px 5px;
+  cursor:pointer;
+  font-size:11px;
+  font-weight:700;
+}
+
+.action-button.active{
+  background:#7155ff;
+  border-color:#7155ff;
+}
+
+.action-button.danger{
+  background:#35151c;
+  border-color:#70313d;
+}
+
+.chat-section,.gift-section{
+  background:#101728;
+  border:1px solid #202840;
+  border-radius:17px;
+  overflow:hidden;
+  margin-bottom:13px;
+}
+
+.section-header,.gift-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:13px 14px;
+  border-bottom:1px solid #202840;
+}
+
+.section-header strong,.gift-header strong{
+  font-size:14px;
+}
+
+.online-count,.coin-balance{
+  color:#8e98b2;
+  font-size:10px;
+}
+
+.coin-balance{
+  color:#f2c95c;
+  font-weight:800;
+}
+
+.messages{
+  height:285px;
+  overflow-y:auto;
+  padding:10px 12px;
+}
+
+.message{
+  display:flex;
+  gap:8px;
+  margin-bottom:11px;
+}
+
+.message-avatar{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#252e48;
+  font-size:10px;
+  font-weight:800;
+  flex-shrink:0;
+}
+
+.message-content{min-width:0}
+
+.message-name{
+  margin-bottom:2px;
+  color:#aeb7d0;
+  font-size:10px;
+  font-weight:800;
+}
+
+.message-text{
+  color:#f4f6fb;
+  font-size:12px;
+  line-height:1.45;
+  word-break:break-word;
+}
+
+.system-message{
+  padding:8px 10px;
+  margin-bottom:9px;
+  border-radius:9px;
+  background:rgba(113,85,255,.08);
+  color:#9da6bf;
+  font-size:10px;
+  text-align:center;
+}
+
+.chat-input-row{
+  display:flex;
+  gap:7px;
+  padding:10px;
+  border-top:1px solid #202840;
+}
+
+.chat-input{
+  flex:1;
+  min-width:0;
+  padding:12px;
+  background:#0b1120;
+  color:white;
+  border:1px solid #29314b;
+  border-radius:12px;
+  outline:none;
+  font-size:12px;
+}
+
+.send-button{
+  width:75px;
+  border:0;
+  background:#7155ff;
+  color:white;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:800;
+}
+
+.reaction-bar{
+  display:flex;
+  gap:7px;
+  padding:11px 0;
+  overflow-x:auto;
+}
+
+.reaction-button{
+  min-width:45px;
+  border:1px solid #29314b;
+  background:#101728;
+  color:white;
+  border-radius:12px;
+  padding:9px 7px;
+  cursor:pointer;
+  font-size:17px;
+}
+
+.gift-section{
+  padding:14px;
+}
+
+.gift-header{
+  padding:0 0 11px;
+}
+
+.gift-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+}
+
+.gift-button{
+  border:1px solid #29314b;
+  background:#0b1120;
+  color:white;
+  border-radius:13px;
+  padding:10px 5px;
+  cursor:pointer;
+}
+
+.gift-emoji{
+  display:block;
+  font-size:24px;
+  margin-bottom:5px;
+}
+
+.gift-name{
+  display:block;
+  font-size:10px;
+  font-weight:800;
+}
+
+.gift-price{
+  display:block;
+  margin-top:3px;
+  color:#f2c95c;
+  font-size:9px;
+}
+
+.notice{
+  padding:12px;
+  margin-bottom:13px;
+  border-radius:13px;
+  background:rgba(113,85,255,.07);
+  border:1px solid rgba(113,85,255,.18);
+  color:#aeb6cd;
+  font-size:10px;
+  line-height:1.5;
+}
+
+.modal{
+  position:fixed;
+  z-index:100;
+  inset:0;
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  background:rgba(0,0,0,.65);
+}
+
+.modal.show{display:flex}
+
+.modal-card{
+  width:100%;
+  max-width:600px;
+  padding:18px;
+  background:#101728;
+  border:1px solid #29314b;
+  border-radius:20px 20px 0 0;
+}
+
+.modal-card p{
+  color:#9ca5bc;
+  font-size:12px;
+  line-height:1.5;
+}
+
+.modal-buttons{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:15px;
+}
+
+.modal-button{
+  padding:13px;
+  border-radius:12px;
+  border:1px solid #29314b;
+  background:#171f35;
+  color:white;
+  cursor:pointer;
+  font-weight:800;
+}
+
+.modal-button.end{
+  background:#b92339;
+  border-color:#b92339;
+}
+
+.toast{
+  position:fixed;
+  z-index:200;
+  left:50%;
+  bottom:25px;
+  transform:translateX(-50%);
+  max-width:90%;
+  padding:11px 14px;
+  border-radius:12px;
+  background:#171f35;
+  border:1px solid #29314b;
+  color:white;
+  font-size:11px;
+  display:none;
+  text-align:center;
+}
+
+.toast.show{display:block}
+
+@media(min-width:700px){
+  .video-area{height:560px}
+}
+</style>
 </head>
-
 
 <body>
 
 <div class="room">
 
+<section class="video-area">
 
-  <!-- =======================================
-       VIDEO AREA
-  ======================================== -->
+<video
+  id="localVideo"
+  autoplay
+  muted
+  playsinline
+></video>
 
-  <section class="video-area">
+<div id="videoPlaceholder" class="video-placeholder">
+  <div class="video-placeholder-icon">📺</div>
+  <div id="placeholderText">Connecting to Zinko Live...</div>
+  <small id="placeholderSmall">Preparing your live room</small>
+</div>
 
-    <video
-      id="localVideo"
-      autoplay
-      muted
-      playsinline
-    ></video>
+<div class="room-top">
 
+<div class="host-info">
 
-    <div
-      id="videoPlaceholder"
-      class="video-placeholder"
-    >
+<div id="hostAvatar" class="host-avatar">Z</div>
 
-      <div class="video-placeholder-icon">
-        📺
-      </div>
+<div class="host-text">
+<div id="hostName" class="host-name">Zinko Creator</div>
+<div id="streamTitleSmall" class="stream-title-small">Zinko Live</div>
+</div>
 
-      <div class="video-placeholder-text">
-        Connecting to Zinko Live...
-      </div>
+</div>
 
-      <small>
-        Preparing your live room
-      </small>
+<div>
+<span class="live-badge">● LIVE</span>
+<span class="viewer-badge">
+👥 <span id="viewerCount">0</span>
+</span>
+</div>
 
-    </div>
+</div>
 
+<div id="connectionStatus" class="connection-status">
+Connecting...
+</div>
 
-    <!-- TOP -->
+</section>
 
-    <div class="room-top">
 
-      <div class="host-info">
+<main class="room-content">
 
-        <div
-          id="hostAvatar"
-          class="host-avatar"
-        >
-          Z
-        </div>
+<h1 id="roomTitle" class="room-title">Zinko Live</h1>
 
-        <div class="host-text">
+<p id="roomCategory" class="room-category">
+Live stream
+</p>
 
-          <div
-            id="hostName"
-            class="host-name"
-          >
-            Zinko Creator
-          </div>
 
-          <div
-            id="streamTitleSmall"
-            class="stream-title-small"
-          >
-            Zinko Live
-          </div>
+<div class="action-row">
 
-        </div>
+<button id="micButton" class="action-button active">
+🎙 Mic
+</button>
 
-      </div>
+<button id="cameraButton" class="action-button active">
+📷 Camera
+</button>
 
+<button id="shareButton" class="action-button">
+📤 Share
+</button>
 
-      <div>
-
-        <span class="live-badge">
-          ● LIVE
-        </span>
-
-        <span class="viewer-badge">
-          👥
-          <span id="viewerCount">
-            0
-          </span>
-        </span>
-
-      </div>
-
-    </div>
-
-
-    <div
-      id="connectionStatus"
-      class="connection-status"
-    >
-      Connecting...
-    </div>
-
-  </section>
-
-
-  <!-- =======================================
-       ROOM CONTENT
-  ======================================== -->
-
-  <main class="room-content">
-
-
-    <h1
-      id="roomTitle"
-      class="room-title"
-    >
-      Zinko Live
-    </h1>
-
-
-    <p
-      id="roomCategory"
-      class="room-category"
-    >
-      Live stream
-    </p>
-
-
-    <!-- ACTIONS -->
-
-    <div class="action-row">
-
-      <button
-        id="micButton"
-        class="action-button active"
-        type="button"
-      >
-        🎙 Mic
-      </button>
-
-
-      <button
-        id="cameraButton"
-        class="action-button active"
-        type="button"
-      >
-        📷 Camera
-      </button>
-
-
-      <button
-        id="shareButton"
-        class="action-button"
-        type="button"
-      >
-        📤 Share
-      </button>
-
-
-      <button
-        id="endButton"
-        class="action-button danger"
-        type="button"
-      >
-        🔴 End
-      </button>
-
-    </div>
-
-
-    <!-- CHAT -->
-
-    <section class="chat-section">
-
-      <div class="section-header">
-
-        <strong>
-          💬 Live Chat
-        </strong>
-
-        <span class="online-count">
-
-          👥
-          <span id="chatViewerCount">
-            0
-          </span>
-          watching
-
-        </span>
-
-      </div>
-
-
-      <div
-        id="messages"
-        class="messages"
-      >
-
-        <div class="system-message">
-          Welcome to the Zinko live room.
-        </div>
-
-      </div>
-
-
-      <div class="chat-input-row">
-
-        <input
-          id="chatInput"
-          class="chat-input"
-          maxlength="500"
-          placeholder="Send a message..."
-          autocomplete="off"
-        >
-
-        <button
-          id="sendButton"
-          class="send-button"
-          type="button"
-        >
-          Send
-        </button>
-
-      </div>
-
-    </section>
-
-
-    <!-- REACTIONS -->
-
-    <div class="reaction-bar">
-
-      <button
-        class="reaction-button"
-        data-reaction="❤️"
-        type="button"
-      >
-        ❤️
-      </button>
-
-      <button
-        class="reaction-button"
-        data-reaction="😂"
-        type="button"
-      >
-        😂
-      </button>
-
-      <button
-        class="reaction-button"
-        data-reaction="🔥"
-        type="button"
-      >
-        🔥
-      </button>
-
-      <button
-        class="reaction-button"
-        data-reaction="👏"
-        type="button"
-      >
-        👏
-      </button>
-
-      <button
-        class="reaction-button"
-        data-reaction="😍"
-        type="button"
-      >
-        😍
-      </button>
-
-      <button
-        class="reaction-button"
-        data-reaction="🎉"
-        type="button"
-      >
-        🎉
-      </button>
-
-    </div>
-
-
-    <!-- GIFTS -->
-
-    <section class="gift-section">
-
-      <div class="gift-header">
-
-        <strong>
-          🎁 Send a Gift
-        </strong>
-
-        <span class="coin-balance">
-          🪙
-          <span id="coinBalance">
-            0
-          </span>
-          coins
-        </span>
-
-      </div>
-
-
-      <div
-        id="giftGrid"
-        class="gift-grid"
-      ></div>
-
-    </section>
-
-
-    <!-- NOTICE -->
-
-    <div class="notice">
-
-      <strong>
-        ⚡ Zinko Live
-      </strong>
-
-      <br><br>
-
-      Messages, reactions, viewers and live activity are synchronized through Zinko's realtime system.
-
-    </div>
-
-
-  </main>
+<button id="endButton" class="action-button danger">
+🔴 End
+</button>
 
 </div>
 
 
-<!-- =========================================
-     END LIVE MODAL
-========================================= -->
+<section class="chat-section">
 
-<div
-  id="endModal"
-  class="modal"
+<div class="section-header">
+
+<strong>💬 Live Chat</strong>
+
+<span class="online-count">
+👥 <span id="chatViewerCount">0</span> watching
+</span>
+
+</div>
+
+<div id="messages" class="messages">
+
+<div class="system-message">
+Welcome to the Zinko live room.
+</div>
+
+</div>
+
+<div class="chat-input-row">
+
+<input
+  id="chatInput"
+  class="chat-input"
+  maxlength="500"
+  placeholder="Send a message..."
+  autocomplete="off"
 >
 
-  <div class="modal-card">
+<button id="sendButton" class="send-button">
+Send
+</button>
 
-    <h3>
-      End this live?
-    </h3>
+</div>
 
-    <p>
-      Your live session will be marked as ended and viewers will no longer be able to join it.
-    </p>
+</section>
 
-    <div class="modal-buttons">
 
-      <button
-        id="cancelEndButton"
-        class="modal-button"
-        type="button"
-      >
-        Continue Live
-      </button>
+<div class="reaction-bar">
 
-      <button
-        id="confirmEndButton"
-        class="modal-button end"
-        type="button"
-      >
-        End Live
-      </button>
-
-    </div>
-
-  </div>
+<button class="reaction-button" data-reaction="❤️">❤️</button>
+<button class="reaction-button" data-reaction="😂">😂</button>
+<button class="reaction-button" data-reaction="🔥">🔥</button>
+<button class="reaction-button" data-reaction="👏">👏</button>
+<button class="reaction-button" data-reaction="😍">😍</button>
+<button class="reaction-button" data-reaction="🎉">🎉</button>
 
 </div>
 
 
-<div
-  id="toast"
-  class="toast"
-></div>
+<section class="gift-section">
+
+<div class="gift-header">
+
+<strong>🎁 Send a Gift</strong>
+
+<span class="coin-balance">
+🪙 <span id="coinBalance">0</span> coins
+</span>
+
+</div>
+
+<div id="giftGrid" class="gift-grid"></div>
+
+</section>
+
+
+<div class="notice">
+
+<strong>⚡ Zinko Live</strong>
+
+<br><br>
+
+Your live video now uses a real-time WebRTC connection. Chat, reactions, viewers and live activity continue using Zinko's Supabase realtime system.
+
+</div>
+
+</main>
+</div>
+
+
+<div id="endModal" class="modal">
+
+<div class="modal-card">
+
+<h3>End this live?</h3>
+
+<p>
+Your live session will be marked as ended and viewers will no longer be able to join it.
+</p>
+
+<div class="modal-buttons">
+
+<button id="cancelEndButton" class="modal-button">
+Continue Live
+</button>
+
+<button id="confirmEndButton" class="modal-button end">
+End Live
+</button>
+
+</div>
+
+</div>
+</div>
+
+
+<div id="toast" class="toast"></div>
 
 
 <script>
 
-/* =========================================
+/* =====================================================
    SUPABASE
-========================================= */
+===================================================== */
 
 const SUPABASE_URL =
-  "https://ggqhwoyzuypryocrxiru.supabase.co";
+"https://ggqhwoyzuypryocrxiru.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
-
+"sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
 
 const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-  );
+window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
 
-/* =========================================
+/* =====================================================
    ELEMENTS
-========================================= */
+===================================================== */
 
 const localVideo =
-  document.getElementById(
-    "localVideo"
-  );
+document.getElementById("localVideo");
 
 const videoPlaceholder =
-  document.getElementById(
-    "videoPlaceholder"
-  );
+document.getElementById("videoPlaceholder");
+
+const placeholderText =
+document.getElementById("placeholderText");
+
+const placeholderSmall =
+document.getElementById("placeholderSmall");
 
 const connectionStatus =
-  document.getElementById(
-    "connectionStatus"
-  );
+document.getElementById("connectionStatus");
 
 const hostName =
-  document.getElementById(
-    "hostName"
-  );
+document.getElementById("hostName");
 
 const hostAvatar =
-  document.getElementById(
-    "hostAvatar"
-  );
+document.getElementById("hostAvatar");
 
 const streamTitleSmall =
-  document.getElementById(
-    "streamTitleSmall"
-  );
+document.getElementById("streamTitleSmall");
 
 const roomTitle =
-  document.getElementById(
-    "roomTitle"
-  );
+document.getElementById("roomTitle");
 
 const roomCategory =
-  document.getElementById(
-    "roomCategory"
-  );
+document.getElementById("roomCategory");
 
 const viewerCount =
-  document.getElementById(
-    "viewerCount"
-  );
+document.getElementById("viewerCount");
 
 const chatViewerCount =
-  document.getElementById(
-    "chatViewerCount"
-  );
+document.getElementById("chatViewerCount");
 
 const messages =
-  document.getElementById(
-    "messages"
-  );
+document.getElementById("messages");
 
 const chatInput =
-  document.getElementById(
-    "chatInput"
-  );
+document.getElementById("chatInput");
 
 const sendButton =
-  document.getElementById(
-    "sendButton"
-  );
+document.getElementById("sendButton");
 
 const micButton =
-  document.getElementById(
-    "micButton"
-  );
+document.getElementById("micButton");
 
 const cameraButton =
-  document.getElementById(
-    "cameraButton"
-  );
+document.getElementById("cameraButton");
 
 const shareButton =
-  document.getElementById(
-    "shareButton"
-  );
+document.getElementById("shareButton");
 
 const endButton =
-  document.getElementById(
-    "endButton"
-  );
+document.getElementById("endButton");
 
 const endModal =
-  document.getElementById(
-    "endModal"
-  );
+document.getElementById("endModal");
 
 const cancelEndButton =
-  document.getElementById(
-    "cancelEndButton"
-  );
+document.getElementById("cancelEndButton");
 
 const confirmEndButton =
-  document.getElementById(
-    "confirmEndButton"
-  );
+document.getElementById("confirmEndButton");
 
 const giftGrid =
-  document.getElementById(
-    "giftGrid"
-  );
+document.getElementById("giftGrid");
 
 const coinBalance =
-  document.getElementById(
-    "coinBalance"
-  );
+document.getElementById("coinBalance");
 
 const toast =
-  document.getElementById(
-    "toast"
-  );
+document.getElementById("toast");
 
 
-/* =========================================
+/* =====================================================
    STATE
-========================================= */
+===================================================== */
 
-let currentUser =
-  null;
+let currentUser = null;
+let currentSession = null;
+let currentStream = null;
 
-let currentSession =
-  null;
+let realtimeChannel = null;
 
-let currentStream =
-  null;
+let viewerHeartbeat = null;
+let viewerCountTimer = null;
 
-let realtimeChannel =
-  null;
+let isHost = false;
 
-let viewerHeartbeat =
-  null;
-
-let viewerCountTimer =
-  null;
-
-let isHost =
-  false;
-
-let microphoneEnabled =
-  true;
-
-let cameraEnabled =
-  true;
+let microphoneEnabled = true;
+let cameraEnabled = true;
 
 
-/* =========================================
+/*
+  WebRTC:
+  Host can have many viewers.
+  Each viewer gets a separate PeerConnection.
+*/
+
+const hostPeers = new Map();
+
+let viewerPeer = null;
+
+
+/* =====================================================
+   WEBRTC CONFIG
+===================================================== */
+
+const rtcConfiguration = {
+
+  iceServers: [
+
+    {
+      urls:
+      "stun:stun.l.google.com:19302"
+    },
+
+    {
+      urls:
+      "stun:stun1.l.google.com:19302"
+    }
+
+  ]
+
+};
+
+
+/* =====================================================
    URL
-========================================= */
+===================================================== */
 
 const urlParams =
-  new URLSearchParams(
-    window.location.search
-  );
+new URLSearchParams(
+  window.location.search
+);
 
 let requestedLiveId =
-  urlParams.get("live");
+urlParams.get("live");
 
 
-/* =========================================
+/* =====================================================
    TOAST
-========================================= */
+===================================================== */
 
-let toastTimer =
-  null;
+let toastTimer = null;
 
+function showToast(message){
 
-function showToast(message) {
+  toast.textContent = message;
 
-  toast.textContent =
-    message;
+  toast.classList.add("show");
 
-  toast.classList.add(
-    "show"
-  );
-
-  clearTimeout(
-    toastTimer
-  );
+  clearTimeout(toastTimer);
 
   toastTimer =
-    setTimeout(
-      () => {
-
-        toast.classList.remove(
-          "show"
-        );
-
-      },
-      2800
-    );
-
+  setTimeout(
+    ()=>{
+      toast.classList.remove("show");
+    },
+    2800
+  );
 }
 
 
-/* =========================================
+/* =====================================================
    AUTH
-========================================= */
+===================================================== */
 
-async function getCurrentUser() {
+async function getCurrentUser(){
 
   const {
     data,
@@ -1324,82 +842,55 @@ async function getCurrentUser() {
   } =
   await supabaseClient.auth.getUser();
 
-
-  if (
+  if(
     error ||
     !data ||
     !data.user
-  ) {
+  ){
 
     window.location.href =
-      "login.html";
+    "login.html";
 
     return null;
-
   }
 
-
   currentUser =
-    data.user;
+  data.user;
 
   return currentUser;
-
 }
 
 
-/* =========================================
+/* =====================================================
    HELPERS
-========================================= */
+===================================================== */
 
-function escapeHtml(value) {
+function escapeHtml(value){
 
   return String(value || "")
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
-
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;")
+  .replace(/'/g,"&#039;");
 }
 
 
-function getInitial(value) {
+function getInitial(value){
 
   const text =
-    String(value || "Z")
-      .trim();
+  String(value || "Z").trim();
 
   return (
-    text.charAt(0)
-      .toUpperCase() ||
+    text.charAt(0).toUpperCase() ||
     "Z"
   );
-
 }
 
 
-/* =========================================
-   LOAD HOST DRAFT
-========================================= */
+function getSavedLiveData(){
 
-function getSavedLiveData() {
-
-  try {
+  try{
 
     return JSON.parse(
       localStorage.getItem(
@@ -1407,105 +898,77 @@ function getSavedLiveData() {
       ) || "null"
     );
 
-  } catch (error) {
+  }catch(error){
 
     return null;
 
   }
-
 }
 
 
-/* =========================================
-   CREATE HOST LIVE SESSION
-========================================= */
+/* =====================================================
+   CREATE HOST SESSION
+===================================================== */
 
-async function createHostSession() {
+async function createHostSession(){
 
   const savedLive =
-    getSavedLiveData();
+  getSavedLiveData();
 
-
-  if (!savedLive) {
-
+  if(!savedLive){
     return null;
-
   }
-
-
-  /*
-    If this page was opened using the
-    temporary live ID generated by
-    start-live.html, create the real
-    Supabase UUID session now.
-  */
 
   const {
     data,
     error
   } =
   await supabaseClient
-    .from(
-      "zinko_live_sessions"
-    )
-    .insert({
+  .from("zinko_live_sessions")
+  .insert({
 
-      host_id:
-        currentUser.id,
+    host_id:
+    currentUser.id,
 
-      title:
-        savedLive.title ||
-        "Zinko Live",
+    title:
+    savedLive.title ||
+    "Zinko Live",
 
-      category:
-        savedLive.category ||
-        "General",
+    category:
+    savedLive.category ||
+    "General",
 
-      audience:
-        savedLive.audience ||
-        "everyone",
+    audience:
+    savedLive.audience ||
+    "everyone",
 
-      status:
-        "live"
+    status:
+    "live"
 
-    })
-    .select()
-    .single();
+  })
+  .select()
+  .single();
 
 
-  if (error) {
+  if(error){
 
-    console.error(
-      error
-    );
+    console.error(error);
 
     showToast(
       "Could not create your live session."
     );
 
     return null;
-
   }
 
-
-  /*
-    Replace temporary URL with
-    the real database live ID.
-  */
 
   window.history.replaceState(
     {},
     "",
     "live-room.html?live=" +
-      encodeURIComponent(
-        data.id
-      )
+    encodeURIComponent(data.id)
   );
 
-
-  /*
-    Keep the real live ID locally.
-  */
 
   localStorage.setItem(
     "zinko_current_live",
@@ -1514,103 +977,77 @@ async function createHostSession() {
       ...savedLive,
 
       liveId:
-        data.id
+      data.id
 
     })
   );
 
 
   return data;
-
 }
 
 
-/* =========================================
-   LOAD LIVE SESSION
-========================================= */
+/* =====================================================
+   LOAD SESSION
+===================================================== */
 
-async function loadLiveSession() {
-
-  /*
-    Host arriving from start-live.html
-  */
+async function loadLiveSession(){
 
   const savedLive =
-    getSavedLiveData();
+  getSavedLiveData();
+
+  const savedBelongsToUser =
+  savedLive &&
+  savedLive.userId ===
+  currentUser.id;
 
 
-  const savedLiveBelongsToUser =
-    savedLive &&
-    savedLive.userId ===
-      currentUser.id;
-
-
-  if (
-    savedLiveBelongsToUser &&
+  if(
+    savedBelongsToUser &&
     (
       !requestedLiveId ||
       requestedLiveId ===
-        savedLive.liveId
+      savedLive.liveId
     )
-  ) {
-
-    /*
-      If the saved ID is not a UUID,
-      create the real database session.
-    */
+  ){
 
     const looksLikeUuid =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-        .test(
-          String(
-            savedLive.liveId || ""
-          )
-        );
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    .test(
+      String(savedLive.liveId || "")
+    );
 
 
-    if (!looksLikeUuid) {
+    if(!looksLikeUuid){
 
       const created =
-        await createHostSession();
+      await createHostSession();
 
-
-      if (!created) {
-
+      if(!created){
         return null;
-
       }
 
-
       currentSession =
-        created;
+      created;
 
-      isHost =
-        true;
+      isHost = true;
 
       return created;
-
     }
 
 
-    /*
-      If a UUID already exists,
-      load it.
-    */
-
     requestedLiveId =
-      savedLive.liveId;
-
+    savedLive.liveId;
   }
 
 
-  if (!requestedLiveId) {
+  if(!requestedLiveId){
 
     showToast(
       "No live session was provided."
     );
 
     return null;
-
   }
 
 
@@ -1619,441 +1056,872 @@ async function loadLiveSession() {
     error
   } =
   await supabaseClient
-    .from(
-      "zinko_live_sessions"
-    )
-    .select("*")
-    .eq(
-      "id",
-      requestedLiveId
-    )
-    .maybeSingle();
+  .from("zinko_live_sessions")
+  .select("*")
+  .eq("id",requestedLiveId)
+  .maybeSingle();
 
 
-  if (error) {
+  if(error){
 
-    console.error(
-      error
-    );
+    console.error(error);
 
     showToast(
       "Unable to load this live."
     );
 
     return null;
-
   }
 
 
-  if (!data) {
+  if(!data){
 
     showToast(
       "This live session does not exist."
     );
 
     return null;
-
   }
 
 
-  if (
-    data.status !==
-    "live"
-  ) {
+  if(data.status !== "live"){
 
     showToast(
       "This live has already ended."
     );
 
     return null;
-
   }
 
 
   currentSession =
-    data;
-
+  data;
 
   isHost =
-    data.host_id ===
-    currentUser.id;
-
+  data.host_id ===
+  currentUser.id;
 
   return data;
-
 }
 
 
-/* =========================================
-   DISPLAY SESSION
-========================================= */
+/* =====================================================
+   DISPLAY
+===================================================== */
 
-function displaySession() {
+function displaySession(){
 
-  if (!currentSession) {
-
+  if(!currentSession){
     return;
-
   }
 
-
   const title =
-    currentSession.title ||
-    "Zinko Live";
-
+  currentSession.title ||
+  "Zinko Live";
 
   const category =
-    currentSession.category ||
-    "General";
+  currentSession.category ||
+  "General";
 
 
   roomTitle.textContent =
-    title;
-
+  title;
 
   streamTitleSmall.textContent =
-    title;
-
+  title;
 
   roomCategory.textContent =
-    "🎬 " +
-    category;
+  "🎬 " + category;
 
-
-  /*
-    We don't have a profile table
-    specified in the Live foundation,
-    so use a friendly fallback.
-  */
 
   const creatorLabel =
-    isHost
-      ? "You"
-      : "Zinko Creator";
+  isHost
+  ? "You"
+  : "Zinko Creator";
 
 
   hostName.textContent =
-    creatorLabel;
-
+  creatorLabel;
 
   hostAvatar.textContent =
-    getInitial(
-      creatorLabel
-    );
-
+  getInitial(creatorLabel);
 }
 
 
-/* =========================================
-   CAMERA
-========================================= */
+/* =====================================================
+   LOCAL CAMERA
+===================================================== */
 
-async function startLocalCamera() {
+async function startLocalCamera(){
 
-  /*
-    Only the host needs the local
-    camera preview in this room.
-  */
+  if(!isHost){
 
-  if (!isHost) {
+    placeholderText.textContent =
+    "You're watching this Zinko Live";
+
+    placeholderSmall.textContent =
+    "Waiting for the host's video...";
 
     videoPlaceholder.style.display =
-      "flex";
-
-    videoPlaceholder.innerHTML = `
-      <div class="video-placeholder-icon">
-        📺
-      </div>
-
-      <div class="video-placeholder-text">
-        You're watching this Zinko Live
-      </div>
-
-      <small>
-        The live video broadcast connection will be added to the streaming layer.
-      </small>
-    `;
+    "flex";
 
     connectionStatus.textContent =
-      "Watching Live";
+    "Connecting to host...";
 
     return true;
-
   }
 
 
-  if (
+  if(
     !navigator.mediaDevices ||
     !navigator.mediaDevices.getUserMedia
-  ) {
+  ){
 
     showToast(
       "Your browser does not support camera access."
     );
 
     return false;
-
   }
 
 
-  try {
+  try{
 
     currentStream =
-      await navigator.mediaDevices.getUserMedia({
+    await navigator.mediaDevices.getUserMedia({
 
-        video: {
-          facingMode:
-            "user"
-        },
+      video:{
+        facingMode:"user"
+      },
 
-        audio: true
+      audio:true
 
-      });
+    });
 
 
     localVideo.srcObject =
-      currentStream;
-
+    currentStream;
 
     videoPlaceholder.style.display =
-      "none";
+    "none";
 
-
-    connectionStatus.textContent =
-      "Camera connected";
-
-
-    microphoneEnabled =
-      true;
-
-    cameraEnabled =
-      true;
-
+    microphoneEnabled = true;
+    cameraEnabled = true;
 
     updateMediaButtons();
 
+    connectionStatus.textContent =
+    "Camera connected";
 
     return true;
 
-  } catch (error) {
+  }catch(error){
 
-    console.error(
-      error
-    );
+    console.error(error);
 
+    placeholderText.textContent =
+    "Camera permission is required";
+
+    placeholderSmall.textContent =
+    "Allow camera and microphone access and reload the page.";
 
     videoPlaceholder.style.display =
-      "flex";
-
-
-    videoPlaceholder.innerHTML = `
-      <div class="video-placeholder-icon">
-        🎥
-      </div>
-
-      <div class="video-placeholder-text">
-        Camera permission is required
-      </div>
-
-      <small>
-        Allow camera and microphone access and reload the page.
-      </small>
-    `;
-
+    "flex";
 
     connectionStatus.textContent =
-      "Camera unavailable";
-
+    "Camera unavailable";
 
     showToast(
       "Camera or microphone permission was denied."
     );
 
-
     return false;
-
   }
-
 }
 
 
-/* =========================================
+/* =====================================================
    MEDIA CONTROLS
-========================================= */
+===================================================== */
 
-function updateMediaButtons() {
+function updateMediaButtons(){
 
-  if (microphoneEnabled) {
-
-    micButton.textContent =
-      "🎙 Mic";
-
-    micButton.classList.add(
-      "active"
-    );
-
-  } else {
+  if(microphoneEnabled){
 
     micButton.textContent =
-      "🔇 Mic Off";
+    "🎙 Mic";
 
-    micButton.classList.remove(
-      "active"
-    );
+    micButton.classList.add("active");
 
+  }else{
+
+    micButton.textContent =
+    "🔇 Mic Off";
+
+    micButton.classList.remove("active");
   }
 
 
-  if (cameraEnabled) {
+  if(cameraEnabled){
 
     cameraButton.textContent =
-      "📷 Camera";
+    "📷 Camera";
 
-    cameraButton.classList.add(
-      "active"
-    );
+    cameraButton.classList.add("active");
 
-  } else {
+  }else{
 
     cameraButton.textContent =
-      "📷 Camera Off";
+    "📷 Camera Off";
 
-    cameraButton.classList.remove(
-      "active"
-    );
-
+    cameraButton.classList.remove("active");
   }
-
 }
 
 
 micButton.addEventListener(
-  "click",
-  () => {
+"click",
+()=>{
 
-    if (!isHost) {
+  if(!isHost){
 
-      showToast(
-        "Only the host can control the microphone."
-      );
+    showToast(
+      "Only the host can control the microphone."
+    );
 
-      return;
-
-    }
-
-
-    if (!currentStream) {
-
-      showToast(
-        "Camera is not connected."
-      );
-
-      return;
-
-    }
-
-
-    microphoneEnabled =
-      !microphoneEnabled;
-
-
-    currentStream
-      .getAudioTracks()
-      .forEach(
-        track => {
-
-          track.enabled =
-            microphoneEnabled;
-
-        }
-      );
-
-
-    updateMediaButtons();
-
+    return;
   }
-);
+
+  if(!currentStream){
+
+    showToast(
+      "Camera is not connected."
+    );
+
+    return;
+  }
+
+  microphoneEnabled =
+  !microphoneEnabled;
+
+  currentStream
+  .getAudioTracks()
+  .forEach(
+    track =>
+    track.enabled =
+    microphoneEnabled
+  );
+
+  updateMediaButtons();
+
+});
 
 
 cameraButton.addEventListener(
-  "click",
-  () => {
+"click",
+()=>{
 
-    if (!isHost) {
+  if(!isHost){
 
-      showToast(
-        "Only the host can control the camera."
-      );
-
-      return;
-
-    }
-
-
-    if (!currentStream) {
-
-      showToast(
-        "Camera is not connected."
-      );
-
-      return;
-
-    }
-
-
-    cameraEnabled =
-      !cameraEnabled;
-
-
-    currentStream
-      .getVideoTracks()
-      .forEach(
-        track => {
-
-          track.enabled =
-            cameraEnabled;
-
-        }
-      );
-
-
-    updateMediaButtons();
-
-  }
-);
-
-
-/* =========================================
-   CHAT
-========================================= */
-
-function addMessage(message) {
-
-  if (!message) {
+    showToast(
+      "Only the host can control the camera."
+    );
 
     return;
+  }
 
+  if(!currentStream){
+
+    showToast(
+      "Camera is not connected."
+    );
+
+    return;
+  }
+
+  cameraEnabled =
+  !cameraEnabled;
+
+  currentStream
+  .getVideoTracks()
+  .forEach(
+    track =>
+    track.enabled =
+    cameraEnabled
+  );
+
+  updateMediaButtons();
+
+});
+
+
+/* =====================================================
+   WEBRTC SIGNALING
+===================================================== */
+
+/*
+  Every message is sent through the
+  Supabase Realtime channel for this live.
+
+  viewer-ready
+  host-offer
+  viewer-answer
+  host-ice
+  viewer-ice
+  viewer-left
+*/
+
+
+async function sendSignal(type,target,data={}){
+
+  if(!realtimeChannel){
+    return;
+  }
+
+  await realtimeChannel.send({
+
+    type:"broadcast",
+
+    event:"webrtc",
+
+    payload:{
+
+      signalType:type,
+
+      from:
+      currentUser.id,
+
+      target:
+      target || null,
+
+      data:data
+
+    }
+
+  });
+}
+
+
+/* =====================================================
+   HOST: CREATE PEER FOR VIEWER
+===================================================== */
+
+async function createHostPeer(viewerId){
+
+  if(!isHost || !currentStream){
+    return;
   }
 
 
-  const messageElement =
-    document.createElement(
-      "div"
+  if(hostPeers.has(viewerId)){
+
+    try{
+      hostPeers.get(viewerId).close();
+    }catch(e){}
+
+    hostPeers.delete(viewerId);
+  }
+
+
+  const peer =
+  new RTCPeerConnection(
+    rtcConfiguration
+  );
+
+
+  hostPeers.set(
+    viewerId,
+    peer
+  );
+
+
+  currentStream
+  .getTracks()
+  .forEach(
+    track =>
+    peer.addTrack(
+      track,
+      currentStream
+    )
+  );
+
+
+  peer.onicecandidate =
+  async event => {
+
+    if(event.candidate){
+
+      await sendSignal(
+        "host-ice",
+        viewerId,
+        {
+          candidate:
+          event.candidate
+        }
+      );
+    }
+  };
+
+
+  peer.onconnectionstatechange =
+  ()=>{
+
+    if(
+      peer.connectionState ===
+      "connected"
+    ){
+
+      connectionStatus.textContent =
+      "You're live";
+
+    }
+
+
+    if(
+      ["failed","closed","disconnected"]
+      .includes(
+        peer.connectionState
+      )
+    ){
+
+      try{
+        peer.close();
+      }catch(e){}
+
+      hostPeers.delete(
+        viewerId
+      );
+    }
+
+  };
+
+
+  try{
+
+    const offer =
+    await peer.createOffer();
+
+    await peer.setLocalDescription(
+      offer
     );
 
 
-  messageElement.className =
-    "message";
+    await sendSignal(
+      "host-offer",
+      viewerId,
+      {
+        sdp:
+        peer.localDescription
+      }
+    );
+
+  }catch(error){
+
+    console.error(
+      "Host offer:",
+      error
+    );
+
+  }
+}
+
+
+/* =====================================================
+   VIEWER: RECEIVE HOST OFFER
+===================================================== */
+
+async function handleHostOffer(
+  from,
+  data
+){
+
+  if(isHost){
+    return;
+  }
+
+  if(
+    !data ||
+    !data.sdp
+  ){
+    return;
+  }
+
+
+  if(!viewerPeer){
+
+    viewerPeer =
+    new RTCPeerConnection(
+      rtcConfiguration
+    );
+
+
+    viewerPeer.ontrack =
+    event => {
+
+      if(
+        event.streams &&
+        event.streams[0]
+      ){
+
+        localVideo.srcObject =
+        event.streams[0];
+
+        localVideo.muted =
+        false;
+
+        videoPlaceholder.style.display =
+        "none";
+
+        connectionStatus.textContent =
+        "You're watching Live";
+
+      }
+
+    };
+
+
+    viewerPeer.onicecandidate =
+    async event => {
+
+      if(event.candidate){
+
+        await sendSignal(
+          "viewer-ice",
+          from,
+          {
+            candidate:
+            event.candidate
+          }
+        );
+
+      }
+
+    };
+
+
+    viewerPeer.onconnectionstatechange =
+    ()=>{
+
+      const state =
+      viewerPeer.connectionState;
+
+
+      if(state === "connected"){
+
+        connectionStatus.textContent =
+        "Live connected";
+
+      }
+
+
+      if(
+        ["failed","closed","disconnected"]
+        .includes(state)
+      ){
+
+        connectionStatus.textContent =
+        "Live connection lost";
+
+      }
+
+    };
+
+  }
+
+
+  try{
+
+    await viewerPeer.setRemoteDescription(
+      new RTCSessionDescription(
+        data.sdp
+      )
+    );
+
+
+    const answer =
+    await viewerPeer.createAnswer();
+
+
+    await viewerPeer.setLocalDescription(
+      answer
+    );
+
+
+    await sendSignal(
+      "viewer-answer",
+      from,
+      {
+        sdp:
+        viewerPeer.localDescription
+      }
+    );
+
+  }catch(error){
+
+    console.error(
+      "Viewer answer:",
+      error
+    );
+
+  }
+}
+
+
+/* =====================================================
+   WEBRTC SIGNAL HANDLER
+===================================================== */
+
+async function handleWebRTCSignal(
+  payload
+){
+
+  if(!payload){
+    return;
+  }
+
+
+  const type =
+  payload.signalType;
+
+  const from =
+  payload.from;
+
+  const target =
+  payload.target;
+
+  const data =
+  payload.data || {};
+
+
+  /*
+    Ignore messages intended for
+    another user.
+  */
+
+  if(
+    target &&
+    target !== currentUser.id
+  ){
+
+    return;
+  }
+
+
+  /* HOST */
+
+  if(
+    isHost &&
+    type === "viewer-ready"
+  ){
+
+    await createHostPeer(
+      from
+    );
+
+    return;
+  }
+
+
+  if(
+    isHost &&
+    type === "viewer-answer"
+  ){
+
+    const peer =
+    hostPeers.get(from);
+
+    if(
+      peer &&
+      data.sdp
+    ){
+
+      try{
+
+        await peer.setRemoteDescription(
+          new RTCSessionDescription(
+            data.sdp
+          )
+        );
+
+      }catch(error){
+
+        console.error(
+          "Host answer:",
+          error
+        );
+
+      }
+
+    }
+
+    return;
+  }
+
+
+  if(
+    isHost &&
+    type === "viewer-ice"
+  ){
+
+    const peer =
+    hostPeers.get(from);
+
+    if(
+      peer &&
+      data.candidate
+    ){
+
+      try{
+
+        await peer.addIceCandidate(
+          new RTCIceCandidate(
+            data.candidate
+          )
+        );
+
+      }catch(error){
+
+        console.error(
+          "Host ICE:",
+          error
+        );
+
+      }
+
+    }
+
+    return;
+  }
+
+
+  /* VIEWER */
+
+  if(
+    !isHost &&
+    type === "host-offer"
+  ){
+
+    await handleHostOffer(
+      from,
+      data
+    );
+
+    return;
+  }
+
+
+  if(
+    !isHost &&
+    type === "host-ice"
+  ){
+
+    if(
+      viewerPeer &&
+      data.candidate
+    ){
+
+      try{
+
+        await viewerPeer.addIceCandidate(
+          new RTCIceCandidate(
+            data.candidate
+          )
+        );
+
+      }catch(error){
+
+        console.error(
+          "Viewer ICE:",
+          error
+        );
+
+      }
+
+    }
+
+    return;
+  }
+
+}
+
+
+/* =====================================================
+   START VIDEO SIGNALING
+===================================================== */
+
+async function startVideoSignaling(){
+
+  if(!realtimeChannel){
+    return;
+  }
+
+
+  /*
+    Give the channel a moment to become
+    fully subscribed.
+  */
+
+  await new Promise(
+    resolve =>
+    setTimeout(
+      resolve,
+      500
+    )
+  );
+
+
+  if(!isHost){
+
+    /*
+      Tell the host that this viewer
+      is ready to receive video.
+    */
+
+    await sendSignal(
+      "viewer-ready",
+      currentSession.host_id,
+      {}
+    );
+
+    connectionStatus.textContent =
+    "Connecting to host...";
+
+  }else{
+
+    connectionStatus.textContent =
+    "You're live";
+
+  }
+
+}
+
+
+/* =====================================================
+   CHAT
+===================================================== */
+
+function addMessage(message){
+
+  if(!message){
+    return;
+  }
+
+
+  const element =
+  document.createElement("div");
+
+  element.className =
+  "message";
 
 
   const name =
-    message.user_id ===
-    currentUser.id
-      ? "You"
-      : "Viewer";
+  message.user_id ===
+  currentUser.id
+  ? "You"
+  : "Viewer";
 
 
-  messageElement.innerHTML = `
+  element.innerHTML = `
 
     <div class="message-avatar">
       ${escapeHtml(
@@ -2078,23 +1946,17 @@ function addMessage(message) {
   `;
 
 
-  messages.appendChild(
-    messageElement
-  );
-
+  messages.appendChild(element);
 
   messages.scrollTop =
-    messages.scrollHeight;
-
+  messages.scrollHeight;
 }
 
 
-async function loadMessages() {
+async function loadMessages(){
 
-  if (!currentSession) {
-
+  if(!currentSession){
     return;
-
   }
 
 
@@ -2103,435 +1965,387 @@ async function loadMessages() {
     error
   } =
   await supabaseClient
-    .from(
-      "zinko_live_messages"
-    )
-    .select("*")
-    .eq(
-      "live_id",
-      currentSession.id
-    )
-    .eq(
-      "is_deleted",
-      false
-    )
-    .order(
-      "created_at",
-      {
-        ascending: true
-      }
-    )
-    .limit(100);
+  .from("zinko_live_messages")
+  .select("*")
+  .eq(
+    "live_id",
+    currentSession.id
+  )
+  .eq(
+    "is_deleted",
+    false
+  )
+  .order(
+    "created_at",
+    {
+      ascending:true
+    }
+  )
+  .limit(100);
 
 
-  if (error) {
+  if(error){
 
-    console.error(
-      error
-    );
+    console.error(error);
 
     return;
-
   }
 
 
-  data.forEach(
-    addMessage
-  );
-
+  data.forEach(addMessage);
 }
 
 
-async function sendMessage() {
+async function sendMessage(){
 
   const text =
-    chatInput.value.trim();
+  chatInput.value.trim();
 
-
-  if (!text) {
-
+  if(!text){
     return;
-
   }
 
-
-  if (!currentSession) {
+  if(!currentSession){
 
     showToast(
       "Live room is not ready."
     );
 
     return;
-
   }
 
 
   sendButton.disabled =
-    true;
+  true;
 
 
   const {
     error
   } =
   await supabaseClient
-    .from(
-      "zinko_live_messages"
-    )
-    .insert({
+  .from("zinko_live_messages")
+  .insert({
 
-      live_id:
-        currentSession.id,
+    live_id:
+    currentSession.id,
 
-      user_id:
-        currentUser.id,
+    user_id:
+    currentUser.id,
 
-      message:
-        text
+    message:
+    text
 
-    });
+  });
 
 
   sendButton.disabled =
-    false;
+  false;
 
 
-  if (error) {
+  if(error){
 
-    console.error(
-      error
-    );
+    console.error(error);
 
     showToast(
       "Message could not be sent."
     );
 
     return;
-
   }
 
 
   chatInput.value =
-    "";
-
+  "";
 }
 
 
 sendButton.addEventListener(
-  "click",
-  sendMessage
+"click",
+sendMessage
 );
 
 
 chatInput.addEventListener(
-  "keydown",
-  event => {
+"keydown",
+event=>{
 
-    if (
-      event.key ===
-      "Enter"
-    ) {
+  if(event.key === "Enter"){
 
-      event.preventDefault();
+    event.preventDefault();
 
-      sendMessage();
-
-    }
+    sendMessage();
 
   }
-);
+
+});
 
 
-/* =========================================
+/* =====================================================
    REACTIONS
-========================================= */
+===================================================== */
 
 document
-  .querySelectorAll(
-    ".reaction-button"
-  )
-  .forEach(
-    button => {
+.querySelectorAll(".reaction-button")
+.forEach(button=>{
 
-      button.addEventListener(
-        "click",
-        async () => {
+  button.addEventListener(
+    "click",
+    async ()=>{
 
-          if (!currentSession) {
-
-            return;
-
-          }
+      if(!currentSession){
+        return;
+      }
 
 
-          const reaction =
-            button.dataset.reaction;
+      const reaction =
+      button.dataset.reaction;
 
 
-          const {
-            error
-          } =
-          await supabaseClient
-            .from(
-              "zinko_live_reactions"
-            )
-            .insert({
+      const {
+        error
+      } =
+      await supabaseClient
+      .from("zinko_live_reactions")
+      .insert({
 
-              live_id:
-                currentSession.id,
+        live_id:
+        currentSession.id,
 
-              user_id:
-                currentUser.id,
+        user_id:
+        currentUser.id,
 
-              reaction:
-                reaction
+        reaction:
+        reaction
 
-            });
+      });
 
 
-          if (error) {
+      if(error){
 
-            console.error(
-              error
-            );
+        console.error(error);
 
-            showToast(
-              "Reaction could not be sent."
-            );
+        showToast(
+          "Reaction could not be sent."
+        );
 
-            return;
-
-          }
+        return;
+      }
 
 
-          showToast(
-            reaction
-          );
-
-        }
-      );
+      showToast(reaction);
 
     }
   );
 
+});
 
-/* =========================================
-   REALTIME
-========================================= */
 
-function setupRealtime() {
+/* =====================================================
+   REALTIME CHANNEL
+===================================================== */
 
-  if (!currentSession) {
+function setupRealtime(){
 
+  if(!currentSession){
     return;
-
   }
 
 
   realtimeChannel =
-    supabaseClient
-      .channel(
-        "zinko-live-" +
-        currentSession.id
-      )
+  supabaseClient
+  .channel(
+    "zinko-live-" +
+    currentSession.id
+  )
 
-      .on(
 
-        "postgres_changes",
+  /*
+    WEBRTC SIGNALING
+  */
 
-        {
-          event:
-            "INSERT",
+  .on(
+    "broadcast",
+    {
+      event:"webrtc"
+    },
+    payload=>{
 
-          schema:
-            "public",
-
-          table:
-            "zinko_live_messages",
-
-          filter:
-            "live_id=eq." +
-            currentSession.id
-
-        },
-
-        payload => {
-
-          addMessage(
-            payload.new
-          );
-
-        }
-
-      )
-
-      .on(
-
-        "postgres_changes",
-
-        {
-          event:
-            "INSERT",
-
-          schema:
-            "public",
-
-          table:
-            "zinko_live_reactions",
-
-          filter:
-            "live_id=eq." +
-            currentSession.id
-
-        },
-
-        payload => {
-
-          if (
-            payload.new.reaction
-          ) {
-
-            showToast(
-              payload.new.reaction
-            );
-
-          }
-
-        }
-
-      )
-
-      .on(
-
-        "postgres_changes",
-
-        {
-          event:
-            "INSERT",
-
-          schema:
-            "public",
-
-          table:
-            "zinko_live_gifts",
-
-          filter:
-            "live_id=eq." +
-            currentSession.id
-
-        },
-
-        payload => {
-
-          showToast(
-            "🎁 Gift received!"
-          );
-
-        }
-
-      )
-
-      .on(
-
-        "postgres_changes",
-
-        {
-          event:
-            "UPDATE",
-
-          schema:
-            "public",
-
-          table:
-            "zinko_live_sessions",
-
-          filter:
-            "id=eq." +
-            currentSession.id
-
-        },
-
-        payload => {
-
-          if (
-            payload.new.status ===
-            "ended"
-          ) {
-
-            handleLiveEnded();
-
-          }
-
-        }
-
-      )
-
-      .subscribe(
-        status => {
-
-          if (
-            status ===
-            "SUBSCRIBED"
-          ) {
-
-            connectionStatus.textContent =
-              "Realtime connected";
-
-          }
-
-        }
+      handleWebRTCSignal(
+        payload.payload
       );
+
+    }
+  )
+
+
+  /*
+    CHAT
+  */
+
+  .on(
+    "postgres_changes",
+    {
+      event:"INSERT",
+      schema:"public",
+      table:"zinko_live_messages",
+      filter:
+      "live_id=eq." +
+      currentSession.id
+    },
+    payload=>{
+
+      /*
+        The sender can receive their
+        own message through realtime.
+      */
+
+      addMessage(
+        payload.new
+      );
+
+    }
+  )
+
+
+  /*
+    REACTIONS
+  */
+
+  .on(
+    "postgres_changes",
+    {
+      event:"INSERT",
+      schema:"public",
+      table:"zinko_live_reactions",
+      filter:
+      "live_id=eq." +
+      currentSession.id
+    },
+    payload=>{
+
+      if(payload.new.reaction){
+
+        showToast(
+          payload.new.reaction
+        );
+
+      }
+
+    }
+  )
+
+
+  /*
+    GIFTS
+  */
+
+  .on(
+    "postgres_changes",
+    {
+      event:"INSERT",
+      schema:"public",
+      table:"zinko_live_gifts",
+      filter:
+      "live_id=eq." +
+      currentSession.id
+    },
+    ()=>{
+
+      showToast(
+        "🎁 Gift received!"
+      );
+
+    }
+  )
+
+
+  /*
+    LIVE STATUS
+  */
+
+  .on(
+    "postgres_changes",
+    {
+      event:"UPDATE",
+      schema:"public",
+      table:"zinko_live_sessions",
+      filter:
+      "id=eq." +
+      currentSession.id
+    },
+    payload=>{
+
+      if(
+        payload.new.status ===
+        "ended"
+      ){
+
+        handleLiveEnded();
+
+      }
+
+    }
+  )
+
+
+  .subscribe(
+    status=>{
+
+      if(
+        status ===
+        "SUBSCRIBED"
+      ){
+
+        startVideoSignaling();
+
+      }
+
+    }
+  );
 
 }
 
 
-/* =========================================
+/* =====================================================
    VIEWER PRESENCE
-========================================= */
+===================================================== */
 
-async function joinLive() {
+async function joinLive(){
 
-  if (!currentSession) {
-
+  if(!currentSession){
     return;
-
   }
 
-
-  /*
-    One user can only have one
-    viewer record for this live.
-  */
 
   const {
     error
   } =
   await supabaseClient
-    .from(
-      "zinko_live_viewers"
-    )
-    .upsert(
+  .from("zinko_live_viewers")
+  .upsert(
 
-      {
-        live_id:
-          currentSession.id,
+    {
 
-        user_id:
-          currentUser.id,
+      live_id:
+      currentSession.id,
 
-        last_seen_at:
-          new Date().toISOString()
+      user_id:
+      currentUser.id,
 
-      },
+      last_seen_at:
+      new Date().toISOString()
 
-      {
-        onConflict:
-          "live_id,user_id"
-      }
+    },
 
-    );
+    {
+      onConflict:
+      "live_id,user_id"
+    }
+
+  );
 
 
-  if (error) {
+  if(error){
 
     console.error(
       "Viewer join:",
@@ -2542,58 +2356,50 @@ async function joinLive() {
 
 
   await updateViewerCount();
-
 }
 
 
-async function heartbeat() {
+async function heartbeat(){
 
-  if (
+  if(
     !currentSession ||
     !currentUser
-  ) {
+  ){
 
     return;
-
   }
 
 
   await supabaseClient
-    .from(
-      "zinko_live_viewers"
-    )
-    .update({
+  .from("zinko_live_viewers")
+  .update({
 
-      last_seen_at:
-        new Date().toISOString()
+    last_seen_at:
+    new Date().toISOString()
 
-    })
-    .eq(
-      "live_id",
-      currentSession.id
-    )
-    .eq(
-      "user_id",
-      currentUser.id
-    );
-
+  })
+  .eq(
+    "live_id",
+    currentSession.id
+  )
+  .eq(
+    "user_id",
+    currentUser.id
+  );
 }
 
 
-async function updateViewerCount() {
+async function updateViewerCount(){
 
-  if (!currentSession) {
-
+  if(!currentSession){
     return;
-
   }
 
 
   const activeSince =
-    new Date(
-      Date.now() -
-      90000
-    ).toISOString();
+  new Date(
+    Date.now() - 90000
+  ).toISOString();
 
 
   const {
@@ -2601,29 +2407,25 @@ async function updateViewerCount() {
     error
   } =
   await supabaseClient
-    .from(
-      "zinko_live_viewers"
-    )
-    .select(
-      "id",
-      {
-        count:
-          "exact",
-        head:
-          true
-      }
-    )
-    .eq(
-      "live_id",
-      currentSession.id
-    )
-    .gte(
-      "last_seen_at",
-      activeSince
-    );
+  .from("zinko_live_viewers")
+  .select(
+    "id",
+    {
+      count:"exact",
+      head:true
+    }
+  )
+  .eq(
+    "live_id",
+    currentSession.id
+  )
+  .gte(
+    "last_seen_at",
+    activeSince
+  );
 
 
-  if (error) {
+  if(error){
 
     console.error(
       "Viewer count:",
@@ -2631,88 +2433,49 @@ async function updateViewerCount() {
     );
 
     return;
-
   }
 
 
   const total =
-    count || 0;
+  count || 0;
 
 
   viewerCount.textContent =
-    total;
-
+  total;
 
   chatViewerCount.textContent =
-    total;
-
+  total;
 }
 
 
-/* =========================================
-   LEAVE LIVE
-========================================= */
-
-async function leaveLive() {
-
-  if (
-    !currentSession ||
-    !currentUser
-  ) {
-
-    return;
-
-  }
-
-
-  await supabaseClient
-    .from(
-      "zinko_live_viewers"
-    )
-    .delete()
-    .eq(
-      "live_id",
-      currentSession.id
-    )
-    .eq(
-      "user_id",
-      currentUser.id
-    );
-
-}
-
-
-/* =========================================
+/* =====================================================
    GIFTS
-========================================= */
+===================================================== */
 
-async function loadGifts() {
+async function loadGifts(){
 
   const {
     data,
     error
   } =
   await supabaseClient
-    .from(
-      "zinko_gifts"
-    )
-    .select(
-      "id,name,emoji,coin_price,active"
-    )
-    .eq(
-      "active",
-      true
-    )
-    .order(
-      "coin_price",
-      {
-        ascending:
-          true
-      }
-    );
+  .from("zinko_gifts")
+  .select(
+    "id,name,emoji,coin_price,active"
+  )
+  .eq(
+    "active",
+    true
+  )
+  .order(
+    "coin_price",
+    {
+      ascending:true
+    }
+  );
 
 
-  if (error) {
+  if(error){
 
     console.error(
       "Gifts:",
@@ -2720,106 +2483,80 @@ async function loadGifts() {
     );
 
     return;
-
   }
 
 
-  giftGrid.innerHTML =
-    "";
+  giftGrid.innerHTML = "";
 
 
-  data.forEach(
-    gift => {
+  data.forEach(gift=>{
 
-      const button =
-        document.createElement(
-          "button"
+    const button =
+    document.createElement("button");
+
+    button.className =
+    "gift-button";
+
+    button.type =
+    "button";
+
+    button.innerHTML = `
+
+      <span class="gift-emoji">
+        ${escapeHtml(gift.emoji)}
+      </span>
+
+      <span class="gift-name">
+        ${escapeHtml(gift.name)}
+      </span>
+
+      <span class="gift-price">
+        🪙 ${gift.coin_price}
+      </span>
+
+    `;
+
+
+    button.addEventListener(
+      "click",
+      ()=>{
+
+        showToast(
+          "🎁 Gifts are ready. Payment will be connected in the payment stage."
         );
 
-
-      button.className =
-        "gift-button";
-
-
-      button.type =
-        "button";
+      }
+    );
 
 
-      button.innerHTML = `
+    giftGrid.appendChild(button);
 
-        <span class="gift-emoji">
-          ${escapeHtml(
-            gift.emoji
-          )}
-        </span>
-
-        <span class="gift-name">
-          ${escapeHtml(
-            gift.name
-          )}
-        </span>
-
-        <span class="gift-price">
-          🪙 ${gift.coin_price}
-        </span>
-
-      `;
-
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          /*
-            The wallet/payment transaction
-            must be processed securely by
-            the backend. We do not deduct
-            coins directly from the browser.
-          */
-
-          showToast(
-            "🎁 Gifts are ready. Coin payment will be connected in the payment stage."
-          );
-
-        }
-      );
-
-
-      giftGrid.appendChild(
-        button
-      );
-
-    }
-  );
+  });
 
 }
 
 
-/* =========================================
+/* =====================================================
    COIN BALANCE
-========================================= */
+===================================================== */
 
-async function loadCoinBalance() {
+async function loadCoinBalance(){
 
   const {
     data,
     error
   } =
   await supabaseClient
-    .from(
-      "zinko_coin_wallets"
-    )
-    .select(
-      "balance"
-    )
-    .eq(
-      "user_id",
-      currentUser.id
-    )
-    .maybeSingle();
+  .from("zinko_coin_wallets")
+  .select("balance")
+  .eq(
+    "user_id",
+    currentUser.id
+  )
+  .maybeSingle();
 
 
-  if (error) {
+  if(error){
 
     console.error(
       "Wallet:",
@@ -2827,246 +2564,265 @@ async function loadCoinBalance() {
     );
 
     return;
-
   }
 
 
   coinBalance.textContent =
-    data
-      ? data.balance
-      : 0;
-
+  data
+  ? data.balance
+  : 0;
 }
 
 
-/* =========================================
+/* =====================================================
    SHARE
-========================================= */
+===================================================== */
 
 shareButton.addEventListener(
-  "click",
-  async () => {
+"click",
+async ()=>{
 
-    const link =
-      window.location.href;
+  const link =
+  window.location.href;
 
 
-    try {
+  try{
 
-      if (
-        navigator.share
-      ) {
+    if(navigator.share){
 
-        await navigator.share({
+      await navigator.share({
 
-          title:
-            currentSession
-              ? currentSession.title
-              : "Zinko Live",
+        title:
+        currentSession
+        ? currentSession.title
+        : "Zinko Live",
 
-          text:
-            "Join my Zinko Live!",
+        text:
+        "Join my Zinko Live!",
 
-          url:
-            link
+        url:
+        link
 
-        });
+      });
 
-      } else if (
-        navigator.clipboard
-      ) {
+    }else if(
+      navigator.clipboard
+    ){
 
-        await navigator.clipboard.writeText(
-          link
-        );
-
-        showToast(
-          "✓ Live link copied."
-        );
-
-      } else {
-
-        showToast(
-          link
-        );
-
-      }
-
-    } catch (error) {
-
-      console.log(
-        "Share cancelled."
+      await navigator.clipboard.writeText(
+        link
       );
-
-    }
-
-  }
-);
-
-
-/* =========================================
-   END LIVE
-========================================= */
-
-endButton.addEventListener(
-  "click",
-  () => {
-
-    if (!isHost) {
 
       showToast(
-        "Only the host can end this live."
+        "✓ Live link copied."
       );
 
-      return;
+    }else{
+
+      showToast(link);
 
     }
 
+  }catch(error){
 
-    endModal.classList.add(
-      "show"
+    console.log(
+      "Share cancelled."
     );
 
   }
-);
+
+});
+
+
+/* =====================================================
+   END LIVE
+===================================================== */
+
+endButton.addEventListener(
+"click",
+()=>{
+
+  if(!isHost){
+
+    showToast(
+      "Only the host can end this live."
+    );
+
+    return;
+  }
+
+
+  endModal.classList.add(
+    "show"
+  );
+
+});
 
 
 cancelEndButton.addEventListener(
-  "click",
-  () => {
+"click",
+()=>{
 
-    endModal.classList.remove(
-      "show"
-    );
+  endModal.classList.remove(
+    "show"
+  );
 
-  }
-);
+});
 
 
 confirmEndButton.addEventListener(
-  "click",
-  async () => {
+"click",
+async ()=>{
 
-    if (
-      !currentSession ||
-      !isHost
-    ) {
+  if(
+    !currentSession ||
+    !isHost
+  ){
 
-      return;
+    return;
+  }
 
-    }
 
+  confirmEndButton.disabled =
+  true;
+
+  confirmEndButton.textContent =
+  "Ending...";
+
+
+  const {
+    error
+  } =
+  await supabaseClient
+  .from("zinko_live_sessions")
+  .update({
+
+    status:
+    "ended",
+
+    ended_at:
+    new Date().toISOString()
+
+  })
+  .eq(
+    "id",
+    currentSession.id
+  )
+  .eq(
+    "host_id",
+    currentUser.id
+  );
+
+
+  if(error){
+
+    console.error(error);
 
     confirmEndButton.disabled =
-      true;
-
+    false;
 
     confirmEndButton.textContent =
-      "Ending...";
+    "End Live";
+
+    showToast(
+      "Could not end the live."
+    );
+
+    return;
+  }
 
 
-    const {
-      error
-    } =
-    await supabaseClient
-      .from(
-        "zinko_live_sessions"
-      )
-      .update({
+  handleLiveEnded();
 
-        status:
-          "ended",
-
-        ended_at:
-          new Date().toISOString()
-
-      })
-      .eq(
-        "id",
-        currentSession.id
-      )
-      .eq(
-        "host_id",
-        currentUser.id
-      );
+});
 
 
-    if (error) {
+/* =====================================================
+   CLEANUP WEBRTC
+===================================================== */
 
-      console.error(
-        error
-      );
+function closeWebRTC(){
 
-      confirmEndButton.disabled =
-        false;
+  if(viewerPeer){
 
-      confirmEndButton.textContent =
-        "End Live";
+    try{
+      viewerPeer.close();
+    }catch(e){}
 
-      showToast(
-        "Could not end the live."
-      );
+    viewerPeer =
+    null;
+  }
 
-      return;
+
+  hostPeers.forEach(
+    peer=>{
+
+      try{
+        peer.close();
+      }catch(e){}
 
     }
+  );
 
 
-    handleLiveEnded();
-
-  }
-);
+  hostPeers.clear();
+}
 
 
-/* =========================================
+/* =====================================================
    LIVE ENDED
-========================================= */
+===================================================== */
 
-function handleLiveEnded() {
+function handleLiveEnded(){
 
-  if (currentStream) {
+  closeWebRTC();
+
+
+  if(currentStream){
 
     currentStream
-      .getTracks()
-      .forEach(
-        track =>
-          track.stop()
-      );
+    .getTracks()
+    .forEach(
+      track =>
+      track.stop()
+    );
 
     currentStream =
-      null;
-
+    null;
   }
 
 
-  if (viewerHeartbeat) {
+  if(viewerHeartbeat){
 
     clearInterval(
       viewerHeartbeat
     );
 
+    viewerHeartbeat =
+    null;
   }
 
 
-  if (viewerCountTimer) {
+  if(viewerCountTimer){
 
     clearInterval(
       viewerCountTimer
     );
 
+    viewerCountTimer =
+    null;
   }
 
 
-  if (realtimeChannel) {
+  if(realtimeChannel){
 
     supabaseClient
-      .removeChannel(
-        realtimeChannel
-      );
+    .removeChannel(
+      realtimeChannel
+    );
 
     realtimeChannel =
-      null;
-
+    null;
   }
 
 
@@ -3081,84 +2837,80 @@ function handleLiveEnded() {
 
 
   setTimeout(
-    () => {
+    ()=>{
 
       window.location.href =
-        "live.html";
+      "live.html";
 
     },
     900
   );
-
 }
 
 
-/* =========================================
-   CLEANUP
-========================================= */
+/* =====================================================
+   BEFORE UNLOAD
+===================================================== */
 
 window.addEventListener(
-  "beforeunload",
-  () => {
+"beforeunload",
+()=>{
 
-    if (currentStream) {
+  closeWebRTC();
 
-      currentStream
-        .getTracks()
-        .forEach(
-          track =>
-            track.stop()
-        );
 
-    }
+  if(currentStream){
+
+    currentStream
+    .getTracks()
+    .forEach(
+      track =>
+      track.stop()
+    );
 
   }
-);
+
+});
 
 
-/* =========================================
+/* =====================================================
    INITIALIZE
-========================================= */
+===================================================== */
 
-async function initialize() {
+async function initialize(){
 
   connectionStatus.textContent =
-    "Checking account...";
+  "Checking account...";
 
 
   const user =
-    await getCurrentUser();
+  await getCurrentUser();
 
 
-  if (!user) {
-
+  if(!user){
     return;
-
   }
 
 
   connectionStatus.textContent =
-    "Loading live...";
+  "Loading live...";
 
 
   const session =
-    await loadLiveSession();
+  await loadLiveSession();
 
 
-  if (!session) {
+  if(!session){
 
     setTimeout(
-      () => {
-
+      ()=>{
         window.location.href =
-          "live.html";
-
+        "live.html";
       },
       1200
     );
 
     return;
-
   }
 
 
@@ -3166,20 +2918,19 @@ async function initialize() {
 
 
   /*
-    Hide host-only controls for viewers.
+    Viewers don't need host controls.
   */
 
-  if (!isHost) {
+  if(!isHost){
 
     micButton.style.display =
-      "none";
+    "none";
 
     cameraButton.style.display =
-      "none";
+    "none";
 
     endButton.style.display =
-      "none";
-
+    "none";
   }
 
 
@@ -3191,37 +2942,39 @@ async function initialize() {
 
   await joinLive();
 
+
+  /*
+    Host gets camera.
+    Viewer waits for WebRTC video.
+  */
+
   await startLocalCamera();
+
+
+  /*
+    Realtime must be ready before
+    WebRTC signaling begins.
+  */
 
   setupRealtime();
 
 
   viewerHeartbeat =
-    setInterval(
-      async () => {
-
-        await heartbeat();
-
-      },
-      30000
-    );
+  setInterval(
+    async ()=>{
+      await heartbeat();
+    },
+    30000
+  );
 
 
   viewerCountTimer =
-    setInterval(
-      async () => {
-
-        await updateViewerCount();
-
-      },
-      15000
-    );
-
-
-  connectionStatus.textContent =
-    isHost
-      ? "You're live"
-      : "Watching Live";
+  setInterval(
+    async ()=>{
+      await updateViewerCount();
+    },
+    15000
+  );
 
 }
 
@@ -3231,5 +2984,4 @@ initialize();
 </script>
 
 </body>
-
   </html>
