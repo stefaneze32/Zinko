@@ -1,1 +1,1229 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Discover — Zinko</title><link rel="stylesheet" href="style.css"></head><body><div class="app"><header class="top"><div class="wordmark"><span>Z</span>Discover</div><button>⚙</button></header><main class="discover"><input class="search" placeholder="Search creators, videos, live streams, hashtags…"><div class="tabs"><button class="tab-on">Trending</button><button>Recommended</button><button>Live now</button><button>Creators</button></div><h3>Popular hashtags</h3><div class="hashtag-grid"><div>#Travel<br><b>2.4M posts</b></div><div>#Comedy<br><b>1.9M posts</b></div><div>#Music<br><b>4.8M posts</b></div><div>#Tech<br><b>1.2M posts</b></div></div><h3>Creators to discover</h3><div class="creator-card"><div class="avatar pink">A</div><div><b>Ada Luxe ✓</b><small>@adaluxe · 92K followers</small></div><button class="follow">Follow</button></div><div class="creator-card"><div class="avatar gold">K</div><div><b>Kofi Live ✓</b><small>@kofilive · 61K followers</small></div><button class="follow">Follow</button></div></main><nav class="nav"><a href="home.html">⌂<small>Home</small></a><a href="live.html">◉<small>Live</small></a><a class="active" href="discover.html">⌕<small>Discover</small></a><a href="messages.html">✉<small>Messages</small></a><a href="profile.html">●<small>Profile</small></a></nav></div></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Discover — Zinko</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="top">
+    <div class="wordmark">
+      <span>Z</span>Discover
+    </div>
+
+    <button
+      type="button"
+      onclick="window.location.href='settings.html'"
+      aria-label="Settings"
+    >
+      ⚙
+    </button>
+  </header>
+
+
+  <!-- DISCOVERY -->
+  <main class="discover">
+
+    <!-- SEARCH -->
+    <input
+      id="searchInput"
+      class="search"
+      type="search"
+      placeholder="Search creators, videos, live streams, hashtags…"
+      autocomplete="off"
+    >
+
+
+    <!-- TABS -->
+    <div class="tabs">
+
+      <button
+        type="button"
+        class="tab-on"
+        data-tab="trending"
+      >
+        Trending
+      </button>
+
+      <button
+        type="button"
+        data-tab="recommended"
+      >
+        Recommended
+      </button>
+
+      <button
+        type="button"
+        data-tab="live"
+      >
+        Live now
+      </button>
+
+      <button
+        type="button"
+        data-tab="creators"
+      >
+        Creators
+      </button>
+
+    </div>
+
+
+    <!-- STATUS MESSAGE -->
+    <div
+      id="statusMessage"
+      class="muted"
+      style="padding:10px 2px;"
+    >
+      Loading Zinko…
+    </div>
+
+
+    <!-- HASHTAGS -->
+    <section id="hashtagSection">
+
+      <h3>Popular hashtags</h3>
+
+      <div class="hashtag-grid">
+
+        <div
+          class="hashtag"
+          data-search="#Travel"
+        >
+          #Travel
+          <br>
+          <b>Explore</b>
+        </div>
+
+        <div
+          class="hashtag"
+          data-search="#Comedy"
+        >
+          #Comedy
+          <br>
+          <b>Laughs</b>
+        </div>
+
+        <div
+          class="hashtag"
+          data-search="#Music"
+        >
+          #Music
+          <br>
+          <b>Trending</b>
+        </div>
+
+        <div
+          class="hashtag"
+          data-search="#Tech"
+        >
+          #Tech
+          <br>
+          <b>Discover</b>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- CREATORS -->
+    <section id="creatorSection">
+
+      <h3>Creators to discover</h3>
+
+      <div id="creatorList">
+
+        <div class="empty">
+          Creators will appear here as Zinko grows.
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- POSTS -->
+    <section id="postSection">
+
+      <h3>Discover posts</h3>
+
+      <div id="postList"></div>
+
+    </section>
+
+
+    <!-- LIVE -->
+    <section id="liveSection" style="display:none;">
+
+      <h3>Live now</h3>
+
+      <div id="liveList">
+
+        <div class="empty">
+          Live streams will appear here.
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SEARCH EMPTY -->
+    <div
+      id="noResults"
+      class="empty"
+      style="display:none;"
+    >
+      No results found.
+    </div>
+
+  </main>
+
+
+  <!-- NAVIGATION -->
+  <nav class="nav">
+
+    <a href="home.html">
+      ⌂
+      <small>Home</small>
+    </a>
+
+    <a href="live.html">
+      ◉
+      <small>Live</small>
+    </a>
+
+    <a
+      class="active"
+      href="discover.html"
+    >
+      ⌕
+      <small>Discover</small>
+    </a>
+
+    <a href="messages.html">
+      ✉
+      <small>Messages</small>
+    </a>
+
+    <a href="profile.html">
+      ●
+      <small>Profile</small>
+    </a>
+
+  </nav>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   ZINKO SUPABASE CONNECTION
+   ========================================================= */
+
+const SUPABASE_URL =
+  "https://ggqhwoyzuypryocrxiru.supabase.co";
+
+
+/*
+ IMPORTANT:
+ Use your Supabase Publishable key below.
+
+ Do NOT use the secret/service_role key.
+*/
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
+
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const searchInput =
+  document.getElementById("searchInput");
+
+const postList =
+  document.getElementById("postList");
+
+const creatorList =
+  document.getElementById("creatorList");
+
+const statusMessage =
+  document.getElementById("statusMessage");
+
+const noResults =
+  document.getElementById("noResults");
+
+const hashtagSection =
+  document.getElementById("hashtagSection");
+
+const creatorSection =
+  document.getElementById("creatorSection");
+
+const postSection =
+  document.getElementById("postSection");
+
+const liveSection =
+  document.getElementById("liveSection");
+
+const liveList =
+  document.getElementById("liveList");
+
+
+let allPosts = [];
+let currentTab = "trending";
+
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+function escapeHTML(value) {
+
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+
+function formatDate(dateValue) {
+
+  if (!dateValue) {
+    return "";
+  }
+
+  const date =
+    new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString(
+    undefined,
+    {
+      day: "numeric",
+      month: "short"
+    }
+  );
+}
+
+
+function shortUserId(id) {
+
+  if (!id) {
+    return "Zinko creator";
+  }
+
+  return "Creator " +
+    String(id).slice(0, 6);
+}
+
+
+function getPostText(post) {
+
+  return (
+    post.content ||
+    ""
+  );
+}
+
+
+/* =========================================================
+   LOAD POSTS
+   ========================================================= */
+
+async function loadPosts() {
+
+  statusMessage.textContent =
+    "Loading Zinko posts…";
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("posts")
+      .select(
+        "id,user_id,content,created_at,image_url,video_url"
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      )
+      .limit(50);
+
+
+  if (error) {
+
+    console.error(
+      "Posts error:",
+      error
+    );
+
+    statusMessage.textContent =
+      "Unable to load posts right now.";
+
+    postList.innerHTML = `
+      <div class="empty">
+        There was a problem connecting to Zinko.
+      </div>
+    `;
+
+    return;
+  }
+
+
+  allPosts = data || [];
+
+  statusMessage.textContent =
+    allPosts.length
+      ? `${allPosts.length} posts discovered`
+      : "No posts yet.";
+
+
+  renderPosts(
+    allPosts
+  );
+
+  buildCreators(
+    allPosts
+  );
+}
+
+
+/* =========================================================
+   RENDER POSTS
+   ========================================================= */
+
+function renderPosts(posts) {
+
+  postList.innerHTML = "";
+
+  noResults.style.display =
+    posts.length
+      ? "none"
+      : "block";
+
+
+  if (!posts.length) {
+    return;
+  }
+
+
+  posts.forEach(
+    post => {
+
+      const article =
+        document.createElement("article");
+
+      article.className =
+        "post";
+
+
+      const initial =
+        post.user_id
+          ? String(post.user_id)
+              .charAt(0)
+              .toUpperCase()
+          : "Z";
+
+
+      let mediaHTML = "";
+
+
+      /* IMAGE */
+
+      if (post.image_url) {
+
+        mediaHTML = `
+          <img
+            src="${escapeHTML(post.image_url)}"
+            alt="Zinko post"
+            style="
+              width:100%;
+              max-height:410px;
+              object-fit:cover;
+              border-radius:18px;
+              display:block;
+              margin-top:12px;
+            "
+            loading="lazy"
+            onerror="this.style.display='none'"
+          >
+        `;
+      }
+
+
+      /* VIDEO */
+
+      else if (post.video_url) {
+
+        mediaHTML = `
+          <video
+            controls
+            playsinline
+            preload="metadata"
+            style="
+              width:100%;
+              max-height:410px;
+              border-radius:18px;
+              display:block;
+              margin-top:12px;
+              background:#000;
+            "
+          >
+            <source
+              src="${escapeHTML(post.video_url)}"
+            >
+          </video>
+        `;
+      }
+
+
+      article.innerHTML = `
+
+        <div class="post-head">
+
+          <div class="avatar">
+            ${escapeHTML(initial)}
+          </div>
+
+          <div>
+
+            <b>
+              ${escapeHTML(
+                shortUserId(post.user_id)
+              )}
+            </b>
+
+            <small>
+              ${escapeHTML(
+                formatDate(post.created_at)
+              )}
+            </small>
+
+          </div>
+
+          <button
+            class="more"
+            type="button"
+          >
+            ⋯
+          </button>
+
+        </div>
+
+
+        ${
+          getPostText(post)
+            ? `
+              <p>
+                ${escapeHTML(
+                  getPostText(post)
+                )}
+              </p>
+            `
+            : ""
+        }
+
+
+        ${mediaHTML}
+
+
+        <div class="engage"
+             style="margin-top:10px;">
+
+          <button
+            type="button"
+            onclick="alert('Like feature will connect to post_likes next.')"
+          >
+            ♡ Like
+          </button>
+
+          <button
+            type="button"
+            onclick="alert('Comments will connect to comments next.')"
+          >
+            💬 Comment
+          </button>
+
+          <button
+            type="button"
+            onclick="sharePost('${escapeHTML(post.id)}')"
+          >
+            ↗ Share
+          </button>
+
+        </div>
+
+      `;
+
+
+      postList.appendChild(
+        article
+      );
+
+    }
+  );
+}
+
+
+/* =========================================================
+   CREATORS
+   ========================================================= */
+
+function buildCreators(posts) {
+
+  const creatorMap =
+    new Map();
+
+
+  posts.forEach(
+    post => {
+
+      if (!post.user_id) {
+        return;
+      }
+
+      if (
+        !creatorMap.has(
+          post.user_id
+        )
+      ) {
+
+        creatorMap.set(
+          post.user_id,
+          {
+            id: post.user_id,
+            posts: 1
+          }
+        );
+
+      } else {
+
+        creatorMap.get(
+          post.user_id
+        ).posts++;
+
+      }
+
+    }
+  );
+
+
+  creatorList.innerHTML = "";
+
+
+  const creators =
+    Array.from(
+      creatorMap.values()
+    ).slice(0, 10);
+
+
+  if (!creators.length) {
+
+    creatorList.innerHTML = `
+      <div class="empty">
+        No creators to discover yet.
+      </div>
+    `;
+
+    return;
+  }
+
+
+  creators.forEach(
+    creator => {
+
+      const card =
+        document.createElement("div");
+
+      card.className =
+        "creator-card";
+
+
+      const initial =
+        String(
+          creator.id
+        ).charAt(0)
+          .toUpperCase();
+
+
+      card.innerHTML = `
+
+        <div class="avatar pink">
+          ${escapeHTML(initial)}
+        </div>
+
+        <div>
+
+          <b>
+            ${escapeHTML(
+              shortUserId(
+                creator.id
+              )
+            )}
+          </b>
+
+          <small>
+            ${creator.posts}
+            ${creator.posts === 1
+              ? "post"
+              : "posts"}
+          </small>
+
+        </div>
+
+        <button
+          class="follow"
+          type="button"
+          data-user-id="${escapeHTML(
+            creator.id
+          )}"
+        >
+          Follow
+        </button>
+
+      `;
+
+
+      creatorList.appendChild(
+        card
+      );
+
+    }
+  );
+
+
+  document
+    .querySelectorAll(
+      ".follow"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () =>
+            toggleFollow(
+              button.dataset.userId,
+              button
+            )
+        );
+
+      }
+    );
+}
+
+
+/* =========================================================
+   FOLLOW / UNFOLLOW
+   ========================================================= */
+
+async function toggleFollow(
+  followingId,
+  button
+) {
+
+  const {
+    data: {
+      user
+    }
+  } =
+    await supabaseClient.auth.getUser();
+
+
+  if (!user) {
+
+    alert(
+      "Please sign in to follow creators."
+    );
+
+    return;
+  }
+
+
+  if (
+    user.id === followingId
+  ) {
+
+    alert(
+      "You cannot follow yourself."
+    );
+
+    return;
+  }
+
+
+  button.disabled =
+    true;
+
+
+  const {
+    data: existing,
+    error: findError
+  } =
+    await supabaseClient
+      .from("follows")
+      .select("id")
+      .eq(
+        "follower_id",
+        user.id
+      )
+      .eq(
+        "following_id",
+        followingId
+      )
+      .maybeSingle();
+
+
+  if (findError) {
+
+    console.error(
+      findError
+    );
+
+    alert(
+      "Could not check follow status."
+    );
+
+    button.disabled =
+      false;
+
+    return;
+  }
+
+
+  if (existing) {
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("follows")
+        .delete()
+        .eq(
+          "id",
+          existing.id
+        );
+
+
+    if (error) {
+
+      console.error(
+        error
+      );
+
+      alert(
+        "Could not unfollow this creator."
+      );
+
+    } else {
+
+      button.textContent =
+        "Follow";
+
+    }
+
+  } else {
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("follows")
+        .insert({
+          follower_id:
+            user.id,
+
+          following_id:
+            followingId
+        });
+
+
+    if (error) {
+
+      console.error(
+        error
+      );
+
+      alert(
+        "Could not follow this creator."
+      );
+
+    } else {
+
+      button.textContent =
+        "Following";
+
+    }
+
+  }
+
+
+  button.disabled =
+    false;
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+searchInput.addEventListener(
+  "input",
+  () => {
+
+    const query =
+      searchInput.value
+        .trim()
+        .toLowerCase();
+
+
+    if (!query) {
+
+      renderPosts(
+        allPosts
+      );
+
+      return;
+    }
+
+
+    const results =
+      allPosts.filter(
+        post => {
+
+          const content =
+            (
+              post.content ||
+              ""
+            ).toLowerCase();
+
+          const userId =
+            (
+              post.user_id ||
+              ""
+            ).toLowerCase();
+
+
+          return (
+            content.includes(query) ||
+            userId.includes(query)
+          );
+
+        }
+      );
+
+
+    renderPosts(
+      results
+    );
+
+  }
+);
+
+
+/* =========================================================
+   TABS
+   ========================================================= */
+
+document
+  .querySelectorAll(
+    ".tabs button"
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          document
+            .querySelectorAll(
+              ".tabs button"
+            )
+            .forEach(
+              item =>
+                item.classList.remove(
+                  "tab-on"
+                )
+            );
+
+
+          button.classList.add(
+            "tab-on"
+          );
+
+
+          currentTab =
+            button.dataset.tab;
+
+
+          handleTab(
+            currentTab
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+function handleTab(
+  tab
+) {
+
+  hashtagSection.style.display =
+    "block";
+
+  creatorSection.style.display =
+    "block";
+
+  postSection.style.display =
+    "block";
+
+  liveSection.style.display =
+    "none";
+
+
+  if (tab === "trending") {
+
+    renderPosts(
+      allPosts
+    );
+
+  }
+
+
+  else if (
+    tab === "recommended"
+  ) {
+
+    /*
+      For now, recommended uses recent
+      posts. Later we can connect it
+      to Zinko's recommendation system.
+    */
+
+    renderPosts(
+      allPosts.slice(0, 20)
+    );
+
+  }
+
+
+  else if (
+    tab === "creators"
+  ) {
+
+    creatorSection.scrollIntoView({
+      behavior: "smooth"
+    });
+
+  }
+
+
+  else if (
+    tab === "live"
+  ) {
+
+    hashtagSection.style.display =
+      "none";
+
+    creatorSection.style.display =
+      "none";
+
+    postSection.style.display =
+      "none";
+
+    liveSection.style.display =
+      "block";
+
+    loadLivePlaceholder();
+
+  }
+
+}
+
+
+/* =========================================================
+   LIVE PLACEHOLDER
+   ========================================================= */
+
+function loadLivePlaceholder() {
+
+  liveList.innerHTML = `
+
+    <div class="empty">
+
+      Live streams will be connected
+      to your existing
+      <b>zinko_live_sessions</b>
+      system next.
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   HASHTAGS
+   ========================================================= */
+
+document
+  .querySelectorAll(
+    ".hashtag"
+  )
+  .forEach(
+    item => {
+
+      item.style.cursor =
+        "pointer";
+
+
+      item.addEventListener(
+        "click",
+        () => {
+
+          const value =
+            item.dataset.search;
+
+
+          searchInput.value =
+            value;
+
+
+          const query =
+            value
+              .toLowerCase();
+
+
+          const results =
+            allPosts.filter(
+              post =>
+                (
+                  post.content ||
+                  ""
+                )
+                  .toLowerCase()
+                  .includes(query)
+            );
+
+
+          renderPosts(
+            results
+          );
+
+
+          postSection.scrollIntoView({
+            behavior: "smooth"
+          });
+
+        }
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   SHARE
+   ========================================================= */
+
+async function sharePost(
+  postId
+) {
+
+  const shareData = {
+    title:
+      "Zinko post",
+
+    text:
+      "Check out this post on Zinko.",
+
+    url:
+      window.location.href +
+      "?post=" +
+      encodeURIComponent(
+        postId
+      )
+  };
+
+
+  try {
+
+    if (
+      navigator.share
+    ) {
+
+      await navigator.share(
+        shareData
+      );
+
+    } else {
+
+      await navigator.clipboard.writeText(
+        shareData.url
+      );
+
+      alert(
+        "Post link copied."
+      );
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "Share cancelled."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+loadPosts();
+
+</script>
+
+</body>
+</html>
