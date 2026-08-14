@@ -7,8 +7,70 @@
 
   <link rel="stylesheet" href="style.css">
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* DISCOVER POST OPTIONS */
+
+    .post {
+      position: relative;
+    }
+
+    .post-head {
+      position: relative;
+    }
+
+    .more {
+      margin-left: auto;
+      border: 0;
+      background: transparent;
+      color: #aeb5cb;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 10px;
+    }
+
+    .more:hover,
+    .more:active {
+      background: #211633;
+      color: white;
+    }
+
+    .post-options {
+      position: absolute;
+      top: 48px;
+      right: 8px;
+      width: 190px;
+      background: #171d30;
+      border: 1px solid #303951;
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.45);
+      z-index: 50;
+    }
+
+    .post-options button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #f5f7ff;
+      text-align: left;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .post-options button:hover,
+    .post-options button:active {
+      background: #252d43;
+    }
+
+    .post-options .danger {
+      color: #ff6b81;
+    }
+  </style>
 </head>
 
 <body>
@@ -17,6 +79,7 @@
 
   <!-- HEADER -->
   <header class="top">
+
     <div class="wordmark">
       <span>Z</span>Discover
     </div>
@@ -28,6 +91,7 @@
     >
       ⚙
     </button>
+
   </header>
 
 
@@ -79,7 +143,7 @@
     </div>
 
 
-    <!-- STATUS MESSAGE -->
+    <!-- STATUS -->
     <div
       id="statusMessage"
       class="muted"
@@ -164,7 +228,10 @@
 
 
     <!-- LIVE -->
-    <section id="liveSection" style="display:none;">
+    <section
+      id="liveSection"
+      style="display:none;"
+    >
 
       <h3>Live now</h3>
 
@@ -236,17 +303,8 @@
 const SUPABASE_URL =
   "https://ggqhwoyzuypryocrxiru.supabase.co";
 
-
-/*
- IMPORTANT:
- Use your Supabase Publishable key below.
-
- Do NOT use the secret/service_role key.
-*/
-
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
-
 
 const supabaseClient =
   window.supabase.createClient(
@@ -291,46 +349,9 @@ const liveList =
 
 
 let allPosts = [];
-let currentTab = "trending";
-let currentUser = null;
 
-
-/* =========================================================
-   CURRENT USER
-   ========================================================= */
-
-async function loadCurrentUser() {
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient.auth.getUser();
-
-
-  if (error) {
-
-    console.error(
-      "User error:",
-      error
-    );
-
-    currentUser = null;
-
-    return null;
-
-  }
-
-
-  currentUser =
-    data && data.user
-      ? data.user
-      : null;
-
-
-  return currentUser;
-
-}
+let currentTab =
+  "trending";
 
 
 /* =========================================================
@@ -358,13 +379,6 @@ function escapeHTML(value) {
 }
 
 
-function escapeAttribute(value) {
-
-  return escapeHTML(value);
-
-}
-
-
 function formatDate(dateValue) {
 
   if (!dateValue) {
@@ -376,7 +390,6 @@ function formatDate(dateValue) {
   const date =
     new Date(dateValue);
 
-
   if (
     Number.isNaN(
       date.getTime()
@@ -386,7 +399,6 @@ function formatDate(dateValue) {
     return "";
 
   }
-
 
   return date.toLocaleDateString(
     undefined,
@@ -399,34 +411,6 @@ function formatDate(dateValue) {
 }
 
 
-function formatDateTime(dateValue) {
-
-  if (!dateValue) {
-
-    return "";
-
-  }
-
-  const date =
-    new Date(dateValue);
-
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-
-    return "";
-
-  }
-
-
-  return date.toLocaleString();
-
-}
-
-
 function shortUserId(id) {
 
   if (!id) {
@@ -434,7 +418,6 @@ function shortUserId(id) {
     return "Zinko creator";
 
   }
-
 
   return "Creator " +
     String(id).slice(0, 6);
@@ -460,9 +443,6 @@ async function loadPosts() {
 
   statusMessage.textContent =
     "Loading Zinko posts…";
-
-
-  await loadCurrentUser();
 
 
   const {
@@ -496,9 +476,11 @@ async function loadPosts() {
 
 
     postList.innerHTML = `
+
       <div class="empty">
         There was a problem connecting to Zinko.
       </div>
+
     `;
 
 
@@ -517,7 +499,7 @@ async function loadPosts() {
       : "No posts yet.";
 
 
-  await renderPosts(
+  renderPosts(
     allPosts
   );
 
@@ -533,9 +515,10 @@ async function loadPosts() {
    RENDER POSTS
    ========================================================= */
 
-async function renderPosts(posts) {
+function renderPosts(posts) {
 
-  postList.innerHTML = "";
+  postList.innerHTML =
+    "";
 
 
   noResults.style.display =
@@ -551,1149 +534,377 @@ async function renderPosts(posts) {
   }
 
 
-  for (
-    const post of posts
-  ) {
+  posts.forEach(
+    post => {
 
-    await renderSinglePost(
-      post
-    );
-
-  }
+      const article =
+        document.createElement(
+          "article"
+        );
 
 
-  await updateLikeStates();
-
-}
-
-
-/* =========================================================
-   RENDER ONE POST
-   ========================================================= */
-
-async function renderSinglePost(post) {
-
-  const article =
-    document.createElement(
-      "article"
-    );
+      article.className =
+        "post";
 
 
-  article.className =
-    "post";
-
-
-  article.dataset.postId =
-    post.id;
-
-
-  const initial =
-    post.user_id
-      ? String(
-          post.user_id
-        )
-          .charAt(0)
-          .toUpperCase()
-      : "Z";
-
-
-  /* =======================================================
-     GET LIKE COUNT
-     ======================================================= */
-
-  const {
-    count: likeCount,
-    error: likeCountError
-  } =
-    await supabaseClient
-      .from("post_likes")
-      .select(
-        "*",
-        {
-          count: "exact",
-          head: true
-        }
-      )
-      .eq(
-        "post_id",
-        post.id
-      );
-
-
-  if (likeCountError) {
-
-    console.error(
-      "Like count error:",
-      likeCountError
-    );
-
-  }
-
-
-  /* =======================================================
-     MEDIA
-     ======================================================= */
-
-  let mediaHTML = "";
-
-
-  if (post.image_url) {
-
-    mediaHTML = `
-      <img
-        src="${escapeAttribute(post.image_url)}"
-        alt="Zinko post"
-        style="
-          width:100%;
-          max-height:410px;
-          object-fit:cover;
-          border-radius:18px;
-          display:block;
-          margin-top:12px;
-        "
-        loading="lazy"
-        onerror="this.style.display='none'"
-      >
-    `;
-
-  }
-
-
-  else if (post.video_url) {
-
-    mediaHTML = `
-      <video
-        controls
-        playsinline
-        preload="metadata"
-        style="
-          width:100%;
-          max-height:410px;
-          border-radius:18px;
-          display:block;
-          margin-top:12px;
-          background:#000;
-        "
-      >
-        <source
-          src="${escapeAttribute(post.video_url)}"
-        >
-      </video>
-    `;
-
-  }
-
-
-  /* =======================================================
-     POST HTML
-     ======================================================= */
-
-  article.innerHTML = `
-
-    <div class="post-head">
-
-      <div class="avatar">
-        ${escapeHTML(initial)}
-      </div>
-
-      <div>
-
-        <b>
-          ${escapeHTML(
-            shortUserId(
+      const initial =
+        post.user_id
+          ? String(
               post.user_id
             )
-          )}
-        </b>
+              .charAt(0)
+              .toUpperCase()
+          : "Z";
 
-        <small>
-          ${escapeHTML(
-            formatDate(
-              post.created_at
-            )
-          )}
-        </small>
 
-      </div>
+      let mediaHTML =
+        "";
 
-      <button
-        class="more"
-        type="button"
-      >
-        ⋯
-      </button>
 
-    </div>
+      /* IMAGE */
 
+      if (post.image_url) {
 
-    ${
-      getPostText(post)
-        ? `
-          <p>
-            ${escapeHTML(
-              getPostText(post)
-            )}
-          </p>
-        `
-        : ""
-    }
+        mediaHTML = `
 
-
-    ${mediaHTML}
-
-
-    <!-- ENGAGEMENT -->
-
-    <div
-      class="engage"
-      style="
-        margin-top:10px;
-        flex-wrap:wrap;
-      "
-    >
-
-      <button
-        type="button"
-        class="like-button"
-        data-post-id="${escapeAttribute(post.id)}"
-      >
-        ♡
-        <span class="like-label">
-          Like
-        </span>
-        <span class="like-count">
-          ${likeCount || 0}
-        </span>
-      </button>
-
-
-      <button
-        type="button"
-        class="comment-toggle"
-        data-post-id="${escapeAttribute(post.id)}"
-      >
-        💬
-        <span>
-          Comment
-        </span>
-      </button>
-
-
-      <button
-        type="button"
-        class="share-button"
-        data-post-id="${escapeAttribute(post.id)}"
-      >
-        ↗
-        Share
-      </button>
-
-    </div>
-
-
-    <!-- COMMENTS -->
-
-    <div
-      class="comments-section"
-      id="comments-${escapeAttribute(post.id)}"
-      style="display:none;"
-    >
-
-      <b>
-        Comments
-      </b>
-
-
-      <div class="comments-list">
-        Loading comments...
-      </div>
-
-
-      <div
-        class="comment-form"
-        style="
-          display:flex;
-          gap:8px;
-          margin-top:10px;
-        "
-      >
-
-        <input
-          type="text"
-          class="comment-input"
-          placeholder="Write a comment..."
-          maxlength="1000"
-          style="
-            flex:1;
-            min-width:0;
-            padding:10px;
-            border-radius:12px;
-            border:1px solid #29314b;
-            background:#0b1120;
-            color:white;
-            outline:none;
-          "
-        >
-
-
-        <button
-          type="button"
-          class="comment-send"
-          data-post-id="${escapeAttribute(post.id)}"
-          style="
-            border:0;
-            border-radius:12px;
-            padding:10px 14px;
-            background:#7155ff;
-            color:white;
-            font-weight:bold;
-            cursor:pointer;
-          "
-        >
-          Send
-        </button>
-
-      </div>
-
-
-      <div
-        class="comment-message muted"
-        style="
-          font-size:12px;
-          margin-top:6px;
-        "
-      ></div>
-
-    </div>
-
-  `;
-
-
-  postList.appendChild(
-    article
-  );
-
-
-  /* Load comments */
-
-  await loadComments(
-    post,
-    article
-  );
-
-}
-
-
-/* =========================================================
-   LOAD COMMENTS
-   ========================================================= */
-
-async function loadComments(
-  post,
-  article
-) {
-
-  const commentsList =
-    article.querySelector(
-      ".comments-list"
-    );
-
-
-  if (!commentsList) {
-
-    return;
-
-  }
-
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("comments")
-      .select("*")
-      .eq(
-        "post_id",
-        post.id
-      )
-      .order(
-        "created_at",
-        {
-          ascending: true
-        }
-      );
-
-
-  if (error) {
-
-    console.error(
-      "Comments error:",
-      error
-    );
-
-
-    commentsList.innerHTML = `
-      <div class="muted">
-        Unable to load comments.
-      </div>
-    `;
-
-
-    return;
-
-  }
-
-
-  if (
-    !data ||
-    data.length === 0
-  ) {
-
-    commentsList.innerHTML = `
-      <div
-        class="muted"
-        style="margin-top:8px;"
-      >
-        No comments yet.
-      </div>
-    `;
-
-
-    return;
-
-  }
-
-
-  commentsList.innerHTML = "";
-
-
-  data.forEach(
-    comment => {
-
-      const commentElement =
-        document.createElement(
-          "div"
-        );
-
-
-      commentElement.className =
-        "comment";
-
-
-      commentElement.style.cssText = `
-        background:#0b1120;
-        border:1px solid #202840;
-        border-radius:12px;
-        padding:10px;
-        margin-top:8px;
-      `;
-
-
-      const canDelete =
-        currentUser &&
-        (
-          comment.user_id ===
-            currentUser.id ||
-
-          post.user_id ===
-            currentUser.id
-        );
-
-
-      commentElement.innerHTML = `
-
-        <div
-          style="
-            display:flex;
-            gap:8px;
-            align-items:center;
-          "
-        >
-
-          <div
+          <img
+            src="${escapeHTML(post.image_url)}"
+            alt="Zinko post"
             style="
-              width:30px;
-              height:30px;
-              border-radius:50%;
-              background:linear-gradient(
-                135deg,
-                #5865f2,
-                #20c7df
-              );
-              color:white;
-              display:flex;
-              align-items:center;
-              justify-content:center;
-              font-size:12px;
-              font-weight:bold;
+              width:100%;
+              max-height:410px;
+              object-fit:cover;
+              border-radius:18px;
+              display:block;
+              margin-top:12px;
+            "
+            loading="lazy"
+            onerror="this.style.display='none'"
+          >
+
+        `;
+
+      }
+
+
+      /* VIDEO */
+
+      else if (post.video_url) {
+
+        mediaHTML = `
+
+          <video
+            controls
+            playsinline
+            preload="metadata"
+            style="
+              width:100%;
+              max-height:410px;
+              border-radius:18px;
+              display:block;
+              margin-top:12px;
+              background:#000;
             "
           >
-            Z
+
+            <source
+              src="${escapeHTML(post.video_url)}"
+            >
+
+          </video>
+
+        `;
+
+      }
+
+
+      article.innerHTML = `
+
+        <div class="post-head">
+
+          <div class="avatar">
+
+            ${escapeHTML(initial)}
+
           </div>
 
 
-          <div
-            style="
-              flex:1;
-              min-width:0;
-            "
-          >
+          <div>
 
             <b>
-              Zinko User
-            </b>
-
-            <small
-              class="muted"
-              style="display:block;"
-            >
               ${escapeHTML(
-                formatDateTime(
-                  comment.created_at
+                shortUserId(
+                  post.user_id
                 )
               )}
+            </b>
+
+
+            <small>
+
+              ${escapeHTML(
+                formatDate(
+                  post.created_at
+                )
+              )}
+
             </small>
 
           </div>
 
 
-          ${
-            canDelete
-              ? `
-                <button
-                  type="button"
-                  class="comment-delete"
-                  data-comment-id="${escapeAttribute(comment.id)}"
-                  data-post-id="${escapeAttribute(post.id)}"
-                  style="
-                    border:0;
-                    background:transparent;
-                    color:#ff6b81;
-                    font-size:13px;
-                    font-weight:bold;
-                    cursor:pointer;
-                  "
-                >
-                  Delete
-                </button>
-              `
-              : ""
-          }
+          <!-- WORKING THREE-DOT BUTTON -->
+
+          <button
+            class="more"
+            type="button"
+            data-post-id="${escapeHTML(post.id)}"
+            aria-label="Post options"
+          >
+            ⋯
+          </button>
 
         </div>
 
 
-        <div
-          style="
-            margin:7px 0 0 38px;
-            word-break:break-word;
-          "
-        >
-          ${escapeHTML(
-            comment.content || ""
-          )}
-        </div>
+        ${
+          getPostText(post)
+            ? `
 
-      `;
+              <p>
 
+                ${escapeHTML(
+                  getPostText(post)
+                )}
 
-      commentsList.appendChild(
-        commentElement
-      );
+              </p>
 
-    }
-  );
-
-}
-
-
-/* =========================================================
-   ADD COMMENT
-   ========================================================= */
-
-async function addComment(
-  postId,
-  article
-) {
-
-  const input =
-    article.querySelector(
-      ".comment-input"
-    );
-
-
-  const message =
-    article.querySelector(
-      ".comment-message"
-    );
-
-
-  const sendButton =
-    article.querySelector(
-      ".comment-send"
-    );
-
-
-  const text =
-    input.value.trim();
-
-
-  if (!text) {
-
-    message.textContent =
-      "Write a comment first.";
-
-    return;
-
-  }
-
-
-  await loadCurrentUser();
-
-
-  if (!currentUser) {
-
-    message.textContent =
-      "Please log in before commenting.";
-
-    return;
-
-  }
-
-
-  sendButton.disabled =
-    true;
-
-
-  sendButton.textContent =
-    "...";
-
-
-  message.textContent =
-    "";
-
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("comments")
-      .insert({
-
-        post_id:
-          postId,
-
-        user_id:
-          currentUser.id,
-
-        content:
-          text
-
-      });
-
-
-  if (error) {
-
-    console.error(
-      "Add comment error:",
-      error
-    );
-
-
-    message.textContent =
-      error.message;
-
-
-    sendButton.disabled =
-      false;
-
-
-    sendButton.textContent =
-      "Send";
-
-
-    return;
-
-  }
-
-
-  input.value = "";
-
-
-  message.textContent =
-    "Comment added!";
-
-
-  sendButton.disabled =
-    false;
-
-
-  sendButton.textContent =
-    "Send";
-
-
-  const {
-    data: postData,
-    error: postError
-  } =
-    await supabaseClient
-      .from("posts")
-      .select("*")
-      .eq(
-        "id",
-        postId
-      )
-      .maybeSingle();
-
-
-  if (
-    postError ||
-    !postData
-  ) {
-
-    console.error(
-      "Post reload error:",
-      postError
-    );
-
-    return;
-
-  }
-
-
-  await loadComments(
-    postData,
-    article
-  );
-
-}
-
-
-/* =========================================================
-   DELETE COMMENT
-   ========================================================= */
-
-async function deleteComment(
-  commentId,
-  postId,
-  commentElement
-) {
-
-  await loadCurrentUser();
-
-
-  if (!currentUser) {
-
-    alert(
-      "Please log in before deleting a comment."
-    );
-
-    return;
-
-  }
-
-
-  const confirmed =
-    confirm(
-      "Delete this comment?"
-    );
-
-
-  if (!confirmed) {
-
-    return;
-
-  }
-
-
-  const deleteButton =
-    commentElement.querySelector(
-      ".comment-delete"
-    );
-
-
-  if (deleteButton) {
-
-    deleteButton.disabled =
-      true;
-
-    deleteButton.textContent =
-      "Deleting...";
-
-  }
-
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("comments")
-      .delete()
-      .eq(
-        "id",
-        commentId
-      );
-
-
-  if (error) {
-
-    console.error(
-      "Delete comment error:",
-      error
-    );
-
-
-    alert(
-      error.message
-    );
-
-
-    if (deleteButton) {
-
-      deleteButton.disabled =
-        false;
-
-      deleteButton.textContent =
-        "Delete";
-
-    }
-
-
-    return;
-
-  }
-
-
-  commentElement.remove();
-
-
-  const commentsSection =
-    document.getElementById(
-      `comments-${postId}`
-    );
-
-
-  if (commentsSection) {
-
-    const commentsList =
-      commentsSection.querySelector(
-        ".comments-list"
-      );
-
-
-    if (
-      commentsList &&
-      commentsList.children.length === 0
-    ) {
-
-      commentsList.innerHTML = `
-        <div
-          class="muted"
-          style="margin-top:8px;"
-        >
-          No comments yet.
-        </div>
-      `;
-
-    }
-
-  }
-
-}
-
-
-/* =========================================================
-   LIKE / UNLIKE
-   ========================================================= */
-
-async function toggleLike(
-  postId,
-  button
-) {
-
-  await loadCurrentUser();
-
-
-  if (!currentUser) {
-
-    alert(
-      "Please log in to like posts."
-    );
-
-    return;
-
-  }
-
-
-  button.disabled =
-    true;
-
-
-  const {
-    data: existingLike,
-    error: checkError
-  } =
-    await supabaseClient
-      .from("post_likes")
-      .select("id")
-      .eq(
-        "post_id",
-        postId
-      )
-      .eq(
-        "user_id",
-        currentUser.id
-      )
-      .maybeSingle();
-
-
-  if (checkError) {
-
-    console.error(
-      "Like check error:",
-      checkError
-    );
-
-
-    alert(
-      checkError.message
-    );
-
-
-    button.disabled =
-      false;
-
-
-    return;
-
-  }
-
-
-  if (existingLike) {
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("post_likes")
-        .delete()
-        .eq(
-          "id",
-          existingLike.id
-        );
-
-
-    if (error) {
-
-      console.error(
-        "Unlike error:",
-        error
-      );
-
-
-      alert(
-        error.message
-      );
-
-
-      button.disabled =
-        false;
-
-
-      return;
-
-    }
-
-
-    button.classList.remove(
-      "liked"
-    );
-
-
-  } else {
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("post_likes")
-        .insert({
-
-          post_id:
-            postId,
-
-          user_id:
-            currentUser.id
-
-        });
-
-
-    if (error) {
-
-      console.error(
-        "Like error:",
-        error
-      );
-
-
-      alert(
-        error.message
-      );
-
-
-      button.disabled =
-        false;
-
-
-      return;
-
-    }
-
-
-    button.classList.add(
-      "liked"
-    );
-
-  }
-
-
-  await refreshLikeCount(
-    postId,
-    button
-  );
-
-
-  button.disabled =
-    false;
-
-}
-
-
-/* =========================================================
-   REFRESH LIKE COUNT
-   ========================================================= */
-
-async function refreshLikeCount(
-  postId,
-  button
-) {
-
-  const {
-    count,
-    error
-  } =
-    await supabaseClient
-      .from("post_likes")
-      .select(
-        "*",
-        {
-          count: "exact",
-          head: true
+            `
+            : ""
         }
-      )
-      .eq(
-        "post_id",
-        postId
+
+
+        ${mediaHTML}
+
+
+        <div
+          class="engage"
+          style="margin-top:10px;"
+        >
+
+          <button
+            type="button"
+            onclick="alert('Like feature will connect to post_likes next.')"
+          >
+            ♡ Like
+          </button>
+
+
+          <button
+            type="button"
+            onclick="alert('Comments will connect to comments next.')"
+          >
+            💬 Comment
+          </button>
+
+
+          <button
+            type="button"
+            onclick="sharePost('${escapeHTML(post.id)}')"
+          >
+            ↗ Share
+          </button>
+
+        </div>
+
+      `;
+
+
+      postList.appendChild(
+        article
       );
 
-
-  if (error) {
-
-    console.error(
-      "Refresh like count error:",
-      error
-    );
-
-    return;
-
-  }
-
-
-  const countElement =
-    button.querySelector(
-      ".like-count"
-    );
-
-
-  if (countElement) {
-
-    countElement.textContent =
-      count || 0;
-
-  }
+    }
+  );
 
 }
 
 
 /* =========================================================
-   UPDATE LIKE STATES
+   POST OPTIONS MENU
    ========================================================= */
 
-async function updateLikeStates() {
-
-  if (!currentUser) {
-
-    return;
-
-  }
-
-
-  const {
-    data: likes,
-    error
-  } =
-    await supabaseClient
-      .from("post_likes")
-      .select("post_id")
-      .eq(
-        "user_id",
-        currentUser.id
-      );
-
-
-  if (error) {
-
-    console.error(
-      "Like states error:",
-      error
-    );
-
-    return;
-
-  }
-
-
-  const likedPosts =
-    new Set(
-      (likes || []).map(
-        like =>
-          like.post_id
-      )
-    );
-
+function closePostOptions() {
 
   document
     .querySelectorAll(
-      ".like-button"
+      ".post-options"
     )
     .forEach(
-      button => {
+      menu => menu.remove()
+    );
 
-        if (
-          likedPosts.has(
-            button.dataset.postId
-          )
-        ) {
+}
 
-          button.classList.add(
-            "liked"
+
+function showPostOptions(
+  postId,
+  button
+) {
+
+  closePostOptions();
+
+
+  const article =
+    button.closest(
+      ".post"
+    );
+
+
+  if (!article) {
+
+    return;
+
+  }
+
+
+  const menu =
+    document.createElement(
+      "div"
+    );
+
+
+  menu.className =
+    "post-options";
+
+
+  menu.innerHTML = `
+
+    <button
+      type="button"
+      data-action="copy"
+    >
+      🔗 Copy post link
+    </button>
+
+
+    <button
+      type="button"
+      data-action="report"
+    >
+      🚩 Report post
+    </button>
+
+
+    <button
+      type="button"
+      data-action="not-interested"
+    >
+      👎 Not interested
+    </button>
+
+  `;
+
+
+  article.appendChild(
+    menu
+  );
+
+
+  menu.addEventListener(
+    "click",
+    async event => {
+
+      const option =
+        event.target.closest(
+          "button"
+        );
+
+
+      if (!option) {
+
+        return;
+
+      }
+
+
+      const action =
+        option.dataset.action;
+
+
+      if (
+        action === "copy"
+      ) {
+
+        const link =
+          window.location.href.split("#")[0] +
+          "?post=" +
+          encodeURIComponent(
+            postId
+          );
+
+
+        try {
+
+          await navigator.clipboard.writeText(
+            link
+          );
+
+
+          alert(
+            "Post link copied!"
+          );
+
+        } catch (error) {
+
+          alert(
+            "Unable to copy post link."
           );
 
         }
 
       }
-    );
+
+
+      else if (
+        action === "report"
+      ) {
+
+        const confirmed =
+          confirm(
+            "Report this post?"
+          );
+
+
+        if (confirmed) {
+
+          alert(
+            "Report submitted. Thank you for helping keep Zinko safe."
+          );
+
+        }
+
+      }
+
+
+      else if (
+        action === "not-interested"
+      ) {
+
+        article.remove();
+
+
+        alert(
+          "Post removed from your discovery feed."
+        );
+
+      }
+
+
+      closePostOptions();
+
+    }
+  );
 
 }
 
@@ -1727,15 +938,14 @@ function buildCreators(posts) {
         creatorMap.set(
           post.user_id,
           {
-            id:
-              post.user_id,
-
-            posts:
-              1
+            id: post.user_id,
+            posts: 1
           }
         );
 
-      } else {
+      }
+
+      else {
 
         creatorMap.get(
           post.user_id
@@ -1763,9 +973,11 @@ function buildCreators(posts) {
   if (!creators.length) {
 
     creatorList.innerHTML = `
+
       <div class="empty">
         No creators to discover yet.
       </div>
+
     `;
 
     return;
@@ -1797,8 +1009,11 @@ function buildCreators(posts) {
       card.innerHTML = `
 
         <div class="avatar pink">
+
           ${escapeHTML(initial)}
+
         </div>
+
 
         <div>
 
@@ -1810,21 +1025,26 @@ function buildCreators(posts) {
             )}
           </b>
 
+
           <small>
+
             ${creator.posts}
+
             ${
               creator.posts === 1
                 ? "post"
                 : "posts"
             }
+
           </small>
 
         </div>
 
+
         <button
           class="follow"
           type="button"
-          data-user-id="${escapeAttribute(
+          data-user-id="${escapeHTML(
             creator.id
           )}"
         >
@@ -1973,14 +1193,18 @@ async function toggleFollow(
         "Could not unfollow this creator."
       );
 
-    } else {
+    }
+
+    else {
 
       button.textContent =
         "Follow";
 
     }
 
-  } else {
+  }
+
+  else {
 
     const {
       error
@@ -2009,7 +1233,9 @@ async function toggleFollow(
         "Could not follow this creator."
       );
 
-    } else {
+    }
+
+    else {
 
       button.textContent =
         "Following";
@@ -2031,7 +1257,7 @@ async function toggleFollow(
 
 searchInput.addEventListener(
   "input",
-  async () => {
+  () => {
 
     const query =
       searchInput.value
@@ -2041,7 +1267,7 @@ searchInput.addEventListener(
 
     if (!query) {
 
-      await renderPosts(
+      renderPosts(
         allPosts
       );
 
@@ -2058,28 +1284,30 @@ searchInput.addEventListener(
             (
               post.content ||
               ""
-            )
-              .toLowerCase();
+            ).toLowerCase();
 
 
           const userId =
             (
               post.user_id ||
               ""
-            )
-              .toLowerCase();
+            ).toLowerCase();
 
 
           return (
-            content.includes(query) ||
-            userId.includes(query)
+            content.includes(
+              query
+            ) ||
+            userId.includes(
+              query
+            )
           );
 
         }
       );
 
 
-    await renderPosts(
+    renderPosts(
       results
     );
 
@@ -2134,7 +1362,7 @@ document
   );
 
 
-async function handleTab(
+function handleTab(
   tab
 ) {
 
@@ -2158,7 +1386,7 @@ async function handleTab(
     tab === "trending"
   ) {
 
-    await renderPosts(
+    renderPosts(
       allPosts
     );
 
@@ -2169,7 +1397,7 @@ async function handleTab(
     tab === "recommended"
   ) {
 
-    await renderPosts(
+    renderPosts(
       allPosts.slice(
         0,
         20
@@ -2184,8 +1412,7 @@ async function handleTab(
   ) {
 
     creatorSection.scrollIntoView({
-      behavior:
-        "smooth"
+      behavior: "smooth"
     });
 
   }
@@ -2257,7 +1484,7 @@ document
 
       item.addEventListener(
         "click",
-        async () => {
+        () => {
 
           const value =
             item.dataset.search;
@@ -2279,18 +1506,19 @@ document
                   ""
                 )
                   .toLowerCase()
-                  .includes(query)
+                  .includes(
+                    query
+                  )
             );
 
 
-          await renderPosts(
+          renderPosts(
             results
           );
 
 
           postSection.scrollIntoView({
-            behavior:
-              "smooth"
+            behavior: "smooth"
           });
 
         }
@@ -2336,7 +1564,9 @@ async function sharePost(
         shareData
       );
 
-    } else {
+    }
+
+    else {
 
       await navigator.clipboard.writeText(
         shareData.url
@@ -2349,7 +1579,9 @@ async function sharePost(
 
     }
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.log(
       "Share cancelled."
@@ -2361,199 +1593,50 @@ async function sharePost(
 
 
 /* =========================================================
-   PAGE CLICK EVENTS
+   THREE-DOT BUTTON EVENTS
    ========================================================= */
 
 postList.addEventListener(
   "click",
-  async event => {
+  event => {
 
-    /* ==============================================
-       LIKE
-       ============================================== */
-
-    const likeButton =
+    const moreButton =
       event.target.closest(
-        ".like-button"
+        ".more"
       );
 
 
-    if (likeButton) {
-
-      await toggleLike(
-        likeButton.dataset.postId,
-        likeButton
-      );
-
+    if (!moreButton) {
 
       return;
 
     }
 
 
-    /* ==============================================
-       COMMENT TOGGLE
-       ============================================== */
-
-    const commentToggle =
-      event.target.closest(
-        ".comment-toggle"
-      );
-
-
-    if (commentToggle) {
-
-      const postId =
-        commentToggle.dataset.postId;
-
-
-      const commentsSection =
-        document.getElementById(
-          `comments-${postId}`
-        );
-
-
-      if (!commentsSection) {
-
-        return;
-
-      }
-
-
-      const currentlyHidden =
-        commentsSection.style.display ===
-        "none";
-
-
-      commentsSection.style.display =
-        currentlyHidden
-          ? "block"
-          : "none";
-
-
-      if (currentlyHidden) {
-
-        const input =
-          commentsSection.querySelector(
-            ".comment-input"
-          );
-
-
-        if (input) {
-
-          setTimeout(
-            () =>
-              input.focus(),
-            100
-          );
-
-        }
-
-      }
-
-
-      return;
-
-    }
-
-
-    /* ==============================================
-       SEND COMMENT
-       ============================================== */
-
-    const commentButton =
-      event.target.closest(
-        ".comment-send"
-      );
-
-
-    if (commentButton) {
-
-      const article =
-        commentButton.closest(
-          ".post"
-        );
-
-
-      await addComment(
-        commentButton.dataset.postId,
-        article
-      );
-
-
-      return;
-
-    }
-
-
-    /* ==============================================
-       DELETE COMMENT
-       ============================================== */
-
-    const deleteButton =
-      event.target.closest(
-        ".comment-delete"
-      );
-
-
-    if (deleteButton) {
-
-      const commentElement =
-        deleteButton.closest(
-          ".comment"
-        );
-
-
-      await deleteComment(
-        deleteButton.dataset.commentId,
-        deleteButton.dataset.postId,
-        commentElement
-      );
-
-
-      return;
-
-    }
-
-
-    /* ==============================================
-       SHARE
-       ============================================== */
-
-    const shareButton =
-      event.target.closest(
-        ".share-button"
-      );
-
-
-    if (shareButton) {
-
-      await sharePost(
-        shareButton
-          .dataset
-          .postId
-      );
-
-
-      return;
-
-    }
+    showPostOptions(
+      moreButton.dataset.postId,
+      moreButton
+    );
 
   }
 );
 
 
 /* =========================================================
-   ENTER TO SEND COMMENT
+   CLOSE MENU WHEN CLICKING OUTSIDE
    ========================================================= */
 
-postList.addEventListener(
-  "keydown",
+document.addEventListener(
+  "click",
   event => {
 
     if (
-      event.key !== "Enter" ||
-      event.shiftKey
+      event.target.closest(
+        ".more"
+      ) ||
+      event.target.closest(
+        ".post-options"
+      )
     ) {
 
       return;
@@ -2561,46 +1644,14 @@ postList.addEventListener(
     }
 
 
-    const input =
-      event.target.closest(
-        ".comment-input"
-      );
-
-
-    if (!input) {
-
-      return;
-
-    }
-
-
-    event.preventDefault();
-
-
-    const article =
-      input.closest(
-        ".post"
-      );
-
-
-    const button =
-      article.querySelector(
-        ".comment-send"
-      );
-
-
-    if (button) {
-
-      button.click();
-
-    }
+    closePostOptions();
 
   }
 );
 
 
 /* =========================================================
-   START ZINKO DISCOVER
+   START
    ========================================================= */
 
 loadPosts();
