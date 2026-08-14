@@ -292,6 +292,45 @@ const liveList =
 
 let allPosts = [];
 let currentTab = "trending";
+let currentUser = null;
+
+
+/* =========================================================
+   CURRENT USER
+   ========================================================= */
+
+async function loadCurrentUser() {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient.auth.getUser();
+
+
+  if (error) {
+
+    console.error(
+      "User error:",
+      error
+    );
+
+    currentUser = null;
+
+    return null;
+
+  }
+
+
+  currentUser =
+    data && data.user
+      ? data.user
+      : null;
+
+
+  return currentUser;
+
+}
 
 
 /* =========================================================
@@ -300,8 +339,13 @@ let currentTab = "trending";
 
 function escapeHTML(value) {
 
-  if (value === null || value === undefined) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+
     return "";
+
   }
 
   return String(value)
@@ -310,21 +354,39 @@ function escapeHTML(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+
+}
+
+
+function escapeAttribute(value) {
+
+  return escapeHTML(value);
+
 }
 
 
 function formatDate(dateValue) {
 
   if (!dateValue) {
+
     return "";
+
   }
 
   const date =
     new Date(dateValue);
 
-  if (Number.isNaN(date.getTime())) {
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
     return "";
+
   }
+
 
   return date.toLocaleDateString(
     undefined,
@@ -333,17 +395,50 @@ function formatDate(dateValue) {
       month: "short"
     }
   );
+
+}
+
+
+function formatDateTime(dateValue) {
+
+  if (!dateValue) {
+
+    return "";
+
+  }
+
+  const date =
+    new Date(dateValue);
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return "";
+
+  }
+
+
+  return date.toLocaleString();
+
 }
 
 
 function shortUserId(id) {
 
   if (!id) {
+
     return "Zinko creator";
+
   }
+
 
   return "Creator " +
     String(id).slice(0, 6);
+
 }
 
 
@@ -353,6 +448,7 @@ function getPostText(post) {
     post.content ||
     ""
   );
+
 }
 
 
@@ -364,6 +460,10 @@ async function loadPosts() {
 
   statusMessage.textContent =
     "Loading Zinko posts…";
+
+
+  await loadCurrentUser();
+
 
   const {
     data,
@@ -390,8 +490,10 @@ async function loadPosts() {
       error
     );
 
+
     statusMessage.textContent =
       "Unable to load posts right now.";
+
 
     postList.innerHTML = `
       <div class="empty">
@@ -399,11 +501,15 @@ async function loadPosts() {
       </div>
     `;
 
+
     return;
+
   }
 
 
-  allPosts = data || [];
+  allPosts =
+    data || [];
+
 
   statusMessage.textContent =
     allPosts.length
@@ -411,13 +517,15 @@ async function loadPosts() {
       : "No posts yet.";
 
 
-  renderPosts(
+  await renderPosts(
     allPosts
   );
+
 
   buildCreators(
     allPosts
   );
+
 }
 
 
@@ -425,9 +533,10 @@ async function loadPosts() {
    RENDER POSTS
    ========================================================= */
 
-function renderPosts(posts) {
+async function renderPosts(posts) {
 
   postList.innerHTML = "";
+
 
   noResults.style.display =
     posts.length
@@ -436,165 +545,1156 @@ function renderPosts(posts) {
 
 
   if (!posts.length) {
+
     return;
+
   }
 
 
-  posts.forEach(
-    post => {
+  for (
+    const post of posts
+  ) {
 
-      const article =
-        document.createElement("article");
+    await renderSinglePost(
+      post
+    );
 
-      article.className =
-        "post";
-
-
-      const initial =
-        post.user_id
-          ? String(post.user_id)
-              .charAt(0)
-              .toUpperCase()
-          : "Z";
+  }
 
 
-      let mediaHTML = "";
+  await updateLikeStates();
+
+}
 
 
-      /* IMAGE */
+/* =========================================================
+   RENDER ONE POST
+   ========================================================= */
 
-      if (post.image_url) {
+async function renderSinglePost(post) {
 
-        mediaHTML = `
-          <img
-            src="${escapeHTML(post.image_url)}"
-            alt="Zinko post"
+  const article =
+    document.createElement(
+      "article"
+    );
+
+
+  article.className =
+    "post";
+
+
+  article.dataset.postId =
+    post.id;
+
+
+  const initial =
+    post.user_id
+      ? String(
+          post.user_id
+        )
+          .charAt(0)
+          .toUpperCase()
+      : "Z";
+
+
+  /* =======================================================
+     GET LIKE COUNT
+     ======================================================= */
+
+  const {
+    count: likeCount,
+    error: likeCountError
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select(
+        "*",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .eq(
+        "post_id",
+        post.id
+      );
+
+
+  if (likeCountError) {
+
+    console.error(
+      "Like count error:",
+      likeCountError
+    );
+
+  }
+
+
+  /* =======================================================
+     MEDIA
+     ======================================================= */
+
+  let mediaHTML = "";
+
+
+  if (post.image_url) {
+
+    mediaHTML = `
+      <img
+        src="${escapeAttribute(post.image_url)}"
+        alt="Zinko post"
+        style="
+          width:100%;
+          max-height:410px;
+          object-fit:cover;
+          border-radius:18px;
+          display:block;
+          margin-top:12px;
+        "
+        loading="lazy"
+        onerror="this.style.display='none'"
+      >
+    `;
+
+  }
+
+
+  else if (post.video_url) {
+
+    mediaHTML = `
+      <video
+        controls
+        playsinline
+        preload="metadata"
+        style="
+          width:100%;
+          max-height:410px;
+          border-radius:18px;
+          display:block;
+          margin-top:12px;
+          background:#000;
+        "
+      >
+        <source
+          src="${escapeAttribute(post.video_url)}"
+        >
+      </video>
+    `;
+
+  }
+
+
+  /* =======================================================
+     POST HTML
+     ======================================================= */
+
+  article.innerHTML = `
+
+    <div class="post-head">
+
+      <div class="avatar">
+        ${escapeHTML(initial)}
+      </div>
+
+      <div>
+
+        <b>
+          ${escapeHTML(
+            shortUserId(
+              post.user_id
+            )
+          )}
+        </b>
+
+        <small>
+          ${escapeHTML(
+            formatDate(
+              post.created_at
+            )
+          )}
+        </small>
+
+      </div>
+
+      <button
+        class="more"
+        type="button"
+      >
+        ⋯
+      </button>
+
+    </div>
+
+
+    ${
+      getPostText(post)
+        ? `
+          <p>
+            ${escapeHTML(
+              getPostText(post)
+            )}
+          </p>
+        `
+        : ""
+    }
+
+
+    ${mediaHTML}
+
+
+    <!-- ENGAGEMENT -->
+
+    <div
+      class="engage"
+      style="
+        margin-top:10px;
+        flex-wrap:wrap;
+      "
+    >
+
+      <button
+        type="button"
+        class="like-button"
+        data-post-id="${escapeAttribute(post.id)}"
+      >
+        ♡
+        <span class="like-label">
+          Like
+        </span>
+        <span class="like-count">
+          ${likeCount || 0}
+        </span>
+      </button>
+
+
+      <button
+        type="button"
+        class="comment-toggle"
+        data-post-id="${escapeAttribute(post.id)}"
+      >
+        💬
+        <span>
+          Comment
+        </span>
+      </button>
+
+
+      <button
+        type="button"
+        class="share-button"
+        data-post-id="${escapeAttribute(post.id)}"
+      >
+        ↗
+        Share
+      </button>
+
+    </div>
+
+
+    <!-- COMMENTS -->
+
+    <div
+      class="comments-section"
+      id="comments-${escapeAttribute(post.id)}"
+      style="display:none;"
+    >
+
+      <b>
+        Comments
+      </b>
+
+
+      <div class="comments-list">
+        Loading comments...
+      </div>
+
+
+      <div
+        class="comment-form"
+        style="
+          display:flex;
+          gap:8px;
+          margin-top:10px;
+        "
+      >
+
+        <input
+          type="text"
+          class="comment-input"
+          placeholder="Write a comment..."
+          maxlength="1000"
+          style="
+            flex:1;
+            min-width:0;
+            padding:10px;
+            border-radius:12px;
+            border:1px solid #29314b;
+            background:#0b1120;
+            color:white;
+            outline:none;
+          "
+        >
+
+
+        <button
+          type="button"
+          class="comment-send"
+          data-post-id="${escapeAttribute(post.id)}"
+          style="
+            border:0;
+            border-radius:12px;
+            padding:10px 14px;
+            background:#7155ff;
+            color:white;
+            font-weight:bold;
+            cursor:pointer;
+          "
+        >
+          Send
+        </button>
+
+      </div>
+
+
+      <div
+        class="comment-message muted"
+        style="
+          font-size:12px;
+          margin-top:6px;
+        "
+      ></div>
+
+    </div>
+
+  `;
+
+
+  postList.appendChild(
+    article
+  );
+
+
+  /* Load comments */
+
+  await loadComments(
+    post,
+    article
+  );
+
+}
+
+
+/* =========================================================
+   LOAD COMMENTS
+   ========================================================= */
+
+async function loadComments(
+  post,
+  article
+) {
+
+  const commentsList =
+    article.querySelector(
+      ".comments-list"
+    );
+
+
+  if (!commentsList) {
+
+    return;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("comments")
+      .select("*")
+      .eq(
+        "post_id",
+        post.id
+      )
+      .order(
+        "created_at",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "Comments error:",
+      error
+    );
+
+
+    commentsList.innerHTML = `
+      <div class="muted">
+        Unable to load comments.
+      </div>
+    `;
+
+
+    return;
+
+  }
+
+
+  if (
+    !data ||
+    data.length === 0
+  ) {
+
+    commentsList.innerHTML = `
+      <div
+        class="muted"
+        style="margin-top:8px;"
+      >
+        No comments yet.
+      </div>
+    `;
+
+
+    return;
+
+  }
+
+
+  commentsList.innerHTML = "";
+
+
+  data.forEach(
+    comment => {
+
+      const commentElement =
+        document.createElement(
+          "div"
+        );
+
+
+      commentElement.className =
+        "comment";
+
+
+      commentElement.style.cssText = `
+        background:#0b1120;
+        border:1px solid #202840;
+        border-radius:12px;
+        padding:10px;
+        margin-top:8px;
+      `;
+
+
+      const canDelete =
+        currentUser &&
+        (
+          comment.user_id ===
+            currentUser.id ||
+
+          post.user_id ===
+            currentUser.id
+        );
+
+
+      commentElement.innerHTML = `
+
+        <div
+          style="
+            display:flex;
+            gap:8px;
+            align-items:center;
+          "
+        >
+
+          <div
             style="
-              width:100%;
-              max-height:410px;
-              object-fit:cover;
-              border-radius:18px;
-              display:block;
-              margin-top:12px;
-            "
-            loading="lazy"
-            onerror="this.style.display='none'"
-          >
-        `;
-      }
-
-
-      /* VIDEO */
-
-      else if (post.video_url) {
-
-        mediaHTML = `
-          <video
-            controls
-            playsinline
-            preload="metadata"
-            style="
-              width:100%;
-              max-height:410px;
-              border-radius:18px;
-              display:block;
-              margin-top:12px;
-              background:#000;
+              width:30px;
+              height:30px;
+              border-radius:50%;
+              background:linear-gradient(
+                135deg,
+                #5865f2,
+                #20c7df
+              );
+              color:white;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              font-size:12px;
+              font-weight:bold;
             "
           >
-            <source
-              src="${escapeHTML(post.video_url)}"
-            >
-          </video>
-        `;
-      }
-
-
-      article.innerHTML = `
-
-        <div class="post-head">
-
-          <div class="avatar">
-            ${escapeHTML(initial)}
+            Z
           </div>
 
-          <div>
+
+          <div
+            style="
+              flex:1;
+              min-width:0;
+            "
+          >
 
             <b>
-              ${escapeHTML(
-                shortUserId(post.user_id)
-              )}
+              Zinko User
             </b>
 
-            <small>
+            <small
+              class="muted"
+              style="display:block;"
+            >
               ${escapeHTML(
-                formatDate(post.created_at)
+                formatDateTime(
+                  comment.created_at
+                )
               )}
             </small>
 
           </div>
 
-          <button
-            class="more"
-            type="button"
-          >
-            ⋯
-          </button>
+
+          ${
+            canDelete
+              ? `
+                <button
+                  type="button"
+                  class="comment-delete"
+                  data-comment-id="${escapeAttribute(comment.id)}"
+                  data-post-id="${escapeAttribute(post.id)}"
+                  style="
+                    border:0;
+                    background:transparent;
+                    color:#ff6b81;
+                    font-size:13px;
+                    font-weight:bold;
+                    cursor:pointer;
+                  "
+                >
+                  Delete
+                </button>
+              `
+              : ""
+          }
 
         </div>
 
 
-        ${
-          getPostText(post)
-            ? `
-              <p>
-                ${escapeHTML(
-                  getPostText(post)
-                )}
-              </p>
-            `
-            : ""
-        }
-
-
-        ${mediaHTML}
-
-
-        <div class="engage"
-             style="margin-top:10px;">
-
-          <button
-            type="button"
-            onclick="alert('Like feature will connect to post_likes next.')"
-          >
-            ♡ Like
-          </button>
-
-          <button
-            type="button"
-            onclick="alert('Comments will connect to comments next.')"
-          >
-            💬 Comment
-          </button>
-
-          <button
-            type="button"
-            onclick="sharePost('${escapeHTML(post.id)}')"
-          >
-            ↗ Share
-          </button>
-
+        <div
+          style="
+            margin:7px 0 0 38px;
+            word-break:break-word;
+          "
+        >
+          ${escapeHTML(
+            comment.content || ""
+          )}
         </div>
 
       `;
 
 
-      postList.appendChild(
-        article
+      commentsList.appendChild(
+        commentElement
       );
 
     }
   );
+
+}
+
+
+/* =========================================================
+   ADD COMMENT
+   ========================================================= */
+
+async function addComment(
+  postId,
+  article
+) {
+
+  const input =
+    article.querySelector(
+      ".comment-input"
+    );
+
+
+  const message =
+    article.querySelector(
+      ".comment-message"
+    );
+
+
+  const sendButton =
+    article.querySelector(
+      ".comment-send"
+    );
+
+
+  const text =
+    input.value.trim();
+
+
+  if (!text) {
+
+    message.textContent =
+      "Write a comment first.";
+
+    return;
+
+  }
+
+
+  await loadCurrentUser();
+
+
+  if (!currentUser) {
+
+    message.textContent =
+      "Please log in before commenting.";
+
+    return;
+
+  }
+
+
+  sendButton.disabled =
+    true;
+
+
+  sendButton.textContent =
+    "...";
+
+
+  message.textContent =
+    "";
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("comments")
+      .insert({
+
+        post_id:
+          postId,
+
+        user_id:
+          currentUser.id,
+
+        content:
+          text
+
+      });
+
+
+  if (error) {
+
+    console.error(
+      "Add comment error:",
+      error
+    );
+
+
+    message.textContent =
+      error.message;
+
+
+    sendButton.disabled =
+      false;
+
+
+    sendButton.textContent =
+      "Send";
+
+
+    return;
+
+  }
+
+
+  input.value = "";
+
+
+  message.textContent =
+    "Comment added!";
+
+
+  sendButton.disabled =
+    false;
+
+
+  sendButton.textContent =
+    "Send";
+
+
+  const {
+    data: postData,
+    error: postError
+  } =
+    await supabaseClient
+      .from("posts")
+      .select("*")
+      .eq(
+        "id",
+        postId
+      )
+      .maybeSingle();
+
+
+  if (
+    postError ||
+    !postData
+  ) {
+
+    console.error(
+      "Post reload error:",
+      postError
+    );
+
+    return;
+
+  }
+
+
+  await loadComments(
+    postData,
+    article
+  );
+
+}
+
+
+/* =========================================================
+   DELETE COMMENT
+   ========================================================= */
+
+async function deleteComment(
+  commentId,
+  postId,
+  commentElement
+) {
+
+  await loadCurrentUser();
+
+
+  if (!currentUser) {
+
+    alert(
+      "Please log in before deleting a comment."
+    );
+
+    return;
+
+  }
+
+
+  const confirmed =
+    confirm(
+      "Delete this comment?"
+    );
+
+
+  if (!confirmed) {
+
+    return;
+
+  }
+
+
+  const deleteButton =
+    commentElement.querySelector(
+      ".comment-delete"
+    );
+
+
+  if (deleteButton) {
+
+    deleteButton.disabled =
+      true;
+
+    deleteButton.textContent =
+      "Deleting...";
+
+  }
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("comments")
+      .delete()
+      .eq(
+        "id",
+        commentId
+      );
+
+
+  if (error) {
+
+    console.error(
+      "Delete comment error:",
+      error
+    );
+
+
+    alert(
+      error.message
+    );
+
+
+    if (deleteButton) {
+
+      deleteButton.disabled =
+        false;
+
+      deleteButton.textContent =
+        "Delete";
+
+    }
+
+
+    return;
+
+  }
+
+
+  commentElement.remove();
+
+
+  const commentsSection =
+    document.getElementById(
+      `comments-${postId}`
+    );
+
+
+  if (commentsSection) {
+
+    const commentsList =
+      commentsSection.querySelector(
+        ".comments-list"
+      );
+
+
+    if (
+      commentsList &&
+      commentsList.children.length === 0
+    ) {
+
+      commentsList.innerHTML = `
+        <div
+          class="muted"
+          style="margin-top:8px;"
+        >
+          No comments yet.
+        </div>
+      `;
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   LIKE / UNLIKE
+   ========================================================= */
+
+async function toggleLike(
+  postId,
+  button
+) {
+
+  await loadCurrentUser();
+
+
+  if (!currentUser) {
+
+    alert(
+      "Please log in to like posts."
+    );
+
+    return;
+
+  }
+
+
+  button.disabled =
+    true;
+
+
+  const {
+    data: existingLike,
+    error: checkError
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select("id")
+      .eq(
+        "post_id",
+        postId
+      )
+      .eq(
+        "user_id",
+        currentUser.id
+      )
+      .maybeSingle();
+
+
+  if (checkError) {
+
+    console.error(
+      "Like check error:",
+      checkError
+    );
+
+
+    alert(
+      checkError.message
+    );
+
+
+    button.disabled =
+      false;
+
+
+    return;
+
+  }
+
+
+  if (existingLike) {
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("post_likes")
+        .delete()
+        .eq(
+          "id",
+          existingLike.id
+        );
+
+
+    if (error) {
+
+      console.error(
+        "Unlike error:",
+        error
+      );
+
+
+      alert(
+        error.message
+      );
+
+
+      button.disabled =
+        false;
+
+
+      return;
+
+    }
+
+
+    button.classList.remove(
+      "liked"
+    );
+
+
+  } else {
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("post_likes")
+        .insert({
+
+          post_id:
+            postId,
+
+          user_id:
+            currentUser.id
+
+        });
+
+
+    if (error) {
+
+      console.error(
+        "Like error:",
+        error
+      );
+
+
+      alert(
+        error.message
+      );
+
+
+      button.disabled =
+        false;
+
+
+      return;
+
+    }
+
+
+    button.classList.add(
+      "liked"
+    );
+
+  }
+
+
+  await refreshLikeCount(
+    postId,
+    button
+  );
+
+
+  button.disabled =
+    false;
+
+}
+
+
+/* =========================================================
+   REFRESH LIKE COUNT
+   ========================================================= */
+
+async function refreshLikeCount(
+  postId,
+  button
+) {
+
+  const {
+    count,
+    error
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select(
+        "*",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .eq(
+        "post_id",
+        postId
+      );
+
+
+  if (error) {
+
+    console.error(
+      "Refresh like count error:",
+      error
+    );
+
+    return;
+
+  }
+
+
+  const countElement =
+    button.querySelector(
+      ".like-count"
+    );
+
+
+  if (countElement) {
+
+    countElement.textContent =
+      count || 0;
+
+  }
+
+}
+
+
+/* =========================================================
+   UPDATE LIKE STATES
+   ========================================================= */
+
+async function updateLikeStates() {
+
+  if (!currentUser) {
+
+    return;
+
+  }
+
+
+  const {
+    data: likes,
+    error
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select("post_id")
+      .eq(
+        "user_id",
+        currentUser.id
+      );
+
+
+  if (error) {
+
+    console.error(
+      "Like states error:",
+      error
+    );
+
+    return;
+
+  }
+
+
+  const likedPosts =
+    new Set(
+      (likes || []).map(
+        like =>
+          like.post_id
+      )
+    );
+
+
+  document
+    .querySelectorAll(
+      ".like-button"
+    )
+    .forEach(
+      button => {
+
+        if (
+          likedPosts.has(
+            button.dataset.postId
+          )
+        ) {
+
+          button.classList.add(
+            "liked"
+          );
+
+        }
+
+      }
+    );
+
 }
 
 
@@ -612,8 +1712,11 @@ function buildCreators(posts) {
     post => {
 
       if (!post.user_id) {
+
         return;
+
       }
+
 
       if (
         !creatorMap.has(
@@ -624,8 +1727,11 @@ function buildCreators(posts) {
         creatorMap.set(
           post.user_id,
           {
-            id: post.user_id,
-            posts: 1
+            id:
+              post.user_id,
+
+            posts:
+              1
           }
         );
 
@@ -641,13 +1747,17 @@ function buildCreators(posts) {
   );
 
 
-  creatorList.innerHTML = "";
+  creatorList.innerHTML =
+    "";
 
 
   const creators =
     Array.from(
       creatorMap.values()
-    ).slice(0, 10);
+    ).slice(
+      0,
+      10
+    );
 
 
   if (!creators.length) {
@@ -659,6 +1769,7 @@ function buildCreators(posts) {
     `;
 
     return;
+
   }
 
 
@@ -666,7 +1777,10 @@ function buildCreators(posts) {
     creator => {
 
       const card =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
+
 
       card.className =
         "creator-card";
@@ -675,7 +1789,8 @@ function buildCreators(posts) {
       const initial =
         String(
           creator.id
-        ).charAt(0)
+        )
+          .charAt(0)
           .toUpperCase();
 
 
@@ -697,9 +1812,11 @@ function buildCreators(posts) {
 
           <small>
             ${creator.posts}
-            ${creator.posts === 1
-              ? "post"
-              : "posts"}
+            ${
+              creator.posts === 1
+                ? "post"
+                : "posts"
+            }
           </small>
 
         </div>
@@ -707,7 +1824,7 @@ function buildCreators(posts) {
         <button
           class="follow"
           type="button"
-          data-user-id="${escapeHTML(
+          data-user-id="${escapeAttribute(
             creator.id
           )}"
         >
@@ -743,6 +1860,7 @@ function buildCreators(posts) {
 
       }
     );
+
 }
 
 
@@ -770,6 +1888,7 @@ async function toggleFollow(
     );
 
     return;
+
   }
 
 
@@ -782,6 +1901,7 @@ async function toggleFollow(
     );
 
     return;
+
   }
 
 
@@ -813,14 +1933,18 @@ async function toggleFollow(
       findError
     );
 
+
     alert(
       "Could not check follow status."
     );
 
+
     button.disabled =
       false;
 
+
     return;
+
   }
 
 
@@ -844,6 +1968,7 @@ async function toggleFollow(
         error
       );
 
+
       alert(
         "Could not unfollow this creator."
       );
@@ -863,11 +1988,13 @@ async function toggleFollow(
       await supabaseClient
         .from("follows")
         .insert({
+
           follower_id:
             user.id,
 
           following_id:
             followingId
+
         });
 
 
@@ -876,6 +2003,7 @@ async function toggleFollow(
       console.error(
         error
       );
+
 
       alert(
         "Could not follow this creator."
@@ -893,6 +2021,7 @@ async function toggleFollow(
 
   button.disabled =
     false;
+
 }
 
 
@@ -902,7 +2031,7 @@ async function toggleFollow(
 
 searchInput.addEventListener(
   "input",
-  () => {
+  async () => {
 
     const query =
       searchInput.value
@@ -912,11 +2041,12 @@ searchInput.addEventListener(
 
     if (!query) {
 
-      renderPosts(
+      await renderPosts(
         allPosts
       );
 
       return;
+
     }
 
 
@@ -928,13 +2058,16 @@ searchInput.addEventListener(
             (
               post.content ||
               ""
-            ).toLowerCase();
+            )
+              .toLowerCase();
+
 
           const userId =
             (
               post.user_id ||
               ""
-            ).toLowerCase();
+            )
+              .toLowerCase();
 
 
           return (
@@ -946,7 +2079,7 @@ searchInput.addEventListener(
       );
 
 
-    renderPosts(
+    await renderPosts(
       results
     );
 
@@ -1001,26 +2134,31 @@ document
   );
 
 
-function handleTab(
+async function handleTab(
   tab
 ) {
 
   hashtagSection.style.display =
     "block";
 
+
   creatorSection.style.display =
     "block";
 
+
   postSection.style.display =
     "block";
+
 
   liveSection.style.display =
     "none";
 
 
-  if (tab === "trending") {
+  if (
+    tab === "trending"
+  ) {
 
-    renderPosts(
+    await renderPosts(
       allPosts
     );
 
@@ -1031,14 +2169,11 @@ function handleTab(
     tab === "recommended"
   ) {
 
-    /*
-      For now, recommended uses recent
-      posts. Later we can connect it
-      to Zinko's recommendation system.
-    */
-
-    renderPosts(
-      allPosts.slice(0, 20)
+    await renderPosts(
+      allPosts.slice(
+        0,
+        20
+      )
     );
 
   }
@@ -1049,7 +2184,8 @@ function handleTab(
   ) {
 
     creatorSection.scrollIntoView({
-      behavior: "smooth"
+      behavior:
+        "smooth"
     });
 
   }
@@ -1062,14 +2198,18 @@ function handleTab(
     hashtagSection.style.display =
       "none";
 
+
     creatorSection.style.display =
       "none";
+
 
     postSection.style.display =
       "none";
 
+
     liveSection.style.display =
       "block";
+
 
     loadLivePlaceholder();
 
@@ -1117,7 +2257,7 @@ document
 
       item.addEventListener(
         "click",
-        () => {
+        async () => {
 
           const value =
             item.dataset.search;
@@ -1128,8 +2268,7 @@ document
 
 
           const query =
-            value
-              .toLowerCase();
+            value.toLowerCase();
 
 
           const results =
@@ -1144,13 +2283,14 @@ document
             );
 
 
-          renderPosts(
+          await renderPosts(
             results
           );
 
 
           postSection.scrollIntoView({
-            behavior: "smooth"
+            behavior:
+              "smooth"
           });
 
         }
@@ -1169,6 +2309,7 @@ async function sharePost(
 ) {
 
   const shareData = {
+
     title:
       "Zinko post",
 
@@ -1181,6 +2322,7 @@ async function sharePost(
       encodeURIComponent(
         postId
       )
+
   };
 
 
@@ -1200,6 +2342,7 @@ async function sharePost(
         shareData.url
       );
 
+
       alert(
         "Post link copied."
       );
@@ -1218,7 +2361,246 @@ async function sharePost(
 
 
 /* =========================================================
-   START
+   PAGE CLICK EVENTS
+   ========================================================= */
+
+postList.addEventListener(
+  "click",
+  async event => {
+
+    /* ==============================================
+       LIKE
+       ============================================== */
+
+    const likeButton =
+      event.target.closest(
+        ".like-button"
+      );
+
+
+    if (likeButton) {
+
+      await toggleLike(
+        likeButton.dataset.postId,
+        likeButton
+      );
+
+
+      return;
+
+    }
+
+
+    /* ==============================================
+       COMMENT TOGGLE
+       ============================================== */
+
+    const commentToggle =
+      event.target.closest(
+        ".comment-toggle"
+      );
+
+
+    if (commentToggle) {
+
+      const postId =
+        commentToggle.dataset.postId;
+
+
+      const commentsSection =
+        document.getElementById(
+          `comments-${postId}`
+        );
+
+
+      if (!commentsSection) {
+
+        return;
+
+      }
+
+
+      const currentlyHidden =
+        commentsSection.style.display ===
+        "none";
+
+
+      commentsSection.style.display =
+        currentlyHidden
+          ? "block"
+          : "none";
+
+
+      if (currentlyHidden) {
+
+        const input =
+          commentsSection.querySelector(
+            ".comment-input"
+          );
+
+
+        if (input) {
+
+          setTimeout(
+            () =>
+              input.focus(),
+            100
+          );
+
+        }
+
+      }
+
+
+      return;
+
+    }
+
+
+    /* ==============================================
+       SEND COMMENT
+       ============================================== */
+
+    const commentButton =
+      event.target.closest(
+        ".comment-send"
+      );
+
+
+    if (commentButton) {
+
+      const article =
+        commentButton.closest(
+          ".post"
+        );
+
+
+      await addComment(
+        commentButton.dataset.postId,
+        article
+      );
+
+
+      return;
+
+    }
+
+
+    /* ==============================================
+       DELETE COMMENT
+       ============================================== */
+
+    const deleteButton =
+      event.target.closest(
+        ".comment-delete"
+      );
+
+
+    if (deleteButton) {
+
+      const commentElement =
+        deleteButton.closest(
+          ".comment"
+        );
+
+
+      await deleteComment(
+        deleteButton.dataset.commentId,
+        deleteButton.dataset.postId,
+        commentElement
+      );
+
+
+      return;
+
+    }
+
+
+    /* ==============================================
+       SHARE
+       ============================================== */
+
+    const shareButton =
+      event.target.closest(
+        ".share-button"
+      );
+
+
+    if (shareButton) {
+
+      await sharePost(
+        shareButton
+          .dataset
+          .postId
+      );
+
+
+      return;
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   ENTER TO SEND COMMENT
+   ========================================================= */
+
+postList.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key !== "Enter" ||
+      event.shiftKey
+    ) {
+
+      return;
+
+    }
+
+
+    const input =
+      event.target.closest(
+        ".comment-input"
+      );
+
+
+    if (!input) {
+
+      return;
+
+    }
+
+
+    event.preventDefault();
+
+
+    const article =
+      input.closest(
+        ".post"
+      );
+
+
+    const button =
+      article.querySelector(
+        ".comment-send"
+      );
+
+
+    if (button) {
+
+      button.click();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   START ZINKO DISCOVER
    ========================================================= */
 
 loadPosts();
