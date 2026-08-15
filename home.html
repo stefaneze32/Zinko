@@ -34,7 +34,7 @@
       border-bottom: 1px solid #27213d;
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 50;
     }
 
     .wordmark {
@@ -65,6 +65,63 @@
       color: white;
       font-size: 22px;
       cursor: pointer;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+    }
+
+    .top-actions button:active {
+      background: rgba(255,255,255,.10);
+      transform: scale(.95);
+    }
+
+    /* ================================
+       NOTIFICATION PANEL
+    ================================ */
+
+    .notification-panel {
+      position: fixed;
+      top: 72px;
+      right: 14px;
+      width: min(360px, calc(100% - 28px));
+      background: #101728;
+      border: 1px solid #29314b;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 12px 35px rgba(0,0,0,.45);
+      z-index: 100;
+      display: none;
+    }
+
+    .notification-panel.show {
+      display: block;
+    }
+
+    .notification-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .notification-header h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .notification-close {
+      border: 0;
+      background: transparent;
+      color: #aeb5cb;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .notification-empty {
+      text-align: center;
+      padding: 25px 10px;
+      color: #858da6;
+      line-height: 1.5;
     }
 
     .stories {
@@ -88,6 +145,7 @@
       position: relative;
       color: white;
       flex-shrink: 0;
+      text-decoration: none;
     }
 
     .story small {
@@ -183,6 +241,7 @@
       padding-top: 10px;
       border-top: 1px solid #252d43;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     .engage button {
@@ -201,6 +260,13 @@
 
     .save-button.saved {
       color: #ffd34d;
+    }
+
+    .viewer-count {
+      color: #aeb5cb;
+      font-size: 14px;
+      margin-left: auto;
+      white-space: nowrap;
     }
 
     .muted {
@@ -373,22 +439,75 @@
     </div>
 
     <div class="top-actions">
-      <button type="button" aria-label="Search">⌕</button>
-      <button type="button" aria-label="Notifications">♡</button>
-      <button type="button" aria-label="Messages">✉</button>
+
+      <button
+        type="button"
+        id="searchTopButton"
+        aria-label="Search"
+      >
+        ⌕
+      </button>
+
+      <button
+        type="button"
+        id="notificationTopButton"
+        aria-label="Notifications"
+      >
+        ♡
+      </button>
+
+      <button
+        type="button"
+        id="messageTopButton"
+        aria-label="Messages"
+      >
+        ✉
+      </button>
+
     </div>
 
   </header>
 
 
+  <!-- NOTIFICATIONS PANEL -->
+
+  <div
+    id="notificationPanel"
+    class="notification-panel"
+  >
+
+    <div class="notification-header">
+
+      <h3>Notifications</h3>
+
+      <button
+        type="button"
+        id="closeNotificationButton"
+        class="notification-close"
+        aria-label="Close notifications"
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <div class="notification-empty">
+      🔔<br><br>
+      You don't have any notifications yet.
+    </div>
+
+  </div>
+
+
   <div class="stories">
 
-    <a href="status.html" class="story add">
-  ＋
-    
+    <a
+      href="status.html"
+      class="story add"
+    >
+      ＋
       <small>Your status</small>
     </a>
-    
 
     <div class="story">
       M
@@ -595,9 +714,114 @@ const postsContainer =
   document.getElementById("postsContainer");
 
 
+const searchTopButton =
+  document.getElementById("searchTopButton");
+
+const notificationTopButton =
+  document.getElementById("notificationTopButton");
+
+const messageTopButton =
+  document.getElementById("messageTopButton");
+
+const notificationPanel =
+  document.getElementById("notificationPanel");
+
+const closeNotificationButton =
+  document.getElementById("closeNotificationButton");
+
+
 let selectedPhoto = null;
 let selectedVideo = null;
 let currentUser = null;
+
+
+/* ================================
+   TOP ICONS
+================================ */
+
+if (searchTopButton) {
+
+  searchTopButton.addEventListener(
+    "click",
+    () => {
+
+      window.location.href =
+        "discover.html";
+
+    }
+  );
+
+}
+
+
+if (messageTopButton) {
+
+  messageTopButton.addEventListener(
+    "click",
+    () => {
+
+      window.location.href =
+        "messages.html";
+
+    }
+  );
+
+}
+
+
+if (notificationTopButton) {
+
+  notificationTopButton.addEventListener(
+    "click",
+    event => {
+
+      event.stopPropagation();
+
+      notificationPanel.classList.toggle(
+        "show"
+      );
+
+    }
+  );
+
+}
+
+
+if (closeNotificationButton) {
+
+  closeNotificationButton.addEventListener(
+    "click",
+    () => {
+
+      notificationPanel.classList.remove(
+        "show"
+      );
+
+    }
+  );
+
+}
+
+
+document.addEventListener(
+  "click",
+  event => {
+
+    if (
+      notificationPanel &&
+      notificationPanel.classList.contains("show") &&
+      !notificationPanel.contains(event.target) &&
+      !notificationTopButton.contains(event.target)
+    ) {
+
+      notificationPanel.classList.remove(
+        "show"
+      );
+
+    }
+
+  }
+);
 
 
 /* ================================
@@ -610,7 +834,7 @@ async function loadCurrentUser() {
     data,
     error
   } =
-    await supabaseClient.auth.getUser();
+  await supabaseClient.auth.getUser();
 
 
   if (error) {
@@ -760,6 +984,102 @@ videoInput.addEventListener(
 
 
 /* ================================
+   RECORD POST VIEW
+================================ */
+
+async function recordPostView(postId) {
+
+  if (!currentUser || !postId) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const {
+      error
+    } =
+    await supabaseClient
+      .from("post_viewers")
+      .upsert(
+        {
+          post_id: postId,
+          user_id: currentUser.id
+        },
+        {
+          onConflict:
+            "post_id,user_id",
+          ignoreDuplicates:
+            true
+        }
+      );
+
+
+    if (error) {
+
+      console.log(
+        "Viewer tracking:",
+        error.message
+      );
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "Viewer tracking unavailable."
+    );
+
+  }
+
+}
+
+
+/* ================================
+   LOAD VIEWER COUNT
+================================ */
+
+async function getViewerCount(postId) {
+
+  const {
+    count,
+    error
+  } =
+  await supabaseClient
+    .from("post_viewers")
+    .select(
+      "*",
+      {
+        count: "exact",
+        head: true
+      }
+    )
+    .eq(
+      "post_id",
+      postId
+    );
+
+
+  if (error) {
+
+    console.log(
+      "Viewer count:",
+      error.message
+    );
+
+    return 0;
+
+  }
+
+
+  return count || 0;
+
+}
+
+
+/* ================================
    LOAD POSTS
 ================================ */
 
@@ -781,15 +1101,15 @@ async function loadPosts() {
     data,
     error
   } =
-    await supabaseClient
-      .from("posts")
-      .select("*")
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
-      );
+  await supabaseClient
+    .from("posts")
+    .select("*")
+    .order(
+      "created_at",
+      {
+        ascending: false
+      }
+    );
 
 
   if (error) {
@@ -854,26 +1174,33 @@ async function renderPost(post) {
     "post";
 
 
+  await recordPostView(
+    post.id
+  );
+
+
   const {
-    count
+    count: likeCount
   } =
-    await supabaseClient
-      .from("post_likes")
-      .select(
-        "*",
-        {
-          count: "exact",
-          head: true
-        }
-      )
-      .eq(
-        "post_id",
-        post.id
-      );
+  await supabaseClient
+    .from("post_likes")
+    .select(
+      "*",
+      {
+        count: "exact",
+        head: true
+      }
+    )
+    .eq(
+      "post_id",
+      post.id
+    );
 
 
-  const likeCount =
-    count || 0;
+  const viewerCount =
+    await getViewerCount(
+      post.id
+    );
 
 
   let mediaHTML = "";
@@ -951,7 +1278,7 @@ async function renderPost(post) {
       >
         ♡
         <span class="like-count">
-          ${likeCount}
+          ${likeCount || 0}
         </span>
       </button>
 
@@ -981,6 +1308,11 @@ async function renderPost(post) {
       >
         🔖
       </button>
+
+
+      <span class="viewer-count">
+        👁 ${viewerCount}
+      </span>
 
     </div>
 
@@ -1056,19 +1388,19 @@ async function loadComments(
     data,
     error
   } =
-    await supabaseClient
-      .from("comments")
-      .select("*")
-      .eq(
-        "post_id",
-        post.id
-      )
-      .order(
-        "created_at",
-        {
-          ascending: true
-        }
-      );
+  await supabaseClient
+    .from("comments")
+    .select("*")
+    .eq(
+      "post_id",
+      post.id
+    )
+    .order(
+      "created_at",
+      {
+        ascending: true
+      }
+    );
 
 
   if (error) {
@@ -1490,13 +1822,13 @@ async function toggleLike(
     const {
       error
     } =
-      await supabaseClient
-        .from("post_likes")
-        .delete()
-        .eq(
-          "id",
-          existingLike.id
-        );
+    await supabaseClient
+      .from("post_likes")
+      .delete()
+      .eq(
+        "id",
+        existingLike.id
+      );
 
 
     if (error) {
@@ -1519,15 +1851,15 @@ async function toggleLike(
     const {
       error
     } =
-      await supabaseClient
-        .from("post_likes")
-        .insert({
+    await supabaseClient
+      .from("post_likes")
+      .insert({
 
-          post_id: postId,
+        post_id: postId,
 
-          user_id: currentUser.id
+        user_id: currentUser.id
 
-        });
+      });
 
 
     if (error) {
@@ -1736,9 +2068,7 @@ postButton.addEventListener(
       let videoURL = null;
 
 
-      /* ================================
-         UPLOAD PHOTO
-      ================================= */
+      /* PHOTO */
 
       if (selectedPhoto) {
 
@@ -1778,11 +2108,11 @@ postButton.addEventListener(
         const {
           data: publicURLData
         } =
-          supabaseClient.storage
-            .from("post-media")
-            .getPublicUrl(
-              fileName
-            );
+        supabaseClient.storage
+          .from("post-media")
+          .getPublicUrl(
+            fileName
+          );
 
 
         imageURL =
@@ -1791,9 +2121,7 @@ postButton.addEventListener(
       }
 
 
-      /* ================================
-         UPLOAD VIDEO
-      ================================= */
+      /* VIDEO */
 
       if (selectedVideo) {
 
@@ -1811,18 +2139,19 @@ postButton.addEventListener(
         const {
           error: uploadError
         } =
-          await supabaseClient.storage
-            .from("post-media")
-            .upload(
-              fileName,
-              selectedVideo,
-              {
-                cacheControl: "3600",
-                upsert: false,
-                contentType:
-                  selectedVideo.type || "video/mp4"
-              }
-            );
+        await supabaseClient.storage
+          .from("post-media")
+          .upload(
+            fileName,
+            selectedVideo,
+            {
+              cacheControl: "3600",
+              upsert: false,
+              contentType:
+                selectedVideo.type ||
+                "video/mp4"
+            }
+          );
 
 
         if (uploadError) {
@@ -1835,11 +2164,11 @@ postButton.addEventListener(
         const {
           data: publicURLData
         } =
-          supabaseClient.storage
-            .from("post-media")
-            .getPublicUrl(
-              fileName
-            );
+        supabaseClient.storage
+          .from("post-media")
+          .getPublicUrl(
+            fileName
+          );
 
 
         videoURL =
@@ -1848,26 +2177,28 @@ postButton.addEventListener(
       }
 
 
-      /* ================================
-         SAVE POST
-      ================================= */
+      /* SAVE POST */
 
       const {
         error: insertError
       } =
-        await supabaseClient
-          .from("posts")
-          .insert({
+      await supabaseClient
+        .from("posts")
+        .insert({
 
-            user_id: user.id,
+          user_id:
+            user.id,
 
-            content: text,
+          content:
+            text,
 
-            image_url: imageURL,
+          image_url:
+            imageURL,
 
-            video_url: videoURL
+          video_url:
+            videoURL
 
-          });
+        });
 
 
       if (insertError) {
@@ -1876,10 +2207,6 @@ postButton.addEventListener(
 
       }
 
-
-      /* ================================
-         RESET FORM
-      ================================= */
 
       postText.value = "";
 
@@ -2074,12 +2401,14 @@ postsContainer.addEventListener(
 
           await navigator.share({
 
-            title: "Zinko",
+            title:
+              "Zinko",
 
             text:
               "Check out this Zinko post.",
 
-            url: shareURL
+            url:
+              shareURL
 
           });
 
