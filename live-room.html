@@ -6,7 +6,11 @@
 <title>Zinko Live Room</title>
 
 <link rel="stylesheet" href="style.css">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- LiveKit browser SDK -->
+<script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
 
 <style>
 *{box-sizing:border-box}
@@ -604,7 +608,7 @@ Send
 
 <br><br>
 
-Your live video now uses a real-time WebRTC connection. Chat, reactions, viewers and live activity continue using Zinko's Supabase realtime system.
+Your live video now uses LiveKit for real-time video and audio. Chat, reactions, viewers and live activity continue using Zinko's Supabase realtime system.
 
 </div>
 
@@ -658,6 +662,20 @@ window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
+
+
+/* =====================================================
+   LIVEKIT
+===================================================== */
+
+const LIVEKIT_URL =
+"wss://zinko-9g149hh3.livekit.cloud";
+
+const LIVEKIT_TOKEN_FUNCTION =
+SUPABASE_URL +
+"/functions/v1/quick-function";
+
+let liveKitRoom = null;
 
 
 /* =====================================================
@@ -757,40 +775,6 @@ let isHost = false;
 
 let microphoneEnabled = true;
 let cameraEnabled = true;
-
-
-/*
-  WebRTC:
-  Host can have many viewers.
-  Each viewer gets a separate PeerConnection.
-*/
-
-const hostPeers = new Map();
-
-let viewerPeer = null;
-
-
-/* =====================================================
-   WEBRTC CONFIG
-===================================================== */
-
-const rtcConfiguration = {
-
-  iceServers: [
-
-    {
-      urls:
-      "stun:stun.l.google.com:19302"
-    },
-
-    {
-      urls:
-      "stun:stun1.l.google.com:19302"
-    }
-
-  ]
-
-};
 
 
 /* =====================================================
@@ -1160,7 +1144,7 @@ async function startLocalCamera(){
     "You're watching this Zinko Live";
 
     placeholderSmall.textContent =
-    "Waiting for the host's video...";
+    "Connecting to the host...";
 
     videoPlaceholder.style.display =
     "flex";
@@ -1211,7 +1195,7 @@ async function startLocalCamera(){
     updateMediaButtons();
 
     connectionStatus.textContent =
-    "Camera connected";
+    "Camera ready";
 
     return true;
 
@@ -1234,6 +1218,567 @@ async function startLocalCamera(){
     showToast(
       "Camera or microphone permission was denied."
     );
+
+    return false;
+  }
+}
+
+
+/* =====================================================
+   LIVEKIT TOKEN
+===================================================== */
+
+async function getLiveKitToken(){
+
+  if(
+    !currentSession ||
+    !currentUser
+  ){
+
+    throw new Error(
+      "Live session or user is missing."
+    );
+  }
+
+
+  const roomName =
+  String(currentSession.id);
+
+
+  const participantIdentity =
+  String(currentUser.id);
+
+
+  const participantName =
+  isHost
+  ? "Zinko Host"
+  : "Zinko Viewer";
+
+
+  const response =
+  await fetch(
+    LIVEKIT_TOKEN_FUNCTION,
+    {
+      method:"POST",
+
+      headers:{
+        "Content-Type":
+        "application/json",
+
+        "apikey":
+        SUPABASE_PUBLISHABLE_KEY,
+
+        "Authorization":
+        "Bearer " +
+        SUPABASE_PUBLISHABLE_KEY
+      },
+
+      body:
+      JSON.stringify({
+
+        roomName:
+        roomName,
+
+        participantIdentity:
+        participantIdentity,
+
+        participantName:
+        participantName,
+
+        isHost:
+        isHost
+
+      })
+    }
+  );
+
+
+  const data =
+  await response.json();
+
+
+  if(!response.ok){
+
+    throw new Error(
+      data?.error ||
+      "Unable to request LiveKit token."
+    );
+  }
+
+
+  if(
+    !data ||
+    !data.success ||
+    !data.token
+  ){
+
+    throw new Error(
+      data?.error ||
+      "LiveKit token was not returned."
+    );
+  }
+
+
+  return data.token;
+}
+
+
+/* =====================================================
+   LIVEKIT VIDEO HELPERS
+===================================================== */
+
+function attachLiveKitTrack(
+  track
+){
+
+  if(!track){
+    return;
+  }
+
+
+  try{
+
+    track.attach(
+      localVideo
+    );
+
+    localVideo.autoplay =
+    true;
+
+    localVideo.playsInline =
+    true;
+
+    videoPlaceholder.style.display =
+    "none";
+
+    connectionStatus.textContent =
+    "You're watching Live";
+
+    localVideo.play()
+    .catch(
+      ()=>{}
+    );
+
+  }catch(error){
+
+    console.error(
+      "LiveKit track attach:",
+      error
+    );
+
+  }
+}
+
+
+function detachLiveKitTrack(
+  track
+){
+
+  if(!track){
+    return;
+  }
+
+
+  try{
+
+    track.detach(
+      localVideo
+    );
+
+  }catch(error){
+
+    console.error(
+      "LiveKit track detach:",
+      error
+    );
+
+  }
+}
+
+
+/* =====================================================
+   LIVEKIT CONNECTION
+===================================================== */
+
+async function connectToLiveKit(){
+
+  if(!currentSession || !currentUser){
+    return false;
+  }
+
+
+  if(
+    typeof LivekitClient ===
+    "undefined"
+  ){
+
+    console.error(
+      "LiveKit SDK was not loaded."
+    );
+
+    showToast(
+      "LiveKit could not be loaded."
+    );
+
+    connectionStatus.textContent =
+    "LiveKit unavailable";
+
+    return false;
+  }
+
+
+  try{
+
+    connectionStatus.textContent =
+    "Getting LiveKit token...";
+
+
+    const token =
+    await getLiveKitToken();
+
+
+    liveKitRoom =
+    new LivekitClient.Room({
+
+      adaptiveStream:true,
+
+      dynacast:true
+
+    });
+
+
+    /* =================================================
+       LIVEKIT EVENTS
+    ================================================= */
+
+
+    liveKitRoom.on(
+      LivekitClient.RoomEvent.TrackSubscribed,
+      (
+        track,
+        publication,
+        participant
+      )=>{
+
+        console.log(
+          "LiveKit track subscribed:",
+          track.kind,
+          participant.identity
+        );
+
+
+        if(
+          track.kind ===
+          LivekitClient.Track.Kind.Video
+        ){
+
+          attachLiveKitTrack(
+            track
+          );
+
+          connectionStatus.textContent =
+          "Live connected";
+        }
+
+
+        if(
+          track.kind ===
+          LivekitClient.Track.Kind.Audio
+        ){
+
+          track.attach(
+            localVideo
+          );
+
+        }
+
+      }
+    );
+
+
+    liveKitRoom.on(
+      LivekitClient.RoomEvent.TrackUnsubscribed,
+      (
+        track
+      )=>{
+
+        detachLiveKitTrack(
+          track
+        );
+
+      }
+    );
+
+
+    liveKitRoom.on(
+      LivekitClient.RoomEvent.Disconnected,
+      ()=>{
+        
+        connectionStatus.textContent =
+        "Live connection lost";
+
+        if(!isHost){
+
+          placeholderText.textContent =
+          "Live connection lost";
+
+          placeholderSmall.textContent =
+          "Trying to reconnect...";
+
+          videoPlaceholder.style.display =
+          "flex";
+        }
+
+      }
+    );
+
+
+    liveKitRoom.on(
+      LivekitClient.RoomEvent.Reconnecting,
+      ()=>{
+
+        connectionStatus.textContent =
+        "Reconnecting...";
+
+      }
+    );
+
+
+    liveKitRoom.on(
+      LivekitClient.RoomEvent.Reconnected,
+      ()=>{
+
+        connectionStatus.textContent =
+        isHost
+        ? "You're live"
+        : "Live connected";
+
+      }
+    );
+
+
+    liveKitRoom.on(
+      LivekitClient.RoomEvent.ParticipantConnected,
+      participant=>{
+
+        console.log(
+          "LiveKit participant joined:",
+          participant.identity
+        );
+
+      }
+    );
+
+
+    liveKitRoom.on(
+      LivekitClient.RoomEvent.ParticipantDisconnected,
+      participant=>{
+
+        console.log(
+          "LiveKit participant left:",
+          participant.identity
+        );
+
+      }
+    );
+
+
+    /* =================================================
+       CONNECT
+    ================================================= */
+
+    connectionStatus.textContent =
+    "Connecting to LiveKit...";
+
+
+    await liveKitRoom.connect(
+      LIVEKIT_URL,
+      token
+    );
+
+
+    console.log(
+      "Connected to LiveKit room:",
+      currentSession.id
+    );
+
+
+    /* =================================================
+       HOST PUBLISHES CAMERA + MICROPHONE
+    ================================================= */
+
+    if(isHost){
+
+      if(!currentStream){
+
+        throw new Error(
+          "Host camera is not available."
+        );
+      }
+
+
+      const videoTrack =
+      currentStream.getVideoTracks()[0];
+
+
+      const audioTrack =
+      currentStream.getAudioTracks()[0];
+
+
+      if(videoTrack){
+
+        const liveKitVideoTrack =
+        new LivekitClient.LocalVideoTrack(
+          videoTrack
+        );
+
+
+        await liveKitRoom.localParticipant
+        .publishTrack(
+          liveKitVideoTrack,
+          {
+            name:"zinko-camera"
+          }
+        );
+
+      }
+
+
+      if(audioTrack){
+
+        const liveKitAudioTrack =
+        new LivekitClient.LocalAudioTrack(
+          audioTrack
+        );
+
+
+        await liveKitRoom.localParticipant
+        .publishTrack(
+          liveKitAudioTrack,
+          {
+            name:"zinko-microphone"
+          }
+        );
+
+      }
+
+
+      localVideo.srcObject =
+      currentStream;
+
+      localVideo.muted =
+      true;
+
+      videoPlaceholder.style.display =
+      "none";
+
+      connectionStatus.textContent =
+      "You're live";
+
+
+      console.log(
+        "Zinko host camera and microphone published."
+      );
+
+    }else{
+
+      connectionStatus.textContent =
+      "Waiting for host video...";
+
+      placeholderText.textContent =
+      "You're watching this Zinko Live";
+
+      placeholderSmall.textContent =
+      "Waiting for the host's video...";
+
+      videoPlaceholder.style.display =
+      "flex";
+
+
+      /*
+        Check tracks already available
+        when joining an existing room.
+      */
+
+      liveKitRoom.remoteParticipants
+      .forEach(
+        participant=>{
+
+          participant.trackPublications
+          .forEach(
+            publication=>{
+
+              if(
+                publication.isSubscribed &&
+                publication.track
+              ){
+
+                if(
+                  publication.kind ===
+                  LivekitClient.Track.Kind.Video
+                ){
+
+                  attachLiveKitTrack(
+                    publication.track
+                  );
+
+                }
+
+              }
+
+            }
+          );
+
+        }
+      );
+
+    }
+
+
+    return true;
+
+  }catch(error){
+
+    console.error(
+      "LiveKit connection error:",
+      error
+    );
+
+
+    connectionStatus.textContent =
+    "LiveKit connection failed";
+
+
+    if(isHost){
+
+      placeholderText.textContent =
+      "LiveKit connection failed";
+
+      placeholderSmall.textContent =
+      error.message ||
+      "Please try again.";
+
+    }else{
+
+      placeholderText.textContent =
+      "Unable to connect to the live";
+
+      placeholderSmall.textContent =
+      error.message ||
+      "Please try again.";
+
+    }
+
+
+    videoPlaceholder.style.display =
+    "flex";
+
+
+    showToast(
+      error.message ||
+      "Could not connect to LiveKit."
+    );
+
 
     return false;
   }
@@ -1281,7 +1826,7 @@ function updateMediaButtons(){
 
 micButton.addEventListener(
 "click",
-()=>{
+async ()=>{
 
   if(!isHost){
 
@@ -1301,8 +1846,10 @@ micButton.addEventListener(
     return;
   }
 
+
   microphoneEnabled =
   !microphoneEnabled;
+
 
   currentStream
   .getAudioTracks()
@@ -1312,6 +1859,42 @@ micButton.addEventListener(
     microphoneEnabled
   );
 
+
+  /*
+    Also update the LiveKit
+    published microphone.
+  */
+
+  if(liveKitRoom){
+
+    const publications =
+    liveKitRoom.localParticipant
+    .trackPublications;
+
+
+    publications.forEach(
+      publication=>{
+
+        if(
+          publication.kind ===
+          LivekitClient.Track.Kind.Audio
+        ){
+
+          if(publication.track){
+
+            publication.track.mediaStreamTrack.enabled =
+            microphoneEnabled;
+
+          }
+
+        }
+
+      }
+    );
+
+  }
+
+
   updateMediaButtons();
 
 });
@@ -1319,7 +1902,7 @@ micButton.addEventListener(
 
 cameraButton.addEventListener(
 "click",
-()=>{
+async ()=>{
 
   if(!isHost){
 
@@ -1339,8 +1922,10 @@ cameraButton.addEventListener(
     return;
   }
 
+
   cameraEnabled =
   !cameraEnabled;
+
 
   currentStream
   .getVideoTracks()
@@ -1350,550 +1935,45 @@ cameraButton.addEventListener(
     cameraEnabled
   );
 
+
+  /*
+    Also update the LiveKit
+    published camera.
+  */
+
+  if(liveKitRoom){
+
+    const publications =
+    liveKitRoom.localParticipant
+    .trackPublications;
+
+
+    publications.forEach(
+      publication=>{
+
+        if(
+          publication.kind ===
+          LivekitClient.Track.Kind.Video
+        ){
+
+          if(publication.track){
+
+            publication.track.mediaStreamTrack.enabled =
+            cameraEnabled;
+
+          }
+
+        }
+
+      }
+    );
+
+  }
+
+
   updateMediaButtons();
 
 });
-
-
-/* =====================================================
-   WEBRTC SIGNALING
-===================================================== */
-
-/*
-  Every message is sent through the
-  Supabase Realtime channel for this live.
-
-  viewer-ready
-  host-offer
-  viewer-answer
-  host-ice
-  viewer-ice
-  viewer-left
-*/
-
-
-async function sendSignal(type,target,data={}){
-
-  if(!realtimeChannel){
-    return;
-  }
-
-  await realtimeChannel.send({
-
-    type:"broadcast",
-
-    event:"webrtc",
-
-    payload:{
-
-      signalType:type,
-
-      from:
-      currentUser.id,
-
-      target:
-      target || null,
-
-      data:data
-
-    }
-
-  });
-}
-
-
-/* =====================================================
-   HOST: CREATE PEER FOR VIEWER
-===================================================== */
-
-async function createHostPeer(viewerId){
-
-  if(!isHost || !currentStream){
-    return;
-  }
-
-
-  if(hostPeers.has(viewerId)){
-
-    try{
-      hostPeers.get(viewerId).close();
-    }catch(e){}
-
-    hostPeers.delete(viewerId);
-  }
-
-
-  const peer =
-  new RTCPeerConnection(
-    rtcConfiguration
-  );
-
-
-  hostPeers.set(
-    viewerId,
-    peer
-  );
-
-
-  currentStream
-  .getTracks()
-  .forEach(
-    track =>
-    peer.addTrack(
-      track,
-      currentStream
-    )
-  );
-
-
-  peer.onicecandidate =
-  async event => {
-
-    if(event.candidate){
-
-      await sendSignal(
-        "host-ice",
-        viewerId,
-        {
-          candidate:
-          event.candidate
-        }
-      );
-    }
-  };
-
-
-  peer.onconnectionstatechange =
-  ()=>{
-
-    if(
-      peer.connectionState ===
-      "connected"
-    ){
-
-      connectionStatus.textContent =
-      "You're live";
-
-    }
-
-
-    if(
-      ["failed","closed","disconnected"]
-      .includes(
-        peer.connectionState
-      )
-    ){
-
-      try{
-        peer.close();
-      }catch(e){}
-
-      hostPeers.delete(
-        viewerId
-      );
-    }
-
-  };
-
-
-  try{
-
-    const offer =
-    await peer.createOffer();
-
-    await peer.setLocalDescription(
-      offer
-    );
-
-
-    await sendSignal(
-      "host-offer",
-      viewerId,
-      {
-        sdp:
-        peer.localDescription
-      }
-    );
-
-  }catch(error){
-
-    console.error(
-      "Host offer:",
-      error
-    );
-
-  }
-}
-
-
-/* =====================================================
-   VIEWER: RECEIVE HOST OFFER
-===================================================== */
-
-async function handleHostOffer(
-  from,
-  data
-){
-
-  if(isHost){
-    return;
-  }
-
-  if(
-    !data ||
-    !data.sdp
-  ){
-    return;
-  }
-
-
-  if(!viewerPeer){
-
-    viewerPeer =
-    new RTCPeerConnection(
-      rtcConfiguration
-    );
-
-
-    viewerPeer.ontrack =
-    event => {
-
-      if(
-        event.streams &&
-        event.streams[0]
-      ){
-
-        localVideo.srcObject =
-        event.streams[0];
-
-        localVideo.muted =
-        false;
-
-        videoPlaceholder.style.display =
-        "none";
-
-        connectionStatus.textContent =
-        "You're watching Live";
-
-      }
-
-    };
-
-
-    viewerPeer.onicecandidate =
-    async event => {
-
-      if(event.candidate){
-
-        await sendSignal(
-          "viewer-ice",
-          from,
-          {
-            candidate:
-            event.candidate
-          }
-        );
-
-      }
-
-    };
-
-
-    viewerPeer.onconnectionstatechange =
-    ()=>{
-
-      const state =
-      viewerPeer.connectionState;
-
-
-      if(state === "connected"){
-
-        connectionStatus.textContent =
-        "Live connected";
-
-      }
-
-
-      if(
-        ["failed","closed","disconnected"]
-        .includes(state)
-      ){
-
-        connectionStatus.textContent =
-        "Live connection lost";
-
-      }
-
-    };
-
-  }
-
-
-  try{
-
-    await viewerPeer.setRemoteDescription(
-      new RTCSessionDescription(
-        data.sdp
-      )
-    );
-
-
-    const answer =
-    await viewerPeer.createAnswer();
-
-
-    await viewerPeer.setLocalDescription(
-      answer
-    );
-
-
-    await sendSignal(
-      "viewer-answer",
-      from,
-      {
-        sdp:
-        viewerPeer.localDescription
-      }
-    );
-
-  }catch(error){
-
-    console.error(
-      "Viewer answer:",
-      error
-    );
-
-  }
-}
-
-
-/* =====================================================
-   WEBRTC SIGNAL HANDLER
-===================================================== */
-
-async function handleWebRTCSignal(
-  payload
-){
-
-  if(!payload){
-    return;
-  }
-
-
-  const type =
-  payload.signalType;
-
-  const from =
-  payload.from;
-
-  const target =
-  payload.target;
-
-  const data =
-  payload.data || {};
-
-
-  /*
-    Ignore messages intended for
-    another user.
-  */
-
-  if(
-    target &&
-    target !== currentUser.id
-  ){
-
-    return;
-  }
-
-
-  /* HOST */
-
-  if(
-    isHost &&
-    type === "viewer-ready"
-  ){
-
-    await createHostPeer(
-      from
-    );
-
-    return;
-  }
-
-
-  if(
-    isHost &&
-    type === "viewer-answer"
-  ){
-
-    const peer =
-    hostPeers.get(from);
-
-    if(
-      peer &&
-      data.sdp
-    ){
-
-      try{
-
-        await peer.setRemoteDescription(
-          new RTCSessionDescription(
-            data.sdp
-          )
-        );
-
-      }catch(error){
-
-        console.error(
-          "Host answer:",
-          error
-        );
-
-      }
-
-    }
-
-    return;
-  }
-
-
-  if(
-    isHost &&
-    type === "viewer-ice"
-  ){
-
-    const peer =
-    hostPeers.get(from);
-
-    if(
-      peer &&
-      data.candidate
-    ){
-
-      try{
-
-        await peer.addIceCandidate(
-          new RTCIceCandidate(
-            data.candidate
-          )
-        );
-
-      }catch(error){
-
-        console.error(
-          "Host ICE:",
-          error
-        );
-
-      }
-
-    }
-
-    return;
-  }
-
-
-  /* VIEWER */
-
-  if(
-    !isHost &&
-    type === "host-offer"
-  ){
-
-    await handleHostOffer(
-      from,
-      data
-    );
-
-    return;
-  }
-
-
-  if(
-    !isHost &&
-    type === "host-ice"
-  ){
-
-    if(
-      viewerPeer &&
-      data.candidate
-    ){
-
-      try{
-
-        await viewerPeer.addIceCandidate(
-          new RTCIceCandidate(
-            data.candidate
-          )
-        );
-
-      }catch(error){
-
-        console.error(
-          "Viewer ICE:",
-          error
-        );
-
-      }
-
-    }
-
-    return;
-  }
-
-}
-
-
-/* =====================================================
-   START VIDEO SIGNALING
-===================================================== */
-
-async function startVideoSignaling(){
-
-  if(!realtimeChannel){
-    return;
-  }
-
-
-  /*
-    Give the channel a moment to become
-    fully subscribed.
-  */
-
-  await new Promise(
-    resolve =>
-    setTimeout(
-      resolve,
-      500
-    )
-  );
-
-
-  if(!isHost){
-
-    /*
-      Tell the host that this viewer
-      is ready to receive video.
-    */
-
-    await sendSignal(
-      "viewer-ready",
-      currentSession.host_id,
-      {}
-    );
-
-    connectionStatus.textContent =
-    "Connecting to host...";
-
-  }else{
-
-    connectionStatus.textContent =
-    "You're live";
-
-  }
-
-}
 
 
 /* =====================================================
@@ -2160,25 +2240,6 @@ function setupRealtime(){
 
 
   /*
-    WEBRTC SIGNALING
-  */
-
-  .on(
-    "broadcast",
-    {
-      event:"webrtc"
-    },
-    payload=>{
-
-      handleWebRTCSignal(
-        payload.payload
-      );
-
-    }
-  )
-
-
-  /*
     CHAT
   */
 
@@ -2193,11 +2254,6 @@ function setupRealtime(){
       currentSession.id
     },
     payload=>{
-
-      /*
-        The sender can receive their
-        own message through realtime.
-      */
 
       addMessage(
         payload.new
@@ -2296,7 +2352,9 @@ function setupRealtime(){
         "SUBSCRIBED"
       ){
 
-        startVideoSignaling();
+        console.log(
+          "Zinko Supabase realtime connected."
+        );
 
       }
 
@@ -2738,34 +2796,59 @@ async ()=>{
 
 
 /* =====================================================
-   CLEANUP WEBRTC
+   CLEANUP LIVEKIT
 ===================================================== */
 
-function closeWebRTC(){
+async function closeLiveKit(){
 
-  if(viewerPeer){
-
-    try{
-      viewerPeer.close();
-    }catch(e){}
-
-    viewerPeer =
-    null;
+  if(!liveKitRoom){
+    return;
   }
 
 
-  hostPeers.forEach(
-    peer=>{
+  try{
 
-      try{
-        peer.close();
-      }catch(e){}
+    liveKitRoom
+    .remoteParticipants
+    .forEach(
+      participant=>{
 
-    }
-  );
+        participant
+        .trackPublications
+        .forEach(
+          publication=>{
+
+            if(
+              publication.track
+            ){
+
+              detachLiveKitTrack(
+                publication.track
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
 
 
-  hostPeers.clear();
+    await liveKitRoom.disconnect();
+
+  }catch(error){
+
+    console.error(
+      "LiveKit cleanup:",
+      error
+    );
+
+  }
+
+
+  liveKitRoom =
+  null;
 }
 
 
@@ -2773,9 +2856,9 @@ function closeWebRTC(){
    LIVE ENDED
 ===================================================== */
 
-function handleLiveEnded(){
+async function handleLiveEnded(){
 
-  closeWebRTC();
+  await closeLiveKit();
 
 
   if(currentStream){
@@ -2856,7 +2939,13 @@ window.addEventListener(
 "beforeunload",
 ()=>{
 
-  closeWebRTC();
+  if(liveKitRoom){
+
+    try{
+      liveKitRoom.disconnect();
+    }catch(e){}
+
+  }
 
 
   if(currentStream){
@@ -2944,19 +3033,41 @@ async function initialize(){
 
 
   /*
-    Host gets camera.
-    Viewer waits for WebRTC video.
+    Host gets local camera.
+    Viewer waits for LiveKit.
   */
 
+  const cameraReady =
   await startLocalCamera();
 
 
+  if(
+    isHost &&
+    !cameraReady
+  ){
+
+    showToast(
+      "Camera could not be started."
+    );
+
+  }
+
+
   /*
-    Realtime must be ready before
-    WebRTC signaling begins.
+    Keep Supabase realtime for
+    chat, reactions, gifts,
+    viewer presence and live status.
   */
 
   setupRealtime();
+
+
+  /*
+    Connect the video/audio layer
+    through LiveKit.
+  */
+
+  await connectToLiveKit();
 
 
   viewerHeartbeat =
