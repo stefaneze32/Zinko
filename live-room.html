@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="style.css">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
 
 <style>
@@ -483,9 +482,7 @@ button,input{font-family:inherit}
 
 <div id="videoPlaceholder" class="video-placeholder">
 
-  <div class="video-placeholder-icon">
-    📺
-  </div>
+  <div class="video-placeholder-icon">📺</div>
 
   <div id="placeholderText">
     Connecting to Zinko Live...
@@ -501,9 +498,7 @@ button,input{font-family:inherit}
 
 <div class="host-info">
 
-<div id="hostAvatar" class="host-avatar">
-  Z
-</div>
+<div id="hostAvatar" class="host-avatar">Z</div>
 
 <div class="host-text">
 
@@ -521,9 +516,7 @@ button,input{font-family:inherit}
 
 <div>
 
-<span class="live-badge">
-  ● LIVE
-</span>
+<span class="live-badge">● LIVE</span>
 
 <span class="viewer-badge">
   👥 <span id="viewerCount">0</span>
@@ -539,7 +532,6 @@ button,input{font-family:inherit}
 
 </section>
 
-
 <main class="room-content">
 
 <h1 id="roomTitle" class="room-title">
@@ -549,7 +541,6 @@ button,input{font-family:inherit}
 <p id="roomCategory" class="room-category">
   Live stream
 </p>
-
 
 <div class="action-row">
 
@@ -571,21 +562,17 @@ button,input{font-family:inherit}
 
 </div>
 
-
 <section class="chat-section">
 
 <div class="section-header">
 
-<strong>
-  💬 Live Chat
-</strong>
+<strong>💬 Live Chat</strong>
 
 <span class="online-count">
   👥 <span id="chatViewerCount">0</span> watching
 </span>
 
 </div>
-
 
 <div id="messages" class="messages">
 
@@ -594,7 +581,6 @@ button,input{font-family:inherit}
 </div>
 
 </div>
-
 
 <div class="chat-input-row">
 
@@ -614,43 +600,22 @@ button,input{font-family:inherit}
 
 </section>
 
-
 <div class="reaction-bar">
 
-<button class="reaction-button" data-reaction="❤️">
-  ❤️
-</button>
-
-<button class="reaction-button" data-reaction="😂">
-  😂
-</button>
-
-<button class="reaction-button" data-reaction="🔥">
-  🔥
-</button>
-
-<button class="reaction-button" data-reaction="👏">
-  👏
-</button>
-
-<button class="reaction-button" data-reaction="😍">
-  😍
-</button>
-
-<button class="reaction-button" data-reaction="🎉">
-  🎉
-</button>
+<button class="reaction-button" data-reaction="❤️">❤️</button>
+<button class="reaction-button" data-reaction="😂">😂</button>
+<button class="reaction-button" data-reaction="🔥">🔥</button>
+<button class="reaction-button" data-reaction="👏">👏</button>
+<button class="reaction-button" data-reaction="😍">😍</button>
+<button class="reaction-button" data-reaction="🎉">🎉</button>
 
 </div>
-
 
 <section class="gift-section">
 
 <div class="gift-header">
 
-<strong>
-  🎁 Send a Gift
-</strong>
+<strong>🎁 Send a Gift</strong>
 
 <span class="coin-balance">
   🪙 <span id="coinBalance">0</span> coins
@@ -662,14 +627,13 @@ button,input{font-family:inherit}
 
 </section>
 
-
 <div class="notice">
 
 <strong>⚡ Zinko Live</strong>
 
 <br><br>
 
-Your live video now uses LiveKit for real-time video and audio.
+Your live video uses LiveKit for real-time video and audio.
 Chat, reactions, viewers and live activity continue using
 Zinko's Supabase realtime system.
 
@@ -678,14 +642,11 @@ Zinko's Supabase realtime system.
 </main>
 </div>
 
-
 <div id="endModal" class="modal">
 
 <div class="modal-card">
 
-<h3>
-  End this live?
-</h3>
+<h3>End this live?</h3>
 
 <p>
   Your live session will be marked as ended and viewers will no
@@ -707,9 +668,7 @@ Zinko's Supabase realtime system.
 </div>
 </div>
 
-
 <div id="toast" class="toast"></div>
-
 
 <script>
 
@@ -737,9 +696,15 @@ window.supabase.createClient(
 const LIVEKIT_URL =
 "wss://zinko-9g149hh3.livekit.cloud";
 
+/*
+  IMPORTANT:
+  This now uses the successfully deployed
+  livekit-token Edge Function.
+*/
+
 const LIVEKIT_TOKEN_FUNCTION =
 SUPABASE_URL +
-"/functions/v1/quick-function";
+"/functions/v1/livekit-token";
 
 let liveKitRoom = null;
 
@@ -831,14 +796,10 @@ document.getElementById("toast");
 let currentUser = null;
 let currentSession = null;
 let currentStream = null;
-
 let realtimeChannel = null;
-
 let viewerHeartbeat = null;
 let viewerCountTimer = null;
-
 let isHost = false;
-
 let microphoneEnabled = true;
 let cameraEnabled = true;
 
@@ -886,10 +847,7 @@ function showToast(message){
 
 async function getCurrentUser(){
 
-  const {
-    data,
-    error
-  } =
+  const {data,error} =
   await supabaseClient.auth.getUser();
 
   if(
@@ -969,16 +927,12 @@ async function createHostSession(){
     return null;
   }
 
-  const {
-    data,
-    error
-  } =
+  const {data,error} =
   await supabaseClient
   .from("zinko_live_sessions")
   .insert({
 
-    host_id:
-    currentUser.id,
+    host_id:currentUser.id,
 
     title:
     savedLive.title ||
@@ -992,13 +946,11 @@ async function createHostSession(){
     savedLive.audience ||
     "everyone",
 
-    status:
-    "live"
+    status:"live"
 
   })
   .select()
   .single();
-
 
   if(error){
 
@@ -1011,7 +963,6 @@ async function createHostSession(){
     return null;
   }
 
-
   window.history.replaceState(
     {},
     "",
@@ -1019,19 +970,13 @@ async function createHostSession(){
     encodeURIComponent(data.id)
   );
 
-
   localStorage.setItem(
     "zinko_current_live",
     JSON.stringify({
-
       ...savedLive,
-
-      liveId:
-      data.id
-
+      liveId:data.id
     })
   );
-
 
   return data;
 }
@@ -1051,13 +996,11 @@ async function loadLiveSession(){
   savedLive.userId ===
   currentUser.id;
 
-
   if(
     savedBelongsToUser &&
     (
       !requestedLiveId ||
-      requestedLiveId ===
-      savedLive.liveId
+      requestedLiveId === savedLive.liveId
     )
   ){
 
@@ -1066,7 +1009,6 @@ async function loadLiveSession(){
     .test(
       String(savedLive.liveId || "")
     );
-
 
     if(!looksLikeUuid){
 
@@ -1085,11 +1027,9 @@ async function loadLiveSession(){
       return created;
     }
 
-
     requestedLiveId =
     savedLive.liveId;
   }
-
 
   if(!requestedLiveId){
 
@@ -1100,17 +1040,12 @@ async function loadLiveSession(){
     return null;
   }
 
-
-  const {
-    data,
-    error
-  } =
+  const {data,error} =
   await supabaseClient
   .from("zinko_live_sessions")
   .select("*")
   .eq("id",requestedLiveId)
   .maybeSingle();
-
 
   if(error){
 
@@ -1123,7 +1058,6 @@ async function loadLiveSession(){
     return null;
   }
 
-
   if(!data){
 
     showToast(
@@ -1133,7 +1067,6 @@ async function loadLiveSession(){
     return null;
   }
 
-
   if(data.status !== "live"){
 
     showToast(
@@ -1142,7 +1075,6 @@ async function loadLiveSession(){
 
     return null;
   }
-
 
   currentSession =
   data;
@@ -1173,7 +1105,6 @@ function displaySession(){
   currentSession.category ||
   "General";
 
-
   roomTitle.textContent =
   title;
 
@@ -1183,12 +1114,10 @@ function displaySession(){
   roomCategory.textContent =
   "🎬 " + category;
 
-
   const creatorLabel =
   isHost
   ? "You"
   : "Zinko Creator";
-
 
   hostName.textContent =
   creatorLabel;
@@ -1221,7 +1150,6 @@ async function startLocalCamera(){
     return true;
   }
 
-
   if(
     !navigator.mediaDevices ||
     !navigator.mediaDevices.getUserMedia
@@ -1233,7 +1161,6 @@ async function startLocalCamera(){
 
     return false;
   }
-
 
   try{
 
@@ -1247,7 +1174,6 @@ async function startLocalCamera(){
       audio:true
 
     });
-
 
     localVideo.srcObject =
     currentStream;
@@ -1306,7 +1232,6 @@ async function getLiveKitToken(){
     );
   }
 
-
   const roomName =
   String(currentSession.id);
 
@@ -1317,7 +1242,6 @@ async function getLiveKitToken(){
   isHost
   ? "Zinko Host"
   : "Zinko Viewer";
-
 
   const response =
   await fetch(
@@ -1356,10 +1280,8 @@ async function getLiveKitToken(){
     }
   );
 
-
   const data =
   await response.json();
-
 
   if(!response.ok){
 
@@ -1368,7 +1290,6 @@ async function getLiveKitToken(){
       "Unable to request LiveKit token."
     );
   }
-
 
   if(
     !data ||
@@ -1382,13 +1303,12 @@ async function getLiveKitToken(){
     );
   }
 
-
   return data.token;
 }
 
 
 /* =====================================================
-   LIVEKIT VIDEO HELPERS
+   LIVEKIT VIDEO
 ===================================================== */
 
 function attachLiveKitTrack(track){
@@ -1403,11 +1323,8 @@ function attachLiveKitTrack(track){
       localVideo
     );
 
-    localVideo.autoplay =
-    true;
-
-    localVideo.playsInline =
-    true;
+    localVideo.autoplay = true;
+    localVideo.playsInline = true;
 
     videoPlaceholder.style.display =
     "none";
@@ -1416,9 +1333,7 @@ function attachLiveKitTrack(track){
     "You're watching Live";
 
     localVideo.play()
-    .catch(
-      ()=>{}
-    );
+    .catch(()=>{});
 
   }catch(error){
 
@@ -1426,7 +1341,6 @@ function attachLiveKitTrack(track){
       "LiveKit track attach:",
       error
     );
-
   }
 }
 
@@ -1449,7 +1363,6 @@ function detachLiveKitTrack(track){
       "LiveKit track detach:",
       error
     );
-
   }
 }
 
@@ -1467,7 +1380,6 @@ async function connectToLiveKit(){
 
     return false;
   }
-
 
   if(
     typeof LivekitClient ===
@@ -1488,16 +1400,13 @@ async function connectToLiveKit(){
     return false;
   }
 
-
   try{
 
     connectionStatus.textContent =
     "Getting LiveKit token...";
 
-
     const token =
     await getLiveKitToken();
-
 
     liveKitRoom =
     new LivekitClient.Room({
@@ -1507,7 +1416,6 @@ async function connectToLiveKit(){
       dynacast:true
 
     });
-
 
     liveKitRoom.on(
       LivekitClient.RoomEvent.TrackSubscribed,
@@ -1523,7 +1431,6 @@ async function connectToLiveKit(){
           participant.identity
         );
 
-
         if(
           track.kind ===
           LivekitClient.Track.Kind.Video
@@ -1537,7 +1444,6 @@ async function connectToLiveKit(){
           "Live connected";
         }
 
-
         if(
           track.kind ===
           LivekitClient.Track.Kind.Audio
@@ -1546,18 +1452,13 @@ async function connectToLiveKit(){
           track.attach(
             localVideo
           );
-
         }
-
       }
     );
 
-
     liveKitRoom.on(
       LivekitClient.RoomEvent.TrackUnsubscribed,
-      (
-        track
-      )=>{
+      track=>{
 
         detachLiveKitTrack(
           track
@@ -1565,7 +1466,6 @@ async function connectToLiveKit(){
 
       }
     );
-
 
     liveKitRoom.on(
       LivekitClient.RoomEvent.Disconnected,
@@ -1585,10 +1485,8 @@ async function connectToLiveKit(){
           videoPlaceholder.style.display =
           "flex";
         }
-
       }
     );
-
 
     liveKitRoom.on(
       LivekitClient.RoomEvent.Reconnecting,
@@ -1599,7 +1497,6 @@ async function connectToLiveKit(){
 
       }
     );
-
 
     liveKitRoom.on(
       LivekitClient.RoomEvent.Reconnected,
@@ -1613,7 +1510,6 @@ async function connectToLiveKit(){
       }
     );
 
-
     liveKitRoom.on(
       LivekitClient.RoomEvent.ParticipantConnected,
       participant=>{
@@ -1625,7 +1521,6 @@ async function connectToLiveKit(){
 
       }
     );
-
 
     liveKitRoom.on(
       LivekitClient.RoomEvent.ParticipantDisconnected,
@@ -1639,22 +1534,18 @@ async function connectToLiveKit(){
       }
     );
 
-
     connectionStatus.textContent =
     "Connecting to LiveKit...";
-
 
     await liveKitRoom.connect(
       LIVEKIT_URL,
       token
     );
 
-
     console.log(
       "Connected to LiveKit room:",
       currentSession.id
     );
-
 
     if(isHost){
 
@@ -1665,13 +1556,11 @@ async function connectToLiveKit(){
         );
       }
 
-
       const videoTrack =
       currentStream.getVideoTracks()[0];
 
       const audioTrack =
       currentStream.getAudioTracks()[0];
-
 
       if(videoTrack){
 
@@ -1680,7 +1569,6 @@ async function connectToLiveKit(){
           videoTrack
         );
 
-
         await liveKitRoom.localParticipant
         .publishTrack(
           liveKitVideoTrack,
@@ -1688,9 +1576,7 @@ async function connectToLiveKit(){
             name:"zinko-camera"
           }
         );
-
       }
-
 
       if(audioTrack){
 
@@ -1699,7 +1585,6 @@ async function connectToLiveKit(){
           audioTrack
         );
 
-
         await liveKitRoom.localParticipant
         .publishTrack(
           liveKitAudioTrack,
@@ -1707,9 +1592,7 @@ async function connectToLiveKit(){
             name:"zinko-microphone"
           }
         );
-
       }
-
 
       localVideo.srcObject =
       currentStream;
@@ -1722,7 +1605,6 @@ async function connectToLiveKit(){
 
       connectionStatus.textContent =
       "You're live";
-
 
       console.log(
         "Zinko host camera and microphone published."
@@ -1741,7 +1623,6 @@ async function connectToLiveKit(){
 
       videoPlaceholder.style.display =
       "flex";
-
 
       liveKitRoom.remoteParticipants
       .forEach(
@@ -1764,19 +1645,13 @@ async function connectToLiveKit(){
                   attachLiveKitTrack(
                     publication.track
                   );
-
                 }
-
               }
-
             }
           );
-
         }
       );
-
     }
-
 
     return true;
 
@@ -1787,41 +1662,25 @@ async function connectToLiveKit(){
       error
     );
 
-
     connectionStatus.textContent =
     "LiveKit connection failed";
 
+    placeholderText.textContent =
+    isHost
+    ? "LiveKit connection failed"
+    : "Unable to connect to the live";
 
-    if(isHost){
-
-      placeholderText.textContent =
-      "LiveKit connection failed";
-
-      placeholderSmall.textContent =
-      error.message ||
-      "Please try again.";
-
-    }else{
-
-      placeholderText.textContent =
-      "Unable to connect to the live";
-
-      placeholderSmall.textContent =
-      error.message ||
-      "Please try again.";
-
-    }
-
+    placeholderSmall.textContent =
+    error.message ||
+    "Please try again.";
 
     videoPlaceholder.style.display =
     "flex";
-
 
     showToast(
       error.message ||
       "Could not connect to LiveKit."
     );
-
 
     return false;
   }
@@ -1847,9 +1706,7 @@ function updateMediaButtons(){
     "🔇 Mic Off";
 
     micButton.classList.remove("active");
-
   }
-
 
   if(cameraEnabled){
 
@@ -1864,9 +1721,7 @@ function updateMediaButtons(){
     "📷 Camera Off";
 
     cameraButton.classList.remove("active");
-
   }
-
 }
 
 
@@ -1892,10 +1747,8 @@ async ()=>{
     return;
   }
 
-
   microphoneEnabled =
   !microphoneEnabled;
-
 
   currentStream
   .getAudioTracks()
@@ -1905,15 +1758,11 @@ async ()=>{
     microphoneEnabled
   );
 
-
   if(liveKitRoom){
 
-    const publications =
     liveKitRoom.localParticipant
-    .trackPublications;
-
-
-    publications.forEach(
+    .trackPublications
+    .forEach(
       publication=>{
 
         if(
@@ -1927,19 +1776,13 @@ async ()=>{
             .mediaStreamTrack
             .enabled =
             microphoneEnabled;
-
           }
-
         }
-
       }
     );
-
   }
 
-
   updateMediaButtons();
-
 });
 
 
@@ -1965,10 +1808,8 @@ async ()=>{
     return;
   }
 
-
   cameraEnabled =
   !cameraEnabled;
-
 
   currentStream
   .getVideoTracks()
@@ -1978,15 +1819,11 @@ async ()=>{
     cameraEnabled
   );
 
-
   if(liveKitRoom){
 
-    const publications =
     liveKitRoom.localParticipant
-    .trackPublications;
-
-
-    publications.forEach(
+    .trackPublications
+    .forEach(
       publication=>{
 
         if(
@@ -2000,19 +1837,13 @@ async ()=>{
             .mediaStreamTrack
             .enabled =
             cameraEnabled;
-
           }
-
         }
-
       }
     );
-
   }
 
-
   updateMediaButtons();
-
 });
 
 
@@ -2020,23 +1851,11 @@ async ()=>{
    CHAT
 ===================================================== */
 
-/*
-  Add one message to the screen.
-
-  IMPORTANT:
-  Every message gets its database ID.
-  This prevents the same message from
-  appearing twice when both the sender
-  displays it immediately and Supabase
-  Realtime sends the INSERT event.
-*/
-
 function addMessage(message){
 
   if(!message){
     return;
   }
-
 
   if(
     message.id &&
@@ -2050,21 +1869,17 @@ function addMessage(message){
     return;
   }
 
-
   const element =
   document.createElement("div");
 
   element.className =
   "message";
 
-
   if(message.id){
 
     element.dataset.messageId =
     message.id;
-
   }
-
 
   const name =
   message.user_id ===
@@ -2072,13 +1887,10 @@ function addMessage(message){
   ? "You"
   : "Viewer";
 
-
   element.innerHTML = `
 
     <div class="message-avatar">
-      ${escapeHtml(
-        getInitial(name)
-      )}
+      ${escapeHtml(getInitial(name))}
     </div>
 
     <div class="message-content">
@@ -2088,30 +1900,21 @@ function addMessage(message){
       </div>
 
       <div class="message-text">
-        ${escapeHtml(
-          message.message
-        )}
+        ${escapeHtml(message.message)}
       </div>
 
     </div>
 
   `;
 
-
   messages.appendChild(
     element
   );
-
 
   messages.scrollTop =
   messages.scrollHeight;
 }
 
-
-/*
-  Load previous messages when
-  entering the live room.
-*/
 
 async function loadMessages(){
 
@@ -2119,22 +1922,12 @@ async function loadMessages(){
     return;
   }
 
-
-  const {
-    data,
-    error
-  } =
+  const {data,error} =
   await supabaseClient
   .from("zinko_live_messages")
   .select("*")
-  .eq(
-    "live_id",
-    currentSession.id
-  )
-  .eq(
-    "is_deleted",
-    false
-  )
+  .eq("live_id",currentSession.id)
+  .eq("is_deleted",false)
   .order(
     "created_at",
     {
@@ -2142,7 +1935,6 @@ async function loadMessages(){
     }
   )
   .limit(100);
-
 
   if(error){
 
@@ -2154,41 +1946,23 @@ async function loadMessages(){
     return;
   }
 
-
   if(data){
 
     data.forEach(
       addMessage
     );
-
   }
-
 }
 
-
-/*
-  SEND CHAT MESSAGE
-
-  This is the important fix.
-
-  After Supabase successfully inserts
-  the message, we immediately call
-  addMessage(data).
-
-  Therefore the sender sees the message
-  immediately without waiting for Realtime.
-*/
 
 async function sendMessage(){
 
   const text =
   chatInput.value.trim();
 
-
   if(!text){
     return;
   }
-
 
   if(!currentSession){
 
@@ -2199,7 +1973,6 @@ async function sendMessage(){
     return;
   }
 
-
   if(!currentUser){
 
     showToast(
@@ -2209,17 +1982,12 @@ async function sendMessage(){
     return;
   }
 
-
   sendButton.disabled =
   true;
 
-
   try{
 
-    const {
-      data,
-      error
-    } =
+    const {data,error} =
     await supabaseClient
     .from("zinko_live_messages")
     .insert({
@@ -2237,7 +2005,6 @@ async function sendMessage(){
     .select()
     .single();
 
-
     if(error){
 
       console.error(
@@ -2245,34 +2012,22 @@ async function sendMessage(){
         error
       );
 
-
       showToast(
         "Message could not be sent."
       );
 
-
       return;
     }
-
-
-    /*
-      MESSAGE WAS SUCCESSFULLY SAVED.
-
-      Show it immediately.
-    */
 
     if(data){
 
       addMessage(
         data
       );
-
     }
-
 
     chatInput.value =
     "";
-
 
   }catch(error){
 
@@ -2281,19 +2036,15 @@ async function sendMessage(){
       error
     );
 
-
     showToast(
       "Message could not be sent."
     );
-
 
   }finally{
 
     sendButton.disabled =
     false;
-
   }
-
 }
 
 
@@ -2312,9 +2063,7 @@ event=>{
     event.preventDefault();
 
     sendMessage();
-
   }
-
 });
 
 
@@ -2334,14 +2083,10 @@ document
         return;
       }
 
-
       const reaction =
       button.dataset.reaction;
 
-
-      const {
-        error
-      } =
+      const {error} =
       await supabaseClient
       .from("zinko_live_reactions")
       .insert({
@@ -2357,7 +2102,6 @@ document
 
       });
 
-
       if(error){
 
         console.error(
@@ -2372,19 +2116,16 @@ document
         return;
       }
 
-
       showToast(
         reaction
       );
-
     }
   );
-
 });
 
 
 /* =====================================================
-   REALTIME CHANNEL
+   REALTIME
 ===================================================== */
 
 function setupRealtime(){
@@ -2393,18 +2134,12 @@ function setupRealtime(){
     return;
   }
 
-
   realtimeChannel =
   supabaseClient
   .channel(
     "zinko-live-" +
     currentSession.id
   )
-
-
-  /*
-    CHAT REALTIME
-  */
 
   .on(
     "postgres_changes",
@@ -2418,29 +2153,11 @@ function setupRealtime(){
     },
     payload=>{
 
-      console.log(
-        "Realtime chat message:",
-        payload.new
-      );
-
-
-      /*
-        addMessage automatically ignores
-        a message already displayed by
-        the sender.
-      */
-
       addMessage(
         payload.new
       );
-
     }
   )
-
-
-  /*
-    REACTIONS
-  */
 
   .on(
     "postgres_changes",
@@ -2459,16 +2176,9 @@ function setupRealtime(){
         showToast(
           payload.new.reaction
         );
-
       }
-
     }
   )
-
-
-  /*
-    GIFTS
-  */
 
   .on(
     "postgres_changes",
@@ -2485,14 +2195,8 @@ function setupRealtime(){
       showToast(
         "🎁 Gift received!"
       );
-
     }
   )
-
-
-  /*
-    LIVE STATUS
-  */
 
   .on(
     "postgres_changes",
@@ -2512,12 +2216,9 @@ function setupRealtime(){
       ){
 
         handleLiveEnded();
-
       }
-
     }
   )
-
 
   .subscribe(
     status=>{
@@ -2526,22 +2227,8 @@ function setupRealtime(){
         "Zinko realtime status:",
         status
       );
-
-
-      if(
-        status ===
-        "SUBSCRIBED"
-      ){
-
-        console.log(
-          "Zinko Supabase realtime connected."
-        );
-
-      }
-
     }
   );
-
 }
 
 
@@ -2555,16 +2242,11 @@ async function joinLive(){
     return;
   }
 
-
-  const {
-    error
-  } =
+  const {error} =
   await supabaseClient
   .from("zinko_live_viewers")
   .upsert(
-
     {
-
       live_id:
       currentSession.id,
 
@@ -2573,16 +2255,12 @@ async function joinLive(){
 
       last_seen_at:
       new Date().toISOString()
-
     },
-
     {
       onConflict:
       "live_id,user_id"
     }
-
   );
-
 
   if(error){
 
@@ -2590,9 +2268,7 @@ async function joinLive(){
       "Viewer join:",
       error
     );
-
   }
-
 
   await updateViewerCount();
 }
@@ -2607,7 +2283,6 @@ async function heartbeat(){
 
     return;
   }
-
 
   await supabaseClient
   .from("zinko_live_viewers")
@@ -2634,17 +2309,12 @@ async function updateViewerCount(){
     return;
   }
 
-
   const activeSince =
   new Date(
     Date.now() - 90000
   ).toISOString();
 
-
-  const {
-    count,
-    error
-  } =
+  const {count,error} =
   await supabaseClient
   .from("zinko_live_viewers")
   .select(
@@ -2663,7 +2333,6 @@ async function updateViewerCount(){
     activeSince
   );
 
-
   if(error){
 
     console.error(
@@ -2674,10 +2343,8 @@ async function updateViewerCount(){
     return;
   }
 
-
   const total =
   count || 0;
-
 
   viewerCount.textContent =
   total;
@@ -2693,10 +2360,7 @@ async function updateViewerCount(){
 
 async function loadGifts(){
 
-  const {
-    data,
-    error
-  } =
+  const {data,error} =
   await supabaseClient
   .from("zinko_gifts")
   .select(
@@ -2713,7 +2377,6 @@ async function loadGifts(){
     }
   );
 
-
   if(error){
 
     console.error(
@@ -2724,15 +2387,12 @@ async function loadGifts(){
     return;
   }
 
-
   giftGrid.innerHTML =
   "";
-
 
   if(!data){
     return;
   }
-
 
   data.forEach(gift=>{
 
@@ -2763,7 +2423,6 @@ async function loadGifts(){
 
     `;
 
-
     button.addEventListener(
       "click",
       ()=>{
@@ -2771,17 +2430,13 @@ async function loadGifts(){
         showToast(
           "🎁 Gifts are ready. Payment will be connected in the payment stage."
         );
-
       }
     );
-
 
     giftGrid.appendChild(
       button
     );
-
   });
-
 }
 
 
@@ -2791,10 +2446,7 @@ async function loadGifts(){
 
 async function loadCoinBalance(){
 
-  const {
-    data,
-    error
-  } =
+  const {data,error} =
   await supabaseClient
   .from("zinko_coin_wallets")
   .select("balance")
@@ -2803,7 +2455,6 @@ async function loadCoinBalance(){
     currentUser.id
   )
   .maybeSingle();
-
 
   if(error){
 
@@ -2814,7 +2465,6 @@ async function loadCoinBalance(){
 
     return;
   }
-
 
   coinBalance.textContent =
   data
@@ -2834,7 +2484,6 @@ async ()=>{
   const link =
   window.location.href;
 
-
   try{
 
     if(navigator.share){
@@ -2851,7 +2500,6 @@ async ()=>{
 
         url:
         link
-
       });
 
     }else if(
@@ -2871,7 +2519,6 @@ async ()=>{
       showToast(
         link
       );
-
     }
 
   }catch(error){
@@ -2879,9 +2526,7 @@ async ()=>{
     console.log(
       "Share cancelled."
     );
-
   }
-
 });
 
 
@@ -2902,11 +2547,9 @@ endButton.addEventListener(
     return;
   }
 
-
   endModal.classList.add(
     "show"
   );
-
 });
 
 
@@ -2917,7 +2560,6 @@ cancelEndButton.addEventListener(
   endModal.classList.remove(
     "show"
   );
-
 });
 
 
@@ -2933,17 +2575,13 @@ async ()=>{
     return;
   }
 
-
   confirmEndButton.disabled =
   true;
 
   confirmEndButton.textContent =
   "Ending...";
 
-
-  const {
-    error
-  } =
+  const {error} =
   await supabaseClient
   .from("zinko_live_sessions")
   .update({
@@ -2964,7 +2602,6 @@ async ()=>{
     currentUser.id
   );
 
-
   if(error){
 
     console.error(
@@ -2984,9 +2621,7 @@ async ()=>{
     return;
   }
 
-
   handleLiveEnded();
-
 });
 
 
@@ -2999,7 +2634,6 @@ async function closeLiveKit(){
   if(!liveKitRoom){
     return;
   }
-
 
   try{
 
@@ -3020,15 +2654,11 @@ async function closeLiveKit(){
               detachLiveKitTrack(
                 publication.track
               );
-
             }
-
           }
         );
-
       }
     );
-
 
     await liveKitRoom.disconnect();
 
@@ -3038,9 +2668,7 @@ async function closeLiveKit(){
       "LiveKit cleanup:",
       error
     );
-
   }
-
 
   liveKitRoom =
   null;
@@ -3055,7 +2683,6 @@ async function handleLiveEnded(){
 
   await closeLiveKit();
 
-
   if(currentStream){
 
     currentStream
@@ -3069,7 +2696,6 @@ async function handleLiveEnded(){
     null;
   }
 
-
   if(viewerHeartbeat){
 
     clearInterval(
@@ -3080,7 +2706,6 @@ async function handleLiveEnded(){
     null;
   }
 
-
   if(viewerCountTimer){
 
     clearInterval(
@@ -3090,7 +2715,6 @@ async function handleLiveEnded(){
     viewerCountTimer =
     null;
   }
-
 
   if(realtimeChannel){
 
@@ -3103,16 +2727,13 @@ async function handleLiveEnded(){
     null;
   }
 
-
   localStorage.removeItem(
     "zinko_current_live"
   );
 
-
   showToast(
     "Live ended."
   );
-
 
   setTimeout(
     ()=>{
@@ -3141,9 +2762,7 @@ window.addEventListener(
       liveKitRoom.disconnect();
 
     }catch(e){}
-
   }
-
 
   if(currentStream){
 
@@ -3153,9 +2772,7 @@ window.addEventListener(
       track =>
       track.stop()
     );
-
   }
-
 });
 
 
@@ -3168,23 +2785,18 @@ async function initialize(){
   connectionStatus.textContent =
   "Checking account...";
 
-
   const user =
   await getCurrentUser();
-
 
   if(!user){
     return;
   }
 
-
   connectionStatus.textContent =
   "Loading live...";
 
-
   const session =
   await loadLiveSession();
-
 
   if(!session){
 
@@ -3199,9 +2811,7 @@ async function initialize(){
     return;
   }
 
-
   displaySession();
-
 
   if(!isHost){
 
@@ -3213,9 +2823,7 @@ async function initialize(){
 
     endButton.style.display =
     "none";
-
   }
-
 
   await loadMessages();
 
@@ -3225,10 +2833,8 @@ async function initialize(){
 
   await joinLive();
 
-
   const cameraReady =
   await startLocalCamera();
-
 
   if(
     isHost &&
@@ -3238,15 +2844,11 @@ async function initialize(){
     showToast(
       "Camera could not be started."
     );
-
   }
-
 
   setupRealtime();
 
-
   await connectToLiveKit();
-
 
   viewerHeartbeat =
   setInterval(
@@ -3256,7 +2858,6 @@ async function initialize(){
     30000
   );
 
-
   viewerCountTimer =
   setInterval(
     async ()=>{
@@ -3264,13 +2865,11 @@ async function initialize(){
     },
     15000
   );
-
 }
-
 
 initialize();
 
 </script>
 
 </body>
-</html>
+  </html>
