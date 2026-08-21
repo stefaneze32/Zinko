@@ -44,6 +44,14 @@
   border-radius:20px;
   overflow:hidden;
   box-shadow:0 8px 25px rgba(0,0,0,.18);
+  transition:
+    transform .18s ease,
+    border-color .18s ease;
+}
+
+.live-card:hover{
+  transform:translateY(-2px);
+  border-color:#394361;
 }
 
 .live-media{
@@ -110,6 +118,7 @@
 
 .live-symbol{
   font-size:55px;
+  filter:drop-shadow(0 8px 15px rgba(0,0,0,.3));
 }
 
 .live-info{
@@ -118,6 +127,50 @@
 
 .live-info h3{
   margin:0 0 7px;
+  font-size:17px;
+}
+
+.live-host{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-bottom:8px;
+}
+
+.live-host-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#7155ff,#10bce4);
+  color:white;
+  font-size:12px;
+  font-weight:900;
+  flex-shrink:0;
+}
+
+.live-host-info{
+  min-width:0;
+}
+
+.live-host-name{
+  color:#f1f4fb;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.live-host-id{
+  color:#727c96;
+  font-size:9px;
+  margin-top:2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .live-info p{
@@ -201,6 +254,11 @@
   background:#101728;
   border:1px solid #202840;
   border-radius:15px;
+  transition:transform .18s ease;
+}
+
+.creator-row:hover{
+  transform:translateY(-1px);
 }
 
 .creator-avatar{
@@ -213,21 +271,29 @@
   background:linear-gradient(135deg,#7155ff,#10bce4);
   color:white;
   font-weight:900;
+  flex-shrink:0;
 }
 
 .creator-info{
   flex:1;
+  min-width:0;
 }
 
 .creator-info b{
   display:block;
   font-size:13px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .creator-info small{
   display:block;
   color:#858da6;
   margin-top:3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .creator-time{
@@ -238,12 +304,19 @@
   font-weight:800;
 }
 
+.creator-viewers{
+  color:#9da6bf;
+  font-size:10px;
+  white-space:nowrap;
+}
+
 .online-dot{
   width:9px;
   height:9px;
   border-radius:50%;
   background:#22d47a;
   flex-shrink:0;
+  box-shadow:0 0 8px rgba(34,212,122,.55);
 }
 
 .refresh-button{
@@ -333,6 +406,12 @@
   color:#858da6;
   font-size:10px;
   white-space:nowrap;
+}
+
+.section-divider{
+  height:1px;
+  background:#202840;
+  margin:24px 0;
 }
 
 @media(min-width:700px){
@@ -520,6 +599,12 @@ document.getElementById("refreshButton");
 
 let currentLiveSessions = [];
 
+let liveRealtimeChannel = null;
+
+let loadInProgress = false;
+
+let lastLoadTime = 0;
+
 
 /* =====================================================
    HELPERS
@@ -527,7 +612,7 @@ let currentLiveSessions = [];
 
 function escapeHtml(value){
 
-  return String(value || "")
+  return String(value ?? "")
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
@@ -545,6 +630,65 @@ function getInitial(value){
   return (
     text.charAt(0).toUpperCase() ||
     "Z"
+  );
+
+}
+
+
+/*
+  At this stage we only know that
+  zinko_live_sessions.host_id contains
+  the creator's Supabase user ID.
+
+  We therefore do NOT invent a profile
+  table or profile column.
+
+  Once the actual Zinko profile table is
+  identified, this helper can be upgraded
+  to show the creator's real username
+  and avatar.
+*/
+
+function formatHost(hostId){
+
+  if(!hostId){
+
+    return "Zinko Creator";
+
+  }
+
+  const id =
+    String(hostId);
+
+  return (
+    "Creator " +
+    id.substring(0,6)
+  );
+
+}
+
+
+function getHostShortId(hostId){
+
+  if(!hostId){
+
+    return "";
+
+  }
+
+  const id =
+    String(hostId);
+
+  if(id.length <= 12){
+
+    return id;
+
+  }
+
+  return (
+    id.substring(0,8) +
+    "..." +
+    id.substring(id.length - 4)
   );
 
 }
@@ -613,23 +757,6 @@ function getLiveBackground(index){
 }
 
 
-function formatHost(hostId){
-
-  if(!hostId){
-    return "Zinko Creator";
-  }
-
-  const id =
-    String(hostId);
-
-  return (
-    "Creator " +
-    id.substring(0,6)
-  );
-
-}
-
-
 /* =====================================================
    REAL ELAPSED TIME
 ===================================================== */
@@ -637,14 +764,18 @@ function formatHost(hostId){
 function formatStartedAgo(createdAt){
 
   if(!createdAt){
+
     return "Started just now";
+
   }
 
   const start =
     new Date(createdAt).getTime();
 
   if(!Number.isFinite(start)){
+
     return "Started just now";
+
   }
 
   const now =
@@ -654,7 +785,9 @@ function formatStartedAgo(createdAt){
     now - start;
 
   if(difference < 0){
+
     difference = 0;
+
   }
 
   const totalSeconds =
@@ -734,7 +867,9 @@ function formatStartedAgo(createdAt){
 function formatEndedAt(endedAt){
 
   if(!endedAt){
+
     return "End time unavailable";
+
   }
 
   const date =
@@ -775,11 +910,15 @@ function formatEndedAt(endedAt){
     );
 
   if(today){
+
     return "Today at " + time;
+
   }
 
   if(yesterday){
+
     return "Yesterday at " + time;
+
   }
 
   return (
@@ -803,6 +942,12 @@ function formatEndedAt(endedAt){
 ===================================================== */
 
 async function getViewerCount(liveId){
+
+  if(!liveId){
+
+    return 0;
+
+  }
 
   const activeSince =
     new Date(
@@ -853,6 +998,17 @@ async function getViewerCount(liveId){
 
 async function loadLiveStreams(){
 
+  if(loadInProgress){
+
+    return;
+
+  }
+
+  loadInProgress = true;
+
+  lastLoadTime =
+    Date.now();
+
   liveGrid.innerHTML = `
     <div class="loading-live">
       Loading live streams...
@@ -872,345 +1028,181 @@ async function loadLiveStreams(){
   `;
 
 
-  const {
-    data:liveData,
-    error:liveError
-  } =
-  await supabaseClient
-    .from("zinko_live_sessions")
-    .select("*")
-    .eq(
-      "status",
-      "live"
-    )
-    .order(
-      "created_at",
-      {
-        ascending:false
-      }
-    );
+  try{
 
-
-  if(liveError){
-
-    console.error(
-      "Live sessions error:",
-      liveError
-    );
-
-    currentLiveSessions = [];
-
-    liveGrid.innerHTML = `
-      <div class="live-error">
-        Could not load live streams.
-        <br><br>
-        Please check your internet connection and try again.
-      </div>
-    `;
-
-    creatorList.innerHTML = "";
-    recentLiveList.innerHTML = "";
-
-    return;
-
-  }
-
-
-  currentLiveSessions =
-    liveData || [];
-
-
-  const {
-    data:endedData,
-    error:endedError
-  } =
-  await supabaseClient
-    .from("zinko_live_sessions")
-    .select("*")
-    .eq(
-      "status",
-      "ended"
-    )
-    .order(
-      "ended_at",
-      {
-        ascending:false
-      }
-    )
-    .limit(10);
-
-
-  if(endedError){
-
-    console.error(
-      "Recent lives error:",
-      endedError
-    );
-
-  }
-
-
-  /* ===================================================
-     CURRENT LIVE
-  =================================================== */
-
-  if(
-    !liveData ||
-    liveData.length === 0
-  ){
-
-    liveGrid.innerHTML = `
-      <div class="empty-live">
-
-        <div class="empty-live-icon">
-          📺
-        </div>
-
-        <strong>
-          No one is live right now
-        </strong>
-
-        <p>
-          When a creator starts a Zinko Live,
-          it will appear here automatically.
-        </p>
-
-      </div>
-    `;
-
-    creatorList.innerHTML = `
-      <div class="empty-live">
-
-        <div class="empty-live-icon">
-          🟢
-        </div>
-
-        <strong>
-          No creators are currently live
-        </strong>
-
-        <p>
-          Start your own live or check again later.
-        </p>
-
-      </div>
-    `;
-
-  }else{
-
-    liveGrid.innerHTML = "";
-    creatorList.innerHTML = "";
-
-
-    for(
-      let index = 0;
-      index < liveData.length;
-      index++
-    ){
-
-      const live =
-        liveData[index];
-
-      const title =
-        live.title ||
-        "Zinko Live";
-
-      const category =
-        live.category ||
-        "General";
-
-      const creator =
-        formatHost(
-          live.host_id
-        );
-
-      const viewerCount =
-        await getViewerCount(
-          live.id
-        );
-
-      const card =
-        document.createElement(
-          "article"
-        );
-
-      card.className =
-        "live-card";
-
-      card.innerHTML = `
-
-        <div
-          class="live-media ${getLiveBackground(index)}"
-        >
-
-          <span class="live-badge">
-            LIVE
-          </span>
-
-          <span class="viewer-badge">
-            👁 ${viewerCount}
-          </span>
-
-          <div class="live-symbol">
-            ${escapeHtml(
-              getLiveEmoji(category)
-            )}
-          </div>
-
-        </div>
-
-
-        <div class="live-info">
-
-          <h3>
-            ${escapeHtml(title)}
-          </h3>
-
-          <p>
-            ${escapeHtml(creator)}
-            · Live now on Zinko
-          </p>
-
-          <span
-            class="live-time"
-            data-live-time-id="${escapeHtml(live.id)}"
-          >
-            🔴 ${escapeHtml(
-              formatStartedAgo(
-                live.created_at
-              )
-            )}
-          </span>
-
-          <span class="live-category">
-            🎬 ${escapeHtml(category)}
-          </span>
-
-          <div class="live-actions">
-
-            <button
-              class="btn primary watch-button"
-              type="button"
-              data-live-id="${escapeHtml(live.id)}"
-            >
-              Watch Live
-            </button>
-
-          </div>
-
-        </div>
-
-      `;
-
-
-      const watchButton =
-        card.querySelector(
-          ".watch-button"
-        );
-
-      watchButton.addEventListener(
-        "click",
-        ()=>{
-          watchLive(
-            live.id
-          );
+    const {
+      data:liveData,
+      error:liveError
+    } =
+    await supabaseClient
+      .from("zinko_live_sessions")
+      .select("*")
+      .eq(
+        "status",
+        "live"
+      )
+      .order(
+        "created_at",
+        {
+          ascending:false
         }
       );
 
-      liveGrid.appendChild(
-        card
+
+    if(liveError){
+
+      console.error(
+        "Live sessions error:",
+        liveError
       );
 
+      currentLiveSessions = [];
 
-      /* =================================================
-         CREATOR ROW
-      ================================================= */
+      liveGrid.innerHTML = `
+        <div class="live-error">
 
-      const creatorRow =
-        document.createElement(
-          "div"
-        );
+          Could not load live streams.
 
-      creatorRow.className =
-        "creator-row";
+          <br><br>
 
-      creatorRow.innerHTML = `
-
-        <div class="creator-avatar">
-          ${escapeHtml(
-            getInitial(creator)
-          )}
-        </div>
-
-        <div class="creator-info">
-
-          <b>
-            ${escapeHtml(creator)}
-          </b>
-
-          <small>
-            ${escapeHtml(title)}
-          </small>
-
-          <span
-            class="creator-time"
-            data-live-time-id="${escapeHtml(live.id)}"
-          >
-            🔴 ${escapeHtml(
-              formatStartedAgo(
-                live.created_at
-              )
-            )}
-          </span>
+          Please check your internet connection
+          and try again.
 
         </div>
-
-        <span class="online-dot"></span>
-
       `;
 
-      creatorList.appendChild(
-        creatorRow
+      creatorList.innerHTML = "";
+
+      recentLiveList.innerHTML = "";
+
+      return;
+
+    }
+
+
+    currentLiveSessions =
+      liveData || [];
+
+
+    const {
+      data:endedData,
+      error:endedError
+    } =
+    await supabaseClient
+      .from("zinko_live_sessions")
+      .select("*")
+      .eq(
+        "status",
+        "ended"
+      )
+      .order(
+        "ended_at",
+        {
+          ascending:false
+        }
+      )
+      .limit(10);
+
+
+    if(endedError){
+
+      console.error(
+        "Recent lives error:",
+        endedError
       );
 
     }
 
-  }
 
+    /* =================================================
+       CURRENT LIVE
+    ================================================= */
 
-  /* ===================================================
-     RECENTLY ENDED
-  =================================================== */
+    if(
+      !liveData ||
+      liveData.length === 0
+    ){
 
-  if(
-    !endedData ||
-    endedData.length === 0
-  ){
+      liveGrid.innerHTML = `
+        <div class="empty-live">
 
-    recentLiveList.innerHTML = `
-      <div class="empty-live">
+          <div class="empty-live-icon">
+            📺
+          </div>
 
-        <div class="empty-live-icon">
-          🕘
+          <strong>
+            No one is live right now
+          </strong>
+
+          <p>
+            When a creator starts a Zinko Live,
+            it will appear here automatically.
+          </p>
+
         </div>
+      `;
 
-        <strong>
-          No recent lives
-        </strong>
 
-        <p>
-          Ended Zinko Lives will appear here.
-        </p>
+      creatorList.innerHTML = `
+        <div class="empty-live">
 
-      </div>
-    `;
+          <div class="empty-live-icon">
+            🟢
+          </div>
 
-  }else{
+          <strong>
+            No creators are currently live
+          </strong>
 
-    recentLiveList.innerHTML = "";
+          <p>
+            Start your own live or check again later.
+          </p>
 
-    endedData.forEach(
-      live=>{
+        </div>
+      `;
+
+    }else{
+
+      liveGrid.innerHTML = "";
+
+      creatorList.innerHTML = "";
+
+
+      /*
+        Get viewer counts.
+
+        These are still queried individually,
+        but only when the Live discovery page
+        is actually loaded/refreshed.
+      */
+
+      const viewerCounts =
+        {};
+
+      await Promise.all(
+        liveData.map(
+          async live=>{
+
+            viewerCounts[
+              live.id
+            ] =
+              await getViewerCount(
+                live.id
+              );
+
+          }
+        )
+      );
+
+
+      for(
+        let index = 0;
+        index < liveData.length;
+        index++
+      ){
+
+        const live =
+          liveData[index];
 
         const title =
           live.title ||
@@ -1225,56 +1217,354 @@ async function loadLiveStreams(){
             live.host_id
           );
 
-        const endedTime =
-          formatEndedAt(
-            live.ended_at
+        const shortHostId =
+          getHostShortId(
+            live.host_id
           );
 
-        const row =
+        const count =
+          viewerCounts[live.id] || 0;
+
+
+        /* =============================================
+           LIVE CARD
+        ============================================= */
+
+        const card =
+          document.createElement(
+            "article"
+          );
+
+        card.className =
+          "live-card";
+
+        card.innerHTML = `
+
+          <div
+            class="live-media ${getLiveBackground(index)}"
+          >
+
+            <span class="live-badge">
+              ● LIVE
+            </span>
+
+            <span class="viewer-badge">
+              👁 ${count}
+            </span>
+
+            <div class="live-symbol">
+              ${escapeHtml(
+                getLiveEmoji(category)
+              )}
+            </div>
+
+          </div>
+
+
+          <div class="live-info">
+
+            <h3>
+              ${escapeHtml(title)}
+            </h3>
+
+
+            <div class="live-host">
+
+              <div class="live-host-avatar">
+                ${escapeHtml(
+                  getInitial(creator)
+                )}
+              </div>
+
+              <div class="live-host-info">
+
+                <div class="live-host-name">
+                  ${escapeHtml(creator)}
+                </div>
+
+                <div class="live-host-id">
+                  ID: ${escapeHtml(shortHostId)}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <p>
+              ${escapeHtml(creator)}
+              · Live now on Zinko
+            </p>
+
+
+            <span
+              class="live-time"
+              data-live-time-id="${escapeHtml(live.id)}"
+            >
+              🔴 ${escapeHtml(
+                formatStartedAgo(
+                  live.created_at
+                )
+              )}
+            </span>
+
+
+            <span class="live-category">
+              🎬 ${escapeHtml(category)}
+            </span>
+
+
+            <div class="live-actions">
+
+              <button
+                class="btn primary watch-button"
+                type="button"
+                data-live-id="${escapeHtml(live.id)}"
+              >
+                ▶ Watch Live
+              </button>
+
+            </div>
+
+          </div>
+
+        `;
+
+
+        const watchButton =
+          card.querySelector(
+            ".watch-button"
+          );
+
+
+        watchButton.addEventListener(
+          "click",
+          ()=>{
+
+            watchLive(
+              live.id
+            );
+
+          }
+        );
+
+
+        liveGrid.appendChild(
+          card
+        );
+
+
+        /* =============================================
+           CREATOR ROW
+        ============================================= */
+
+        const creatorRow =
           document.createElement(
             "div"
           );
 
-        row.className =
-          "ended-card";
+        creatorRow.className =
+          "creator-row";
 
-        row.innerHTML = `
 
-          <div class="ended-icon">
+        creatorRow.innerHTML = `
+
+          <div class="creator-avatar">
             ${escapeHtml(
-              getLiveEmoji(category)
+              getInitial(creator)
             )}
           </div>
 
-          <div class="ended-info">
 
-            <strong>
-              ${escapeHtml(title)}
-            </strong>
+          <div class="creator-info">
+
+            <b>
+              ${escapeHtml(creator)}
+            </b>
 
             <small>
-              ${escapeHtml(creator)}
-              · ${escapeHtml(category)}
+              ${escapeHtml(title)}
             </small>
 
-            <span class="ended-time">
-              ⏹ Ended · ${escapeHtml(endedTime)}
+            <span
+              class="creator-time"
+              data-live-time-id="${escapeHtml(live.id)}"
+            >
+              🔴 ${escapeHtml(
+                formatStartedAgo(
+                  live.created_at
+                )
+              )}
             </span>
 
           </div>
 
-          <span class="ended-label">
-            Ended
+
+          <span class="creator-viewers">
+            👁 ${count}
           </span>
+
+
+          <span class="online-dot"></span>
 
         `;
 
-        recentLiveList.appendChild(
-          row
+
+        creatorRow.style.cursor =
+          "pointer";
+
+
+        creatorRow.addEventListener(
+          "click",
+          ()=>{
+
+            watchLive(
+              live.id
+            );
+
+          }
+        );
+
+
+        creatorList.appendChild(
+          creatorRow
         );
 
       }
+
+    }
+
+
+    /* =================================================
+       RECENTLY ENDED
+    ================================================= */
+
+    if(
+      !endedData ||
+      endedData.length === 0
+    ){
+
+      recentLiveList.innerHTML = `
+        <div class="empty-live">
+
+          <div class="empty-live-icon">
+            🕘
+          </div>
+
+          <strong>
+            No recent lives
+          </strong>
+
+          <p>
+            Ended Zinko Lives will appear here.
+          </p>
+
+        </div>
+      `;
+
+    }else{
+
+      recentLiveList.innerHTML = "";
+
+
+      endedData.forEach(
+        live=>{
+
+          const title =
+            live.title ||
+            "Zinko Live";
+
+          const category =
+            live.category ||
+            "General";
+
+          const creator =
+            formatHost(
+              live.host_id
+            );
+
+          const endedTime =
+            formatEndedAt(
+              live.ended_at
+            );
+
+
+          const row =
+            document.createElement(
+              "div"
+            );
+
+          row.className =
+            "ended-card";
+
+
+          row.innerHTML = `
+
+            <div class="ended-icon">
+              ${escapeHtml(
+                getLiveEmoji(category)
+              )}
+            </div>
+
+
+            <div class="ended-info">
+
+              <strong>
+                ${escapeHtml(title)}
+              </strong>
+
+              <small>
+                ${escapeHtml(creator)}
+                · ${escapeHtml(category)}
+              </small>
+
+              <span class="ended-time">
+                ⏹ Ended · ${escapeHtml(endedTime)}
+              </span>
+
+            </div>
+
+
+            <span class="ended-label">
+              Ended
+            </span>
+
+          `;
+
+
+          recentLiveList.appendChild(
+            row
+          );
+
+        }
+      );
+
+    }
+
+  }catch(error){
+
+    console.error(
+      "LOAD LIVE ERROR:",
+      error
     );
+
+    liveGrid.innerHTML = `
+      <div class="live-error">
+
+        Something went wrong while
+        loading Zinko Live.
+
+        <br><br>
+
+        Please refresh and try again.
+
+      </div>
+    `;
+
+  }finally{
+
+    loadInProgress =
+      false;
 
   }
 
@@ -1297,6 +1587,7 @@ function watchLive(liveId){
 
   }
 
+
   window.location.href =
     "live-room.html?live=" +
     encodeURIComponent(
@@ -1310,22 +1601,13 @@ function watchLive(liveId){
    UPDATE LIVE TIMES
 ===================================================== */
 
-/*
-  This function does NOT reload the page.
-
-  It directly updates the existing time labels
-  using the original created_at timestamp.
-
-  It runs every 1 second so the timer is always
-  ready to change exactly when a minute passes.
-*/
-
 function updateLiveTimeLabels(){
 
   const timeElements =
     document.querySelectorAll(
       "[data-live-time-id]"
     );
+
 
   timeElements.forEach(
     element=>{
@@ -1335,6 +1617,7 @@ function updateLiveTimeLabels(){
           "data-live-time-id"
         );
 
+
       const live =
         currentLiveSessions.find(
           session =>
@@ -1342,9 +1625,13 @@ function updateLiveTimeLabels(){
             String(liveId)
         );
 
+
       if(!live){
+
         return;
+
       }
+
 
       element.textContent =
         "🔴 " +
@@ -1369,6 +1656,7 @@ async function refreshLives(){
 
   refreshButton.textContent =
     "↻ Loading...";
+
 
   try{
 
@@ -1397,16 +1685,31 @@ refreshButton.addEventListener(
    REALTIME SUPABASE UPDATES
 ===================================================== */
 
-let liveRealtimeChannel = null;
-
-
 function setupLiveRealtime(){
+
+  if(liveRealtimeChannel){
+
+    supabaseClient
+      .removeChannel(
+        liveRealtimeChannel
+      );
+
+  }
+
 
   liveRealtimeChannel =
     supabaseClient
       .channel(
         "zinko-live-list"
       )
+
+
+      /*
+        Live sessions are important.
+
+        If somebody starts or ends a live,
+        refresh the discovery page.
+      */
 
       .on(
         "postgres_changes",
@@ -1415,22 +1718,30 @@ function setupLiveRealtime(){
           schema:"public",
           table:"zinko_live_sessions"
         },
-        ()=>{
-          loadLiveStreams();
+        payload=>{
+
+          console.log(
+            "Live session realtime update:",
+            payload.eventType
+          );
+
+
+          /*
+            Small delay prevents several
+            simultaneous database events
+            from causing multiple reloads.
+          */
+
+          setTimeout(
+            ()=>{
+              loadLiveStreams();
+            },
+            250
+          );
+
         }
       )
 
-      .on(
-        "postgres_changes",
-        {
-          event:"*",
-          schema:"public",
-          table:"zinko_live_viewers"
-        },
-        ()=>{
-          loadLiveStreams();
-        }
-      )
 
       .subscribe(
         status=>{
@@ -1447,27 +1758,56 @@ function setupLiveRealtime(){
 
 
 /* =====================================================
-   AUTOMATIC SESSION REFRESH
+   AUTOMATIC DISCOVERY REFRESH
 ===================================================== */
 
-setInterval(
-  ()=>{
-    loadLiveStreams();
-  },
-  15000
-);
+/*
+  Keep the discovery page fresh.
+
+  This is intentionally slower than the viewer
+  heartbeat so the page does not constantly
+  reload itself.
+*/
+
+const automaticRefreshInterval =
+  setInterval(
+    ()=>{
+
+      const now =
+        Date.now();
+
+      /*
+        Do not reload while another request
+        is already running.
+      */
+
+      if(loadInProgress){
+
+        return;
+
+      }
+
+      /*
+        Only refresh if at least 15 seconds
+        have passed since the last load.
+      */
+
+      if(
+        now - lastLoadTime >= 15000
+      ){
+
+        loadLiveStreams();
+
+      }
+
+    },
+    15000
+  );
 
 
 /* =====================================================
    REAL LIVE TIMER
 ===================================================== */
-
-/*
-  Update every second.
-
-  The displayed value changes automatically
-  when the real elapsed time reaches another minute.
-*/
 
 const liveTimerInterval =
   setInterval(
@@ -1491,6 +1831,10 @@ async function initialize(){
 }
 
 
+/* =====================================================
+   START
+===================================================== */
+
 initialize();
 
 
@@ -1505,6 +1849,11 @@ window.addEventListener(
     clearInterval(
       liveTimerInterval
     );
+
+    clearInterval(
+      automaticRefreshInterval
+    );
+
 
     if(
       liveRealtimeChannel
