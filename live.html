@@ -134,14 +134,6 @@
   font-weight:800;
 }
 
-.live-ended-time{
-  display:block;
-  margin-bottom:12px;
-  color:#9da6bf;
-  font-size:11px;
-  font-weight:700;
-}
-
 .live-category{
   display:inline-block;
   margin-bottom:12px;
@@ -405,8 +397,6 @@
   </div>
 
 
-  <!-- REAL LIVE STREAMS -->
-
   <section>
 
     <div id="liveGrid" class="live-grid">
@@ -420,8 +410,6 @@
   </section>
 
 
-  <!-- CREATORS CURRENTLY LIVE -->
-
   <h3 class="live-section-title">
     🟢 Creators currently live
   </h3>
@@ -434,8 +422,6 @@
 
   </section>
 
-
-  <!-- RECENTLY ENDED LIVES -->
 
   <section class="recent-live-section">
 
@@ -456,8 +442,6 @@
 
 </main>
 
-
-<!-- NAVIGATION -->
 
 <nav class="nav">
 
@@ -490,7 +474,6 @@
   </a>
 
 </nav>
-
 
 </div>
 
@@ -550,6 +533,7 @@ function escapeHtml(value){
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#039;");
+
 }
 
 
@@ -607,6 +591,7 @@ function getLiveEmoji(category){
   }
 
   return "🔴";
+
 }
 
 
@@ -624,6 +609,7 @@ function getLiveBackground(index){
   return backgrounds[
     index % backgrounds.length
   ];
+
 }
 
 
@@ -645,17 +631,8 @@ function formatHost(hostId){
 
 
 /* =====================================================
-   TIME FORMATTERS
+   REAL ELAPSED TIME
 ===================================================== */
-
-/*
-  Example:
-  10 seconds -> Started just now
-  2 minutes  -> Started 2 minutes ago
-  1 hour     -> Started 1 hour ago
-  3 hours    -> Started 3 hours ago
-  2 days     -> Started 2 days ago
-*/
 
 function formatStartedAgo(createdAt){
 
@@ -664,84 +641,85 @@ function formatStartedAgo(createdAt){
   }
 
   const start =
-    new Date(createdAt);
+    new Date(createdAt).getTime();
+
+  if(!Number.isFinite(start)){
+    return "Started just now";
+  }
 
   const now =
-    new Date();
+    Date.now();
 
-  const difference =
-    Math.max(
-      0,
-      now.getTime() -
-      start.getTime()
-    );
+  let difference =
+    now - start;
 
-  const seconds =
+  if(difference < 0){
+    difference = 0;
+  }
+
+  const totalSeconds =
     Math.floor(
       difference / 1000
     );
 
-  if(seconds < 60){
+  if(totalSeconds < 60){
 
     return "Started just now";
 
   }
 
-  const minutes =
+  const totalMinutes =
     Math.floor(
-      seconds / 60
+      totalSeconds / 60
     );
 
-  if(minutes < 60){
+  if(totalMinutes < 60){
 
     return (
       "Started " +
-      minutes +
-      " " +
+      totalMinutes +
       (
-        minutes === 1
-        ? "minute"
-        : "minutes"
+        totalMinutes === 1
+        ? " minute"
+        : " minutes"
       ) +
       " ago"
     );
 
   }
 
-  const hours =
+  const totalHours =
     Math.floor(
-      minutes / 60
+      totalMinutes / 60
     );
 
-  if(hours < 24){
+  if(totalHours < 24){
 
     return (
       "Started " +
-      hours +
-      " " +
+      totalHours +
       (
-        hours === 1
-        ? "hour"
-        : "hours"
+        totalHours === 1
+        ? " hour"
+        : " hours"
       ) +
       " ago"
     );
 
   }
 
-  const days =
+  const totalDays =
     Math.floor(
-      hours / 24
+      totalHours / 24
     );
 
   return (
     "Started " +
-    days +
-    " " +
+    totalDays +
     (
-      days === 1
-      ? "day"
-      : "days"
+      totalDays === 1
+      ? " day"
+      : " days"
     ) +
     " ago"
   );
@@ -749,12 +727,9 @@ function formatStartedAgo(createdAt){
 }
 
 
-/*
-  Example:
-  Today at 8:42 PM
-  Yesterday at 6:10 PM
-  Aug 20, 2026 at 8:42 PM
-*/
+/* =====================================================
+   ENDED TIME
+===================================================== */
 
 function formatEndedAt(endedAt){
 
@@ -790,7 +765,6 @@ function formatEndedAt(endedAt){
     ).toDateString() ===
     date.toDateString();
 
-
   const time =
     date.toLocaleTimeString(
       [],
@@ -800,19 +774,13 @@ function formatEndedAt(endedAt){
       }
     );
 
-
   if(today){
-
     return "Today at " + time;
-
   }
 
   if(yesterday){
-
     return "Yesterday at " + time;
-
   }
-
 
   return (
     date.toLocaleDateString(
@@ -831,7 +799,7 @@ function formatEndedAt(endedAt){
 
 
 /* =====================================================
-   GET VIEWER COUNT
+   VIEWER COUNT
 ===================================================== */
 
 async function getViewerCount(liveId){
@@ -840,7 +808,6 @@ async function getViewerCount(liveId){
     new Date(
       Date.now() - 90000
     ).toISOString();
-
 
   const {
     count,
@@ -864,7 +831,6 @@ async function getViewerCount(liveId){
       activeSince
     );
 
-
   if(error){
 
     console.error(
@@ -873,8 +839,8 @@ async function getViewerCount(liveId){
     );
 
     return 0;
-  }
 
+  }
 
   return count || 0;
 
@@ -906,10 +872,6 @@ async function loadLiveStreams(){
   `;
 
 
-  /*
-    Get currently live sessions.
-  */
-
   const {
     data:liveData,
     error:liveError
@@ -936,6 +898,7 @@ async function loadLiveStreams(){
       liveError
     );
 
+    currentLiveSessions = [];
 
     liveGrid.innerHTML = `
       <div class="live-error">
@@ -946,23 +909,16 @@ async function loadLiveStreams(){
     `;
 
     creatorList.innerHTML = "";
-
     recentLiveList.innerHTML = "";
 
     return;
+
   }
 
 
   currentLiveSessions =
     liveData || [];
 
-
-  /*
-    Get recently ended sessions.
-
-    We only request a small number so
-    the Live page stays fast.
-  */
 
   const {
     data:endedData,
@@ -995,7 +951,7 @@ async function loadLiveStreams(){
 
 
   /* ===================================================
-     NO CURRENT LIVE STREAMS
+     CURRENT LIVE
   =================================================== */
 
   if(
@@ -1046,10 +1002,6 @@ async function loadLiveStreams(){
     creatorList.innerHTML = "";
 
 
-    /* =================================================
-       BUILD REAL LIVE CARDS
-    ================================================= */
-
     for(
       let index = 0;
       index < liveData.length;
@@ -1059,41 +1011,31 @@ async function loadLiveStreams(){
       const live =
         liveData[index];
 
-
       const title =
         live.title ||
         "Zinko Live";
 
-
       const category =
         live.category ||
         "General";
-
 
       const creator =
         formatHost(
           live.host_id
         );
 
-
       const viewerCount =
         await getViewerCount(
           live.id
         );
 
-
-      const startedText =
-        formatStartedAgo(
-          live.created_at
-        );
-
-
       const card =
-        document.createElement("article");
+        document.createElement(
+          "article"
+        );
 
       card.className =
         "live-card";
-
 
       card.innerHTML = `
 
@@ -1129,14 +1071,20 @@ async function loadLiveStreams(){
             · Live now on Zinko
           </p>
 
-          <span class="live-time">
-            🔴 ${escapeHtml(startedText)}
+          <span
+            class="live-time"
+            data-live-time-id="${escapeHtml(live.id)}"
+          >
+            🔴 ${escapeHtml(
+              formatStartedAgo(
+                live.created_at
+              )
+            )}
           </span>
 
           <span class="live-category">
             🎬 ${escapeHtml(category)}
           </span>
-
 
           <div class="live-actions">
 
@@ -1160,7 +1108,6 @@ async function loadLiveStreams(){
           ".watch-button"
         );
 
-
       watchButton.addEventListener(
         "click",
         ()=>{
@@ -1169,7 +1116,6 @@ async function loadLiveStreams(){
           );
         }
       );
-
 
       liveGrid.appendChild(
         card
@@ -1181,11 +1127,12 @@ async function loadLiveStreams(){
       ================================================= */
 
       const creatorRow =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
       creatorRow.className =
         "creator-row";
-
 
       creatorRow.innerHTML = `
 
@@ -1205,18 +1152,22 @@ async function loadLiveStreams(){
             ${escapeHtml(title)}
           </small>
 
-          <span class="creator-time">
-            🔴 ${escapeHtml(startedText)}
+          <span
+            class="creator-time"
+            data-live-time-id="${escapeHtml(live.id)}"
+          >
+            🔴 ${escapeHtml(
+              formatStartedAgo(
+                live.created_at
+              )
+            )}
           </span>
 
         </div>
 
-        <span
-          class="online-dot"
-        ></span>
+        <span class="online-dot"></span>
 
       `;
-
 
       creatorList.appendChild(
         creatorRow
@@ -1228,7 +1179,7 @@ async function loadLiveStreams(){
 
 
   /* ===================================================
-     RECENTLY ENDED LIVES
+     RECENTLY ENDED
   =================================================== */
 
   if(
@@ -1258,7 +1209,6 @@ async function loadLiveStreams(){
 
     recentLiveList.innerHTML = "";
 
-
     endedData.forEach(
       live=>{
 
@@ -1266,30 +1216,27 @@ async function loadLiveStreams(){
           live.title ||
           "Zinko Live";
 
-
         const category =
           live.category ||
           "General";
-
 
         const creator =
           formatHost(
             live.host_id
           );
 
-
         const endedTime =
           formatEndedAt(
             live.ended_at
           );
 
-
         const row =
-          document.createElement("div");
+          document.createElement(
+            "div"
+          );
 
         row.className =
           "ended-card";
-
 
         row.innerHTML = `
 
@@ -1322,7 +1269,6 @@ async function loadLiveStreams(){
 
         `;
 
-
         recentLiveList.appendChild(
           row
         );
@@ -1336,7 +1282,7 @@ async function loadLiveStreams(){
 
 
 /* =====================================================
-   WATCH REAL LIVE
+   WATCH LIVE
 ===================================================== */
 
 function watchLive(liveId){
@@ -1348,8 +1294,8 @@ function watchLive(liveId){
     );
 
     return;
-  }
 
+  }
 
   window.location.href =
     "live-room.html?live=" +
@@ -1361,104 +1307,50 @@ function watchLive(liveId){
 
 
 /* =====================================================
-   UPDATE DISPLAYED LIVE TIMES
+   UPDATE LIVE TIMES
 ===================================================== */
 
 /*
-  This updates "Started 2 minutes ago"
-  without needing to reload the page.
+  This function does NOT reload the page.
+
+  It directly updates the existing time labels
+  using the original created_at timestamp.
+
+  It runs every 1 second so the timer is always
+  ready to change exactly when a minute passes.
 */
 
 function updateLiveTimeLabels(){
 
-  currentLiveSessions.forEach(
-    live=>{
+  const timeElements =
+    document.querySelectorAll(
+      "[data-live-time-id]"
+    );
 
-      const startedText =
+  timeElements.forEach(
+    element=>{
+
+      const liveId =
+        element.getAttribute(
+          "data-live-time-id"
+        );
+
+      const live =
+        currentLiveSessions.find(
+          session =>
+            String(session.id) ===
+            String(liveId)
+        );
+
+      if(!live){
+        return;
+      }
+
+      element.textContent =
+        "🔴 " +
         formatStartedAgo(
           live.created_at
         );
-
-
-      const cards =
-        document.querySelectorAll(
-          ".live-card"
-        );
-
-
-      cards.forEach(
-        card=>{
-
-          const button =
-            card.querySelector(
-              "[data-live-id]"
-            );
-
-
-          if(
-            button &&
-            button.dataset.liveId ===
-            String(live.id)
-          ){
-
-            const timeElement =
-              card.querySelector(
-                ".live-time"
-              );
-
-
-            if(timeElement){
-
-              timeElement.textContent =
-                "🔴 " +
-                startedText;
-
-            }
-
-          }
-
-        }
-      );
-
-    }
-  );
-
-
-  /*
-    Update creator rows too.
-  */
-
-  const creatorRows =
-    document.querySelectorAll(
-      ".creator-row"
-    );
-
-
-  creatorRows.forEach(
-    (row,index)=>{
-
-      if(
-        currentLiveSessions[index]
-      ){
-
-        const timeElement =
-          row.querySelector(
-            ".creator-time"
-          );
-
-
-        if(timeElement){
-
-          timeElement.textContent =
-            "🔴 " +
-            formatStartedAgo(
-              currentLiveSessions[index]
-                .created_at
-            );
-
-        }
-
-      }
 
     }
   );
@@ -1467,7 +1359,7 @@ function updateLiveTimeLabels(){
 
 
 /* =====================================================
-   REFRESH
+   REFRESH BUTTON
 ===================================================== */
 
 async function refreshLives(){
@@ -1477,7 +1369,6 @@ async function refreshLives(){
 
   refreshButton.textContent =
     "↻ Loading...";
-
 
   try{
 
@@ -1503,7 +1394,7 @@ refreshButton.addEventListener(
 
 
 /* =====================================================
-   REALTIME LIVE SESSION UPDATES
+   REALTIME SUPABASE UPDATES
 ===================================================== */
 
 let liveRealtimeChannel = null;
@@ -1556,7 +1447,7 @@ function setupLiveRealtime(){
 
 
 /* =====================================================
-   AUTOMATIC REFRESH
+   AUTOMATIC SESSION REFRESH
 ===================================================== */
 
 setInterval(
@@ -1567,17 +1458,22 @@ setInterval(
 );
 
 
+/* =====================================================
+   REAL LIVE TIMER
+===================================================== */
+
 /*
-  Update the "Started X minutes ago"
-  text every 30 seconds.
+  Update every second.
+
+  The displayed value changes automatically
+  when the real elapsed time reaches another minute.
 */
 
-setInterval(
-  ()=>{
-    updateLiveTimeLabels();
-  },
-  30000
-);
+const liveTimerInterval =
+  setInterval(
+    updateLiveTimeLabels,
+    1000
+  );
 
 
 /* =====================================================
@@ -1589,6 +1485,8 @@ async function initialize(){
   await loadLiveStreams();
 
   setupLiveRealtime();
+
+  updateLiveTimeLabels();
 
 }
 
@@ -1603,6 +1501,10 @@ initialize();
 window.addEventListener(
   "beforeunload",
   ()=>{
+
+    clearInterval(
+      liveTimerInterval
+    );
 
     if(
       liveRealtimeChannel
