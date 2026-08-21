@@ -3,10 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>Live — Zinko</title>
+
 <link rel="stylesheet" href="style.css">
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
+
 .live-page{
   padding:18px 15px 100px;
 }
@@ -70,6 +75,16 @@
     radial-gradient(circle at 50% 20%,#27d17f,#123d2c 55%,#0b1120);
 }
 
+.live-orange{
+  background:
+    radial-gradient(circle at 50% 20%,#ff9b4a,#4b2614 55%,#0b1120);
+}
+
+.live-pink{
+  background:
+    radial-gradient(circle at 50% 20%,#ff5ca8,#4a1835 55%,#0b1120);
+}
+
 .live-badge{
   position:absolute;
   top:12px;
@@ -130,15 +145,43 @@
   flex:1;
 }
 
-.empty-live{
-  text-align:center;
-  padding:45px 15px;
-  color:#858da6;
+.watch-button{
+  width:100%;
+  border:0;
+  cursor:pointer;
 }
 
-.live-section-title{
-  margin:24px 0 12px;
+.empty-live{
+  text-align:center;
+  padding:50px 15px;
+  color:#858da6;
+  background:#101728;
+  border:1px solid #202840;
+  border-radius:20px;
+}
+
+.empty-live-icon{
+  font-size:45px;
+  margin-bottom:12px;
+}
+
+.empty-live strong{
+  display:block;
+  color:white;
   font-size:16px;
+  margin-bottom:7px;
+}
+
+.empty-live p{
+  margin:0;
+  font-size:12px;
+  line-height:1.5;
+}
+
+.loading-live{
+  text-align:center;
+  padding:50px 15px;
+  color:#858da6;
 }
 
 .creator-row{
@@ -184,11 +227,38 @@
   background:#22d47a;
 }
 
+.refresh-button{
+  border:1px solid #29314b;
+  background:#101728;
+  color:white;
+  border-radius:10px;
+  padding:8px 11px;
+  cursor:pointer;
+  font-size:11px;
+}
+
+.refresh-button:disabled{
+  opacity:.5;
+}
+
+.live-error{
+  padding:18px;
+  border-radius:15px;
+  background:#32151d;
+  border:1px solid #6d2937;
+  color:#ffb8c3;
+  font-size:12px;
+  line-height:1.5;
+}
+
 @media(min-width:700px){
+
   .live-grid{
     grid-template-columns:1fr 1fr;
   }
+
 }
+
 </style>
 </head>
 
@@ -202,12 +272,24 @@
     <span>Z</span>Live
   </div>
 
-  <a
-    class="btn primary small-btn"
-    href="start-live.html"
-  >
-    ＋ Go Live
-  </a>
+  <div style="display:flex;gap:7px;align-items:center;">
+
+    <button
+      id="refreshButton"
+      class="refresh-button"
+      type="button"
+    >
+      ↻ Refresh
+    </button>
+
+    <a
+      class="btn primary small-btn"
+      href="start-live.html"
+    >
+      ＋ Go Live
+    </a>
+
+  </div>
 
 </header>
 
@@ -217,310 +299,45 @@
   <div class="live-header">
 
     <div>
-      <h2>Live Now 🔴</h2>
+
+      <h2>
+        Live Now 🔴
+      </h2>
 
       <div class="live-subtitle">
         Watch creators live on Zinko
       </div>
+
     </div>
 
   </div>
 
 
-  <!-- LIVE STREAMS -->
+  <!-- REAL LIVE STREAMS -->
 
   <section>
 
-    <div class="live-grid">
-
-
-      <!-- STREAM 1 -->
-
-      <article class="live-card">
-
-        <div class="live-media live-purple">
-
-          <span class="live-badge">
-            LIVE
-          </span>
-
-          <span class="viewer-badge">
-            👁 2.8K
-          </span>
-
-          <div class="live-symbol">
-            🎵
-          </div>
-
-        </div>
-
-
-        <div class="live-info">
-
-          <h3>
-            Music & Chill 🎵
-          </h3>
-
-          <p>
-            @mayarivers ✓ · Live music and vibes
-          </p>
-
-          <span class="live-category">
-            🎵 Music
-          </span>
-
-
-          <div class="live-actions">
-
-            <button
-              class="btn primary"
-              onclick="watchLive('Music & Chill 🎵','@mayarivers')"
-            >
-              Watch Live
-            </button>
-
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- STREAM 2 -->
-
-      <article class="live-card">
-
-        <div class="live-media live-red">
-
-          <span class="live-badge">
-            LIVE
-          </span>
-
-          <span class="viewer-badge">
-            👁 904
-          </span>
-
-          <div class="live-symbol">
-            🎮
-          </div>
-
-        </div>
-
-
-        <div class="live-info">
-
-          <h3>
-            Gaming Challenge 🎮
-          </h3>
-
-          <p>
-            @kofi ✓ · Gaming and challenges
-          </p>
-
-          <span class="live-category">
-            🎮 Gaming
-          </span>
-
-
-          <div class="live-actions">
-
-            <button
-              class="btn primary"
-              onclick="watchLive('Gaming Challenge 🎮','@kofi')"
-            >
-              Watch Live
-            </button>
-
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- STREAM 3 -->
-
-      <article class="live-card">
-
-        <div class="live-media live-blue">
-
-          <span class="live-badge">
-            LIVE
-          </span>
-
-          <span class="viewer-badge">
-            👁 1.2K
-          </span>
-
-          <div class="live-symbol">
-            🎤
-          </div>
-
-        </div>
-
-
-        <div class="live-info">
-
-          <h3>
-            Late Night Talk 🎤
-          </h3>
-
-          <p>
-            @zinkoTalks · Join the conversation
-          </p>
-
-          <span class="live-category">
-            💬 Talk
-          </span>
-
-
-          <div class="live-actions">
-
-            <button
-              class="btn primary"
-              onclick="watchLive('Late Night Talk 🎤','@zinkoTalks')"
-            >
-              Watch Live
-            </button>
-
-          </div>
-
-        </div>
-
-      </article>
-
-
-      <!-- STREAM 4 -->
-
-      <article class="live-card">
-
-        <div class="live-media live-green">
-
-          <span class="live-badge">
-            LIVE
-          </span>
-
-          <span class="viewer-badge">
-            👁 638
-          </span>
-
-          <div class="live-symbol">
-            😂
-          </div>
-
-        </div>
-
-
-        <div class="live-info">
-
-          <h3>
-            Comedy Night 😂
-          </h3>
-
-          <p>
-            @funnyvibes · Laugh together
-          </p>
-
-          <span class="live-category">
-            😂 Comedy
-          </span>
-
-
-          <div class="live-actions">
-
-            <button
-              class="btn primary"
-              onclick="watchLive('Comedy Night 😂','@funnyvibes')"
-            >
-              Watch Live
-            </button>
-
-          </div>
-
-        </div>
-
-      </article>
+    <div id="liveGrid" class="live-grid">
+
+      <div class="loading-live">
+        Loading live streams...
+      </div>
 
     </div>
 
   </section>
 
 
-  <!-- CREATOR SECTION -->
+  <!-- CREATORS CURRENTLY LIVE -->
 
   <h3 class="live-section-title">
     🟢 Creators currently live
   </h3>
 
+  <section id="creatorList">
 
-  <section>
-
-    <div class="creator-row">
-
-      <div class="creator-avatar">
-        M
-      </div>
-
-      <div class="creator-info">
-
-        <b>
-          Maya Rivers ✓
-        </b>
-
-        <small>
-          Music & Chill
-        </small>
-
-      </div>
-
-      <span class="online-dot"></span>
-
-    </div>
-
-
-    <div class="creator-row">
-
-      <div class="creator-avatar">
-        K
-      </div>
-
-      <div class="creator-info">
-
-        <b>
-          Kofi ✓
-        </b>
-
-        <small>
-          Gaming Challenge
-        </small>
-
-      </div>
-
-      <span class="online-dot"></span>
-
-    </div>
-
-
-    <div class="creator-row">
-
-      <div class="creator-avatar">
-        Z
-      </div>
-
-      <div class="creator-info">
-
-        <b>
-          Zinko Talks
-        </b>
-
-        <small>
-          Late Night Talk
-        </small>
-
-      </div>
-
-      <span class="online-dot"></span>
-
+    <div class="loading-live">
+      Loading creators...
     </div>
 
   </section>
@@ -538,7 +355,6 @@
     <small>Home</small>
   </a>
 
-
   <a
     class="active"
     href="live.html"
@@ -547,18 +363,15 @@
     <small>Live</small>
   </a>
 
-
   <a href="discover.html">
     ⌕
     <small>Discover</small>
   </a>
 
-
   <a href="messages.html">
     ✉
     <small>Messages</small>
   </a>
-
 
   <a href="profile.html">
     ●
@@ -573,30 +386,633 @@
 
 <script>
 
-function watchLive(title,creator){
+/* =====================================================
+   SUPABASE
+===================================================== */
 
-  /*
-    The real live-room system will be connected
-    after the live-room/database stage.
-  */
+const SUPABASE_URL =
+"https://ggqhwoyzuypryocrxiru.supabase.co";
 
-  const params =
-    new URLSearchParams({
+const SUPABASE_PUBLISHABLE_KEY =
+"sb_publishable_RIB0a5lVDxK8iqvTB1lr8A_JLnaMvF_";
 
-      title:title,
+const supabaseClient =
+window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
-      creator:creator
 
-    });
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const liveGrid =
+document.getElementById("liveGrid");
+
+const creatorList =
+document.getElementById("creatorList");
+
+const refreshButton =
+document.getElementById("refreshButton");
+
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function escapeHtml(value){
+
+  return String(value || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+
+function getInitial(value){
+
+  const text =
+    String(value || "Z").trim();
+
+  return (
+    text.charAt(0).toUpperCase() ||
+    "Z"
+  );
+
+}
+
+
+function getLiveEmoji(category){
+
+  const value =
+    String(category || "").toLowerCase();
+
+  if(value.includes("music")){
+    return "🎵";
+  }
+
+  if(value.includes("gaming")){
+    return "🎮";
+  }
+
+  if(
+    value.includes("talk") ||
+    value.includes("chat")
+  ){
+    return "🎤";
+  }
+
+  if(value.includes("comedy")){
+    return "😂";
+  }
+
+  if(value.includes("sport")){
+    return "⚽";
+  }
+
+  if(value.includes("food")){
+    return "🍔";
+  }
+
+  if(value.includes("education")){
+    return "📚";
+  }
+
+  if(value.includes("news")){
+    return "📰";
+  }
+
+  return "🔴";
+}
+
+
+function getLiveBackground(index){
+
+  const backgrounds = [
+    "live-purple",
+    "live-red",
+    "live-blue",
+    "live-green",
+    "live-orange",
+    "live-pink"
+  ];
+
+  return backgrounds[
+    index % backgrounds.length
+  ];
+}
+
+
+function formatHost(hostId){
+
+  if(!hostId){
+    return "Zinko Creator";
+  }
+
+  const id =
+    String(hostId);
+
+  return (
+    "Creator " +
+    id.substring(0,6)
+  );
+
+}
+
+
+/* =====================================================
+   GET VIEWER COUNT
+===================================================== */
+
+async function getViewerCount(liveId){
+
+  const activeSince =
+    new Date(
+      Date.now() - 90000
+    ).toISOString();
+
+
+  const {
+    count,
+    error
+  } =
+  await supabaseClient
+    .from("zinko_live_viewers")
+    .select(
+      "id",
+      {
+        count:"exact",
+        head:true
+      }
+    )
+    .eq(
+      "live_id",
+      liveId
+    )
+    .gte(
+      "last_seen_at",
+      activeSince
+    );
+
+
+  if(error){
+
+    console.error(
+      "Viewer count error:",
+      error
+    );
+
+    return 0;
+  }
+
+
+  return count || 0;
+
+}
+
+
+/* =====================================================
+   LOAD LIVE SESSIONS
+===================================================== */
+
+async function loadLiveStreams(){
+
+  liveGrid.innerHTML = `
+    <div class="loading-live">
+      Loading live streams...
+    </div>
+  `;
+
+  creatorList.innerHTML = `
+    <div class="loading-live">
+      Loading creators...
+    </div>
+  `;
+
+
+  const {
+    data,
+    error
+  } =
+  await supabaseClient
+    .from("zinko_live_sessions")
+    .select("*")
+    .eq(
+      "status",
+      "live"
+    )
+    .order(
+      "created_at",
+      {
+        ascending:false
+      }
+    );
+
+
+  if(error){
+
+    console.error(
+      "Live sessions error:",
+      error
+    );
+
+
+    liveGrid.innerHTML = `
+      <div class="live-error">
+        Could not load live streams.
+        <br><br>
+        Please check your internet connection and try again.
+      </div>
+    `;
+
+    creatorList.innerHTML = "";
+
+    return;
+  }
+
+
+  if(!data || data.length === 0){
+
+    liveGrid.innerHTML = `
+      <div class="empty-live">
+
+        <div class="empty-live-icon">
+          📺
+        </div>
+
+        <strong>
+          No one is live right now
+        </strong>
+
+        <p>
+          When a creator starts a Zinko Live,
+          it will appear here automatically.
+        </p>
+
+      </div>
+    `;
+
+    creatorList.innerHTML = `
+      <div class="empty-live">
+
+        <div class="empty-live-icon">
+          🟢
+        </div>
+
+        <strong>
+          No creators are currently live
+        </strong>
+
+        <p>
+          Start your own live or check again later.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  liveGrid.innerHTML = "";
+  creatorList.innerHTML = "";
+
+
+  /* ===================================================
+     BUILD REAL LIVE CARDS
+  =================================================== */
+
+  for(
+    let index = 0;
+    index < data.length;
+    index++
+  ){
+
+    const live =
+      data[index];
+
+
+    const title =
+      live.title ||
+      "Zinko Live";
+
+
+    const category =
+      live.category ||
+      "General";
+
+
+    const creator =
+      formatHost(
+        live.host_id
+      );
+
+
+    const viewerCount =
+      await getViewerCount(
+        live.id
+      );
+
+
+    const card =
+      document.createElement("article");
+
+    card.className =
+      "live-card";
+
+
+    card.innerHTML = `
+
+      <div
+        class="live-media ${getLiveBackground(index)}"
+      >
+
+        <span class="live-badge">
+          LIVE
+        </span>
+
+        <span class="viewer-badge">
+          👁 ${viewerCount}
+        </span>
+
+        <div class="live-symbol">
+          ${escapeHtml(
+            getLiveEmoji(category)
+          )}
+        </div>
+
+      </div>
+
+
+      <div class="live-info">
+
+        <h3>
+          ${escapeHtml(title)}
+        </h3>
+
+        <p>
+          ${escapeHtml(creator)}
+          · Live now on Zinko
+        </p>
+
+        <span class="live-category">
+          🎬 ${escapeHtml(category)}
+        </span>
+
+
+        <div class="live-actions">
+
+          <button
+            class="btn primary watch-button"
+            type="button"
+            data-live-id="${escapeHtml(live.id)}"
+          >
+            Watch Live
+          </button>
+
+        </div>
+
+      </div>
+
+    `;
+
+
+    const watchButton =
+      card.querySelector(
+        ".watch-button"
+      );
+
+
+    watchButton.addEventListener(
+      "click",
+      ()=>{
+        watchLive(
+          live.id
+        );
+      }
+    );
+
+
+    liveGrid.appendChild(
+      card
+    );
+
+
+    /* =================================================
+       CREATOR ROW
+    ================================================= */
+
+    const creatorRow =
+      document.createElement("div");
+
+    creatorRow.className =
+      "creator-row";
+
+
+    creatorRow.innerHTML = `
+
+      <div class="creator-avatar">
+        ${escapeHtml(
+          getInitial(creator)
+        )}
+      </div>
+
+      <div class="creator-info">
+
+        <b>
+          ${escapeHtml(creator)}
+        </b>
+
+        <small>
+          ${escapeHtml(title)}
+        </small>
+
+      </div>
+
+      <span
+        class="online-dot"
+      ></span>
+
+    `;
+
+
+    creatorList.appendChild(
+      creatorRow
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   WATCH REAL LIVE
+===================================================== */
+
+function watchLive(liveId){
+
+  if(!liveId){
+
+    alert(
+      "This live session is unavailable."
+    );
+
+    return;
+  }
 
 
   window.location.href =
-    "watch-live.html?" +
-    params.toString();
+    "live-room.html?live=" +
+    encodeURIComponent(
+      liveId
+    );
 
 }
+
+
+/* =====================================================
+   REFRESH
+===================================================== */
+
+async function refreshLives(){
+
+  refreshButton.disabled =
+    true;
+
+  refreshButton.textContent =
+    "↻ Loading...";
+
+
+  try{
+
+    await loadLiveStreams();
+
+  }finally{
+
+    refreshButton.disabled =
+      false;
+
+    refreshButton.textContent =
+      "↻ Refresh";
+
+  }
+
+}
+
+
+refreshButton.addEventListener(
+  "click",
+  refreshLives
+);
+
+
+/* =====================================================
+   REALTIME LIVE SESSION UPDATES
+===================================================== */
+
+let liveRealtimeChannel = null;
+
+
+function setupLiveRealtime(){
+
+  liveRealtimeChannel =
+    supabaseClient
+      .channel(
+        "zinko-live-list"
+      )
+
+      .on(
+        "postgres_changes",
+        {
+          event:"*",
+          schema:"public",
+          table:"zinko_live_sessions"
+        },
+        ()=>{
+          loadLiveStreams();
+        }
+      )
+
+      .on(
+        "postgres_changes",
+        {
+          event:"*",
+          schema:"public",
+          table:"zinko_live_viewers"
+        },
+        ()=>{
+          loadLiveStreams();
+        }
+      )
+
+      .subscribe(
+        status=>{
+
+          console.log(
+            "Live list realtime:",
+            status
+          );
+
+        }
+      );
+
+}
+
+
+/* =====================================================
+   AUTOMATIC REFRESH
+===================================================== */
+
+setInterval(
+  ()=>{
+    loadLiveStreams();
+  },
+  15000
+);
+
+
+/* =====================================================
+   INITIALIZE
+===================================================== */
+
+async function initialize(){
+
+  await loadLiveStreams();
+
+  setupLiveRealtime();
+
+}
+
+
+initialize();
+
+
+/* =====================================================
+   CLEANUP
+===================================================== */
+
+window.addEventListener(
+  "beforeunload",
+  ()=>{
+
+    if(
+      liveRealtimeChannel
+    ){
+
+      supabaseClient
+        .removeChannel(
+          liveRealtimeChannel
+        );
+
+    }
+
+  }
+);
 
 </script>
 
 </body>
-</html>
+  </html>
