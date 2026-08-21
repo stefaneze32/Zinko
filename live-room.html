@@ -9,7 +9,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- LiveKit browser SDK -->
 <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
 
 <style>
@@ -256,7 +255,9 @@ button,input{font-family:inherit}
   flex-shrink:0;
 }
 
-.message-content{min-width:0}
+.message-content{
+  min-width:0;
+}
 
 .message-name{
   margin-bottom:2px;
@@ -309,6 +310,11 @@ button,input{font-family:inherit}
   border-radius:12px;
   cursor:pointer;
   font-weight:800;
+}
+
+.send-button:disabled{
+  opacity:.55;
+  cursor:not-allowed;
 }
 
 .reaction-bar{
@@ -392,7 +398,9 @@ button,input{font-family:inherit}
   background:rgba(0,0,0,.65);
 }
 
-.modal.show{display:flex}
+.modal.show{
+  display:flex;
+}
 
 .modal-card{
   width:100%;
@@ -448,10 +456,14 @@ button,input{font-family:inherit}
   text-align:center;
 }
 
-.toast.show{display:block}
+.toast.show{
+  display:block;
+}
 
 @media(min-width:700px){
-  .video-area{height:560px}
+  .video-area{
+    height:560px;
+  }
 }
 </style>
 </head>
@@ -470,35 +482,59 @@ button,input{font-family:inherit}
 ></video>
 
 <div id="videoPlaceholder" class="video-placeholder">
-  <div class="video-placeholder-icon">📺</div>
-  <div id="placeholderText">Connecting to Zinko Live...</div>
-  <small id="placeholderSmall">Preparing your live room</small>
+
+  <div class="video-placeholder-icon">
+    📺
+  </div>
+
+  <div id="placeholderText">
+    Connecting to Zinko Live...
+  </div>
+
+  <small id="placeholderSmall">
+    Preparing your live room
+  </small>
+
 </div>
 
 <div class="room-top">
 
 <div class="host-info">
 
-<div id="hostAvatar" class="host-avatar">Z</div>
+<div id="hostAvatar" class="host-avatar">
+  Z
+</div>
 
 <div class="host-text">
-<div id="hostName" class="host-name">Zinko Creator</div>
-<div id="streamTitleSmall" class="stream-title-small">Zinko Live</div>
+
+<div id="hostName" class="host-name">
+  Zinko Creator
+</div>
+
+<div id="streamTitleSmall" class="stream-title-small">
+  Zinko Live
+</div>
+
 </div>
 
 </div>
 
 <div>
-<span class="live-badge">● LIVE</span>
-<span class="viewer-badge">
-👥 <span id="viewerCount">0</span>
+
+<span class="live-badge">
+  ● LIVE
 </span>
+
+<span class="viewer-badge">
+  👥 <span id="viewerCount">0</span>
+</span>
+
 </div>
 
 </div>
 
 <div id="connectionStatus" class="connection-status">
-Connecting...
+  Connecting...
 </div>
 
 </section>
@@ -506,29 +542,31 @@ Connecting...
 
 <main class="room-content">
 
-<h1 id="roomTitle" class="room-title">Zinko Live</h1>
+<h1 id="roomTitle" class="room-title">
+  Zinko Live
+</h1>
 
 <p id="roomCategory" class="room-category">
-Live stream
+  Live stream
 </p>
 
 
 <div class="action-row">
 
 <button id="micButton" class="action-button active">
-🎙 Mic
+  🎙 Mic
 </button>
 
 <button id="cameraButton" class="action-button active">
-📷 Camera
+  📷 Camera
 </button>
 
 <button id="shareButton" class="action-button">
-📤 Share
+  📤 Share
 </button>
 
 <button id="endButton" class="action-button danger">
-🔴 End
+  🔴 End
 </button>
 
 </div>
@@ -538,21 +576,25 @@ Live stream
 
 <div class="section-header">
 
-<strong>💬 Live Chat</strong>
+<strong>
+  💬 Live Chat
+</strong>
 
 <span class="online-count">
-👥 <span id="chatViewerCount">0</span> watching
+  👥 <span id="chatViewerCount">0</span> watching
 </span>
 
 </div>
 
+
 <div id="messages" class="messages">
 
 <div class="system-message">
-Welcome to the Zinko live room.
+  Welcome to the Zinko live room.
 </div>
 
 </div>
+
 
 <div class="chat-input-row">
 
@@ -565,7 +607,7 @@ Welcome to the Zinko live room.
 >
 
 <button id="sendButton" class="send-button">
-Send
+  Send
 </button>
 
 </div>
@@ -575,12 +617,29 @@ Send
 
 <div class="reaction-bar">
 
-<button class="reaction-button" data-reaction="❤️">❤️</button>
-<button class="reaction-button" data-reaction="😂">😂</button>
-<button class="reaction-button" data-reaction="🔥">🔥</button>
-<button class="reaction-button" data-reaction="👏">👏</button>
-<button class="reaction-button" data-reaction="😍">😍</button>
-<button class="reaction-button" data-reaction="🎉">🎉</button>
+<button class="reaction-button" data-reaction="❤️">
+  ❤️
+</button>
+
+<button class="reaction-button" data-reaction="😂">
+  😂
+</button>
+
+<button class="reaction-button" data-reaction="🔥">
+  🔥
+</button>
+
+<button class="reaction-button" data-reaction="👏">
+  👏
+</button>
+
+<button class="reaction-button" data-reaction="😍">
+  😍
+</button>
+
+<button class="reaction-button" data-reaction="🎉">
+  🎉
+</button>
 
 </div>
 
@@ -589,10 +648,12 @@ Send
 
 <div class="gift-header">
 
-<strong>🎁 Send a Gift</strong>
+<strong>
+  🎁 Send a Gift
+</strong>
 
 <span class="coin-balance">
-🪙 <span id="coinBalance">0</span> coins
+  🪙 <span id="coinBalance">0</span> coins
 </span>
 
 </div>
@@ -608,7 +669,9 @@ Send
 
 <br><br>
 
-Your live video now uses LiveKit for real-time video and audio. Chat, reactions, viewers and live activity continue using Zinko's Supabase realtime system.
+Your live video now uses LiveKit for real-time video and audio.
+Chat, reactions, viewers and live activity continue using
+Zinko's Supabase realtime system.
 
 </div>
 
@@ -620,20 +683,23 @@ Your live video now uses LiveKit for real-time video and audio. Chat, reactions,
 
 <div class="modal-card">
 
-<h3>End this live?</h3>
+<h3>
+  End this live?
+</h3>
 
 <p>
-Your live session will be marked as ended and viewers will no longer be able to join it.
+  Your live session will be marked as ended and viewers will no
+  longer be able to join it.
 </p>
 
 <div class="modal-buttons">
 
 <button id="cancelEndButton" class="modal-button">
-Continue Live
+  Continue Live
 </button>
 
 <button id="confirmEndButton" class="modal-button end">
-End Live
+  End Live
 </button>
 
 </div>
@@ -1244,10 +1310,8 @@ async function getLiveKitToken(){
   const roomName =
   String(currentSession.id);
 
-
   const participantIdentity =
   String(currentUser.id);
-
 
   const participantName =
   isHost
@@ -1327,14 +1391,11 @@ async function getLiveKitToken(){
    LIVEKIT VIDEO HELPERS
 ===================================================== */
 
-function attachLiveKitTrack(
-  track
-){
+function attachLiveKitTrack(track){
 
   if(!track){
     return;
   }
-
 
   try{
 
@@ -1370,14 +1431,11 @@ function attachLiveKitTrack(
 }
 
 
-function detachLiveKitTrack(
-  track
-){
+function detachLiveKitTrack(track){
 
   if(!track){
     return;
   }
-
 
   try{
 
@@ -1402,7 +1460,11 @@ function detachLiveKitTrack(
 
 async function connectToLiveKit(){
 
-  if(!currentSession || !currentUser){
+  if(
+    !currentSession ||
+    !currentUser
+  ){
+
     return false;
   }
 
@@ -1445,11 +1507,6 @@ async function connectToLiveKit(){
       dynacast:true
 
     });
-
-
-    /* =================================================
-       LIVEKIT EVENTS
-    ================================================= */
 
 
     liveKitRoom.on(
@@ -1513,7 +1570,7 @@ async function connectToLiveKit(){
     liveKitRoom.on(
       LivekitClient.RoomEvent.Disconnected,
       ()=>{
-        
+
         connectionStatus.textContent =
         "Live connection lost";
 
@@ -1583,10 +1640,6 @@ async function connectToLiveKit(){
     );
 
 
-    /* =================================================
-       CONNECT
-    ================================================= */
-
     connectionStatus.textContent =
     "Connecting to LiveKit...";
 
@@ -1603,10 +1656,6 @@ async function connectToLiveKit(){
     );
 
 
-    /* =================================================
-       HOST PUBLISHES CAMERA + MICROPHONE
-    ================================================= */
-
     if(isHost){
 
       if(!currentStream){
@@ -1619,7 +1668,6 @@ async function connectToLiveKit(){
 
       const videoTrack =
       currentStream.getVideoTracks()[0];
-
 
       const audioTrack =
       currentStream.getAudioTracks()[0];
@@ -1694,11 +1742,6 @@ async function connectToLiveKit(){
       videoPlaceholder.style.display =
       "flex";
 
-
-      /*
-        Check tracks already available
-        when joining an existing room.
-      */
 
       liveKitRoom.remoteParticipants
       .forEach(
@@ -1804,6 +1847,7 @@ function updateMediaButtons(){
     "🔇 Mic Off";
 
     micButton.classList.remove("active");
+
   }
 
 
@@ -1820,7 +1864,9 @@ function updateMediaButtons(){
     "📷 Camera Off";
 
     cameraButton.classList.remove("active");
+
   }
+
 }
 
 
@@ -1860,11 +1906,6 @@ async ()=>{
   );
 
 
-  /*
-    Also update the LiveKit
-    published microphone.
-  */
-
   if(liveKitRoom){
 
     const publications =
@@ -1882,7 +1923,9 @@ async ()=>{
 
           if(publication.track){
 
-            publication.track.mediaStreamTrack.enabled =
+            publication.track
+            .mediaStreamTrack
+            .enabled =
             microphoneEnabled;
 
           }
@@ -1936,11 +1979,6 @@ async ()=>{
   );
 
 
-  /*
-    Also update the LiveKit
-    published camera.
-  */
-
   if(liveKitRoom){
 
     const publications =
@@ -1958,7 +1996,9 @@ async ()=>{
 
           if(publication.track){
 
-            publication.track.mediaStreamTrack.enabled =
+            publication.track
+            .mediaStreamTrack
+            .enabled =
             cameraEnabled;
 
           }
@@ -1980,9 +2020,33 @@ async ()=>{
    CHAT
 ===================================================== */
 
+/*
+  Add one message to the screen.
+
+  IMPORTANT:
+  Every message gets its database ID.
+  This prevents the same message from
+  appearing twice when both the sender
+  displays it immediately and Supabase
+  Realtime sends the INSERT event.
+*/
+
 function addMessage(message){
 
   if(!message){
+    return;
+  }
+
+
+  if(
+    message.id &&
+    document.querySelector(
+      '[data-message-id="' +
+      message.id +
+      '"]'
+    )
+  ){
+
     return;
   }
 
@@ -1992,6 +2056,14 @@ function addMessage(message){
 
   element.className =
   "message";
+
+
+  if(message.id){
+
+    element.dataset.messageId =
+    message.id;
+
+  }
 
 
   const name =
@@ -2026,12 +2098,20 @@ function addMessage(message){
   `;
 
 
-  messages.appendChild(element);
+  messages.appendChild(
+    element
+  );
+
 
   messages.scrollTop =
   messages.scrollHeight;
 }
 
+
+/*
+  Load previous messages when
+  entering the live room.
+*/
 
 async function loadMessages(){
 
@@ -2066,24 +2146,49 @@ async function loadMessages(){
 
   if(error){
 
-    console.error(error);
+    console.error(
+      "LOAD MESSAGES ERROR:",
+      error
+    );
 
     return;
   }
 
 
-  data.forEach(addMessage);
+  if(data){
+
+    data.forEach(
+      addMessage
+    );
+
+  }
+
 }
 
+
+/*
+  SEND CHAT MESSAGE
+
+  This is the important fix.
+
+  After Supabase successfully inserts
+  the message, we immediately call
+  addMessage(data).
+
+  Therefore the sender sees the message
+  immediately without waiting for Realtime.
+*/
 
 async function sendMessage(){
 
   const text =
   chatInput.value.trim();
 
+
   if(!text){
     return;
   }
+
 
   if(!currentSession){
 
@@ -2095,47 +2200,100 @@ async function sendMessage(){
   }
 
 
-  sendButton.disabled =
-  true;
-
-
-  const {
-    error
-  } =
-  await supabaseClient
-  .from("zinko_live_messages")
-  .insert({
-
-    live_id:
-    currentSession.id,
-
-    user_id:
-    currentUser.id,
-
-    message:
-    text
-
-  });
-
-
-  sendButton.disabled =
-  false;
-
-
-  if(error){
-
-    console.error(error);
+  if(!currentUser){
 
     showToast(
-      "Message could not be sent."
+      "You are not signed in."
     );
 
     return;
   }
 
 
-  chatInput.value =
-  "";
+  sendButton.disabled =
+  true;
+
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+    await supabaseClient
+    .from("zinko_live_messages")
+    .insert({
+
+      live_id:
+      currentSession.id,
+
+      user_id:
+      currentUser.id,
+
+      message:
+      text
+
+    })
+    .select()
+    .single();
+
+
+    if(error){
+
+      console.error(
+        "SEND MESSAGE ERROR:",
+        error
+      );
+
+
+      showToast(
+        "Message could not be sent."
+      );
+
+
+      return;
+    }
+
+
+    /*
+      MESSAGE WAS SUCCESSFULLY SAVED.
+
+      Show it immediately.
+    */
+
+    if(data){
+
+      addMessage(
+        data
+      );
+
+    }
+
+
+    chatInput.value =
+    "";
+
+
+  }catch(error){
+
+    console.error(
+      "CHAT ERROR:",
+      error
+    );
+
+
+    showToast(
+      "Message could not be sent."
+    );
+
+
+  }finally{
+
+    sendButton.disabled =
+    false;
+
+  }
+
 }
 
 
@@ -2202,7 +2360,10 @@ document
 
       if(error){
 
-        console.error(error);
+        console.error(
+          "REACTION ERROR:",
+          error
+        );
 
         showToast(
           "Reaction could not be sent."
@@ -2212,7 +2373,9 @@ document
       }
 
 
-      showToast(reaction);
+      showToast(
+        reaction
+      );
 
     }
   );
@@ -2240,7 +2403,7 @@ function setupRealtime(){
 
 
   /*
-    CHAT
+    CHAT REALTIME
   */
 
   .on(
@@ -2254,6 +2417,18 @@ function setupRealtime(){
       currentSession.id
     },
     payload=>{
+
+      console.log(
+        "Realtime chat message:",
+        payload.new
+      );
+
+
+      /*
+        addMessage automatically ignores
+        a message already displayed by
+        the sender.
+      */
 
       addMessage(
         payload.new
@@ -2346,6 +2521,12 @@ function setupRealtime(){
 
   .subscribe(
     status=>{
+
+      console.log(
+        "Zinko realtime status:",
+        status
+      );
+
 
       if(
         status ===
@@ -2544,13 +2725,21 @@ async function loadGifts(){
   }
 
 
-  giftGrid.innerHTML = "";
+  giftGrid.innerHTML =
+  "";
+
+
+  if(!data){
+    return;
+  }
 
 
   data.forEach(gift=>{
 
     const button =
-    document.createElement("button");
+    document.createElement(
+      "button"
+    );
 
     button.className =
     "gift-button";
@@ -2587,7 +2776,9 @@ async function loadGifts(){
     );
 
 
-    giftGrid.appendChild(button);
+    giftGrid.appendChild(
+      button
+    );
 
   });
 
@@ -2677,7 +2868,9 @@ async ()=>{
 
     }else{
 
-      showToast(link);
+      showToast(
+        link
+      );
 
     }
 
@@ -2774,7 +2967,9 @@ async ()=>{
 
   if(error){
 
-    console.error(error);
+    console.error(
+      error
+    );
 
     confirmEndButton.disabled =
     false;
@@ -2942,7 +3137,9 @@ window.addEventListener(
   if(liveKitRoom){
 
     try{
+
       liveKitRoom.disconnect();
+
     }catch(e){}
 
   }
@@ -3006,10 +3203,6 @@ async function initialize(){
   displaySession();
 
 
-  /*
-    Viewers don't need host controls.
-  */
-
   if(!isHost){
 
     micButton.style.display =
@@ -3020,6 +3213,7 @@ async function initialize(){
 
     endButton.style.display =
     "none";
+
   }
 
 
@@ -3031,11 +3225,6 @@ async function initialize(){
 
   await joinLive();
 
-
-  /*
-    Host gets local camera.
-    Viewer waits for LiveKit.
-  */
 
   const cameraReady =
   await startLocalCamera();
@@ -3053,19 +3242,8 @@ async function initialize(){
   }
 
 
-  /*
-    Keep Supabase realtime for
-    chat, reactions, gifts,
-    viewer presence and live status.
-  */
-
   setupRealtime();
 
-
-  /*
-    Connect the video/audio layer
-    through LiveKit.
-  */
 
   await connectToLiveKit();
 
@@ -3095,4 +3273,4 @@ initialize();
 </script>
 
 </body>
-  </html>
+</html>
