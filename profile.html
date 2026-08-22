@@ -77,27 +77,19 @@
       content:"";
       position:absolute;
       inset:-5px;
-
       border-radius:50%;
-
       border:2px dashed rgba(255,211,77,.75);
-
       pointer-events:none;
     }
 
     .avatar-wrap.verified::after{
       content:"✦";
-
       position:absolute;
-
       right:-2px;
       bottom:2px;
-
       width:28px;
       height:28px;
-
       border-radius:50%;
-
       display:flex;
       align-items:center;
       justify-content:center;
@@ -111,7 +103,6 @@
         );
 
       color:#382300;
-
       font-size:15px;
       font-weight:900;
 
@@ -124,7 +115,6 @@
     .profile-avatar{
       width:100%;
       height:100%;
-
       border-radius:50%;
 
       display:flex;
@@ -149,6 +139,74 @@
       width:100%;
       height:100%;
       object-fit:cover;
+      display:block;
+    }
+
+    /* =========================
+       AVATAR EDIT BUTTON
+    ========================= */
+
+    .avatar-edit-button{
+      position:absolute;
+      right:-3px;
+      bottom:-3px;
+
+      width:38px;
+      height:38px;
+
+      border-radius:50%;
+
+      border:3px solid #0b1120;
+
+      background:
+        linear-gradient(
+          135deg,
+          #7155ff,
+          #10bce4
+        );
+
+      color:white;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      font-size:17px;
+      cursor:pointer;
+
+      box-shadow:
+        0 5px 15px rgba(0,0,0,.35);
+
+      z-index:5;
+    }
+
+    .avatar-edit-button:active{
+      transform:scale(.94);
+    }
+
+    #avatarInput{
+      display:none;
+    }
+
+    .avatar-upload-message{
+      margin:8px auto 0;
+      max-width:350px;
+      min-height:18px;
+
+      color:#aeb5cb;
+      font-size:12px;
+    }
+
+    .avatar-upload-message.success{
+      color:#63e6be;
+    }
+
+    .avatar-upload-message.error{
+      color:#ff7d96;
+    }
+
+    .avatar-upload-message.loading{
+      color:#61d8ff;
     }
 
     .verified-badge{
@@ -233,7 +291,6 @@
 
     .stats div{
       text-align:center;
-
       min-width:62px;
     }
 
@@ -304,9 +361,7 @@
 
     .profile-tabs{
       display:flex;
-
       margin-top:25px;
-
       border-bottom:1px solid #202840;
     }
 
@@ -327,9 +382,7 @@
 
     .profile-tabs button.active{
       color:white;
-
-      border-bottom:
-        2px solid #7155ff;
+      border-bottom:2px solid #7155ff;
     }
 
     /* =========================
@@ -393,7 +446,6 @@
       border-top:1px solid #202840;
 
       color:#9da6bf;
-
       font-size:13px;
     }
 
@@ -501,6 +553,10 @@
 
     <section class="profile-top">
 
+      <!-- =========================
+           AVATAR
+      ========================= -->
+
       <div
         id="avatarWrap"
         class="avatar-wrap"
@@ -513,7 +569,28 @@
           S
         </div>
 
+        <button
+          type="button"
+          id="avatarEditButton"
+          class="avatar-edit-button"
+          title="Change profile picture"
+          aria-label="Change profile picture"
+        >
+          📷
+        </button>
+
+        <input
+          id="avatarInput"
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+        >
+
       </div>
+
+      <p
+        id="avatarUploadMessage"
+        class="avatar-upload-message"
+      ></p>
 
 
       <h2
@@ -779,6 +856,17 @@ const avatarWrap =
 const profileAvatar =
   document.getElementById("profileAvatar");
 
+const avatarEditButton =
+  document.getElementById("avatarEditButton");
+
+const avatarInput =
+  document.getElementById("avatarInput");
+
+const avatarUploadMessage =
+  document.getElementById(
+    "avatarUploadMessage"
+  );
+
 const profileName =
   document.getElementById("profileName");
 
@@ -1001,6 +1089,502 @@ function applyVerification(
 
 
 /* =========================================
+   DISPLAY AVATAR
+========================================= */
+
+function displayAvatar(
+  avatarUrl,
+  name
+){
+
+  profileAvatar.innerHTML =
+    "";
+
+
+  if(avatarUrl){
+
+    const img =
+      document.createElement(
+        "img"
+      );
+
+    img.src =
+      avatarUrl;
+
+    img.alt =
+      "Profile picture";
+
+    img.loading =
+      "eager";
+
+    img.onerror =
+      function(){
+
+        profileAvatar.textContent =
+          (name || "Z")
+            .charAt(0)
+            .toUpperCase();
+
+      };
+
+
+    profileAvatar.appendChild(
+      img
+    );
+
+  }
+
+  else{
+
+    profileAvatar.textContent =
+      (name || "Z")
+        .charAt(0)
+        .toUpperCase();
+
+  }
+
+}
+
+
+/* =========================================
+   AVATAR MESSAGE
+========================================= */
+
+function setAvatarMessage(
+  message,
+  type
+){
+
+  avatarUploadMessage.textContent =
+    message || "";
+
+  avatarUploadMessage.className =
+    "avatar-upload-message";
+
+  if(type){
+
+    avatarUploadMessage.classList.add(
+      type
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   DELETE OLD AVATAR
+========================================= */
+
+async function deleteOldAvatar(
+  avatarUrl
+){
+
+  if(!avatarUrl){
+    return;
+  }
+
+
+  try{
+
+    const marker =
+      "/storage/v1/object/public/avatars/";
+
+    const index =
+      avatarUrl.indexOf(marker);
+
+
+    if(index === -1){
+      return;
+    }
+
+
+    const filePath =
+      decodeURIComponent(
+        avatarUrl.substring(
+          index + marker.length
+        )
+      );
+
+
+    if(!filePath){
+      return;
+    }
+
+
+    const {
+      error
+    } =
+    await supabaseClient
+      .storage
+      .from("avatars")
+      .remove([
+        filePath
+      ]);
+
+
+    if(error){
+
+      console.warn(
+        "Old avatar could not be deleted:",
+        error
+      );
+
+    }
+
+  }
+  catch(error){
+
+    console.warn(
+      "Old avatar deletion error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   UPLOAD AVATAR
+========================================= */
+
+async function uploadAvatar(
+  file
+){
+
+  if(!currentUser){
+
+    setAvatarMessage(
+      "You must be logged in to change your picture.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  if(!file){
+
+    return;
+
+  }
+
+
+  /* =========================
+     CHECK FILE TYPE
+  ========================= */
+
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif"
+  ];
+
+
+  if(
+    !allowedTypes.includes(
+      file.type
+    )
+  ){
+
+    setAvatarMessage(
+      "Please choose a JPG, PNG, WEBP, or GIF image.",
+      "error"
+    );
+
+    avatarInput.value =
+      "";
+
+    return;
+
+  }
+
+
+  /* =========================
+     CHECK FILE SIZE
+  ========================= */
+
+  const maxSize =
+    5 * 1024 * 1024;
+
+
+  if(
+    file.size > maxSize
+  ){
+
+    setAvatarMessage(
+      "Your profile picture must be 5 MB or smaller.",
+      "error"
+    );
+
+    avatarInput.value =
+      "";
+
+    return;
+
+  }
+
+
+  setAvatarMessage(
+    "Uploading profile picture...",
+    "loading"
+  );
+
+
+  avatarEditButton.disabled =
+    true;
+
+
+  const oldAvatarUrl =
+    currentUser.user_metadata?.avatar_url ||
+    null;
+
+
+  try{
+
+    /* =========================
+       CREATE UNIQUE FILE NAME
+    ========================= */
+
+    const extension =
+      (
+        file.name.split(".").pop() ||
+        "jpg"
+      )
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9]/g,
+        ""
+      );
+
+
+    const filePath =
+      currentUser.id +
+      "/avatar-" +
+      Date.now() +
+      "." +
+      extension;
+
+
+    /* =========================
+       UPLOAD
+    ========================= */
+
+    const {
+      error: uploadError
+    } =
+    await supabaseClient
+      .storage
+      .from("avatars")
+      .upload(
+        filePath,
+        file,
+        {
+          cacheControl:"3600",
+          upsert:false,
+          contentType:file.type
+        }
+      );
+
+
+    if(uploadError){
+
+      throw uploadError;
+
+    }
+
+
+    /* =========================
+       GET PUBLIC URL
+    ========================= */
+
+    const {
+      data: publicUrlData
+    } =
+    supabaseClient
+      .storage
+      .from("avatars")
+      .getPublicUrl(
+        filePath
+      );
+
+
+    const avatarUrl =
+      publicUrlData?.publicUrl;
+
+
+    if(!avatarUrl){
+
+      throw new Error(
+        "Could not create the avatar URL."
+      );
+
+    }
+
+
+    /* =========================
+       SAVE URL TO USER PROFILE
+    ========================= */
+
+    const {
+      data: updatedUser,
+      error: updateError
+    } =
+    await supabaseClient.auth.updateUser({
+
+      data:{
+        avatar_url:
+          avatarUrl
+      }
+
+    });
+
+
+    if(updateError){
+
+      /* Remove uploaded file if profile update fails */
+
+      await supabaseClient
+        .storage
+        .from("avatars")
+        .remove([
+          filePath
+        ]);
+
+      throw updateError;
+
+    }
+
+
+    /* =========================
+       UPDATE LOCAL USER
+    ========================= */
+
+    if(
+      updatedUser &&
+      updatedUser.user
+    ){
+
+      currentUser =
+        updatedUser.user;
+
+    }
+    else{
+
+      currentUser.user_metadata =
+        {
+          ...(
+            currentUser.user_metadata ||
+            {}
+          ),
+          avatar_url:
+            avatarUrl
+        };
+
+    }
+
+
+    /* =========================
+       SHOW NEW AVATAR
+    ========================= */
+
+    displayAvatar(
+      avatarUrl,
+      currentUser.user_metadata?.full_name ||
+      "Zinko User"
+    );
+
+
+    setAvatarMessage(
+      "Profile picture updated successfully!",
+      "success"
+    );
+
+
+    /* =========================
+       DELETE OLD AVATAR
+    ========================= */
+
+    if(
+      oldAvatarUrl &&
+      oldAvatarUrl !== avatarUrl
+    ){
+
+      await deleteOldAvatar(
+        oldAvatarUrl
+      );
+
+    }
+
+
+  }
+  catch(error){
+
+    console.error(
+      "Avatar upload error:",
+      error
+    );
+
+
+    setAvatarMessage(
+      error?.message ||
+      "Unable to upload your profile picture.",
+      "error"
+    );
+
+  }
+  finally{
+
+    avatarEditButton.disabled =
+      false;
+
+    avatarInput.value =
+      "";
+
+  }
+
+}
+
+
+/* =========================================
+   AVATAR BUTTON
+========================================= */
+
+avatarEditButton.addEventListener(
+  "click",
+  () => {
+
+    avatarInput.click();
+
+  }
+);
+
+
+avatarInput.addEventListener(
+  "change",
+  async () => {
+
+    const file =
+      avatarInput.files?.[0];
+
+
+    if(!file){
+      return;
+    }
+
+
+    await uploadAvatar(
+      file
+    );
+
+  }
+);
+
+
+/* =========================================
    LOAD PROFILE
 ========================================= */
 
@@ -1039,6 +1623,11 @@ async function loadProfile(){
     "Welcome to my Zinko world. 🌍";
 
 
+  const avatarUrl =
+    metadata.avatar_url ||
+    "";
+
+
   profileName.textContent =
     name;
 
@@ -1053,10 +1642,12 @@ async function loadProfile(){
     bio;
 
 
-  profileAvatar.textContent =
+  /* DISPLAY SAVED AVATAR */
+
+  displayAvatar(
+    avatarUrl,
     name
-      .charAt(0)
-      .toUpperCase();
+  );
 
 
   document.getElementById(
@@ -1511,10 +2102,17 @@ saveButton.addEventListener(
       bio;
 
 
-    profileAvatar.textContent =
+    /* KEEP AVATAR */
+
+    const savedAvatar =
+      currentUser.user_metadata?.avatar_url ||
+      "";
+
+
+    displayAvatar(
+      savedAvatar,
       name
-        .charAt(0)
-        .toUpperCase();
+    );
 
 
     applyVerification(
@@ -2346,4 +2944,4 @@ loadProfile();
 </script>
 
 </body>
-</html>
+  </html>
